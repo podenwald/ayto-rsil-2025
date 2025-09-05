@@ -1,4 +1,6 @@
+
 {
+  "homepage": ".",
   "name": "ayto-rsil-2025",
   "private": true,
   "version": "0.0.0",
