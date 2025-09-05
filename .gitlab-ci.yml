@@ -1,0 +1,67 @@
+# GitLab CI/CD Pipeline für Next.js/React Projekt
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "18"
+
+cache:
+  paths:
+    - node_modules/
+    - .npm/
+
+install_dependencies:
+  stage: install
+  image: node:${NODE_VERSION}
+  script:
+    - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+run_tests:
+  stage: test
+  image: node:${NODE_VERSION}
+  script:
+    - npm run test
+  dependencies:
+    - install_dependencies
+
+build_project:
+  stage: build
+  image: node:${NODE_VERSION}
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  dependencies:
+    - install_dependencies
+
+deploy_staging:
+  stage: deploy
+  image: node:${NODE_VERSION}
+  script:
+    - echo "Deploying to staging environment"
+    # Hier Ihre Deployment-Logik einfügen
+  only:
+    - develop
+  dependencies:
+    - build_project
+
+deploy_production:
+  stage: deploy
+  image: node:${NODE_VERSION}
+  script:
+    - echo "Deploying to production environment"
+    # Hier Ihre Production-Deployment-Logik einfügen
+  only:
+    - main
+  dependencies:
+    - build_project
+  when: manual

@@ -1,0 +1,14 @@
+{
+  "gitlab": {
+    "enabled": true,
+    "url": "https://gitlab.com",
+    "token": "your_gitlab_token_here",
+    "projectId": "your_project_id_here"
+  },
+  "git": {
+    "remotes": {
+      "origin": "https://github.com/podenwald/ayto-rsil-2025.git",
+      "gitlab": "https://gitlab.com/ihr-username/ayto-rsil-2025.git"
+    }
+  }
+}
