@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 // Avatar utilities removed - using simple fallback logic
 import {
   Box,
@@ -21,11 +21,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Tooltip,
   FormControl,
   InputLabel,
@@ -48,12 +43,9 @@ import {
   ExpandLess as ExpandLessIcon,
   AccountBalance as AccountBalanceIcon,
   TrendingUp as TrendingUpIcon,
-  Euro as EuroIcon,
   Female as FemaleIcon,
   Male as MaleIcon,
   Close as CloseIcon,
-  BusinessCenter as BusinessCenterIcon,
-  Info as InfoIcon,
   Add as AddIcon,
   Save as SaveIcon
 } from '@mui/icons-material'
@@ -420,88 +412,14 @@ const MatchingNightCard: React.FC<{
   )
 }
 
-// ** Matchbox Card Component
-const MatchboxCard: React.FC<{ matchbox: Matchbox }> = ({ matchbox }) => {
-  const getMatchboxColor = () => {
-    switch (matchbox.matchType) {
-      case 'perfect': return 'success'
-      case 'sold': return 'info'
-      default: return 'error'
-    }
-  }
 
-  const getMatchboxLabel = () => {
-    switch (matchbox.matchType) {
-      case 'perfect': return 'Perfect Match'
-      case 'sold': return 'Verkauft'
-      default: return 'No Match'
-    }
-  }
-
-  return (
-    <Card variant="outlined">
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar sx={{ bgcolor: `${getMatchboxColor()}.main` }}>
-              <FavoriteIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h6">
-                {matchbox.woman} + {matchbox.man}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {new Date(matchbox.createdAt).toLocaleDateString('de-DE')}
-              </Typography>
-            </Box>
-          </Box>
-          <Box>
-            <Chip 
-              label={getMatchboxLabel()}
-              color={getMatchboxColor() as any}
-              size="small"
-            />
-          </Box>
-        </Box>
-        
-        {matchbox.matchType === 'sold' && (
-          <Box sx={{ mt: 2 }}>
-            {matchbox.price && (
-              <Chip 
-                label={`€${matchbox.price.toLocaleString('de-DE')}`}
-                color="primary"
-                icon={<EuroIcon />}
-                size="small"
-                sx={{ mr: 1 }}
-              />
-            )}
-            {matchbox.buyer && (
-              <Typography variant="body2" color="text.secondary">
-                Käufer: {matchbox.buyer}
-              </Typography>
-            )}
-          </Box>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-// ** Statistics Component
-const StatisticsCards: React.FC<{
-  participants: Participant[]
+// ** Statistics Sidebar Component
+const StatisticsSidebar: React.FC<{
   matchboxes: Matchbox[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
-  onCardClick: (type: string, data: any) => void
-}> = ({ participants, matchboxes, penalties, onCardClick }) => {
-  const activeParticipants = participants.filter(p => p.active !== false)
-  const women = participants.filter(p => p.gender === 'F')
-  const men = participants.filter(p => p.gender === 'M')
-  
+}> = ({ matchboxes, matchingNights, penalties }) => {
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect')
-  const soldMatchboxes = matchboxes.filter(mb => mb.matchType === 'sold')
-  const totalRevenue = soldMatchboxes.reduce((sum, mb) => sum + (mb.price || 0), 0)
   
   // Calculate penalties and credits like in AdminPanelMUI
   const totalPenalties = penalties
@@ -517,285 +435,97 @@ const StatisticsCards: React.FC<{
     return savedBudget ? parseInt(savedBudget, 10) : 200000
   }
   const startingBudget = getStartingBudget()
+  const soldMatchboxes = matchboxes.filter(mb => mb.matchType === 'sold')
+  const totalRevenue = soldMatchboxes.reduce((sum, mb) => sum + (mb.price || 0), 0)
   const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
 
-  const stats = [
-    { 
-      title: 'Aktive Teilnehmer', 
-      value: activeParticipants.length, 
-      icon: <PeopleIcon />, 
-      color: 'primary',
-      type: 'participants',
-      data: { active: activeParticipants, inactive: participants.filter(p => p.active === false) }
-    },
-    { 
-      title: 'Frauen', 
-      value: women.length, 
-      icon: <FemaleIcon />, 
-      color: 'secondary',
-      type: 'women',
-      data: women
-    },
-    { 
-      title: 'Männer', 
-      value: men.length, 
-      icon: <MaleIcon />, 
-      color: 'primary',
-      type: 'men',
-      data: men
-    },
-    { 
-      title: 'Perfect Matches', 
-      value: perfectMatches.length, 
-      icon: <FavoriteIcon />, 
-      color: 'success',
-      type: 'perfect-matches',
-      data: perfectMatches
-    },
-    { 
-      title: 'Verkaufte Matchboxes', 
-      value: soldMatchboxes.length, 
-      icon: <TrendingUpIcon />, 
-      color: 'info',
-      type: 'sold-matchboxes',
-      data: soldMatchboxes
-    },
-    { 
-      title: 'Kontostand', 
-      value: `€${currentBalance.toLocaleString('de-DE')}`, 
-      icon: <AccountBalanceIcon />, 
-      color: currentBalance >= 0 ? 'success' : 'error',
-      type: 'budget',
-      data: { startingBudget, totalRevenue, totalPenalties, totalCredits, currentBalance, penalties }
-    }
-  ]
+  // Get latest matching night lights
+  const latestMatchingNight = matchingNights
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+  const currentLights = latestMatchingNight?.totalLights || 0
 
   return (
     <Box sx={{ 
-      display: 'grid',
-      gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
-      gap: 2,
-      mb: 3
+      width: 280,
+      height: '100vh',
+      position: 'sticky',
+      top: 0,
+      bgcolor: 'background.paper',
+      borderLeft: '1px solid',
+      borderColor: 'divider',
+      overflowY: 'auto',
+      p: 3,
+      flexShrink: 0
     }}>
-      {stats.map((stat, index) => (
-        <Card 
-          key={index} 
-          sx={{ 
-            textAlign: 'center', 
-            height: '100%',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: 4
-            }
-          }}
-          onClick={() => onCardClick(stat.type, stat.data)}
-        >
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
+        Statistiken
+      </Typography>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Matching Nights Count */}
+        <Card sx={{ textAlign: 'center' }}>
           <CardContent sx={{ p: 2 }}>
-            <Avatar sx={{ bgcolor: `${stat.color}.main`, mx: 'auto', mb: 1, width: 36, height: 36 }}>
-              {stat.icon}
+            <Avatar sx={{ bgcolor: 'primary.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
+              <FavoriteIcon />
             </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: `${stat.color}.main`, fontSize: '1.1rem' }}>
-              {stat.value}
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              {matchingNights.length}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              {stat.title}
+            <Typography variant="body2" color="text.secondary">
+              Matching Nights
             </Typography>
           </CardContent>
         </Card>
-      ))}
+
+        {/* Current Lights */}
+        <Card sx={{ textAlign: 'center' }}>
+          <CardContent sx={{ p: 2 }}>
+            <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
+              <TrendingUpIcon />
+            </Avatar>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
+              {currentLights}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Lichter aktuell
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Perfect Matches */}
+        <Card sx={{ textAlign: 'center' }}>
+          <CardContent sx={{ p: 2 }}>
+            <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
+              <FavoriteIcon />
+            </Avatar>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'success.main' }}>
+              {perfectMatches.length}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Perfect Matches
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Current Balance */}
+        <Card sx={{ textAlign: 'center' }}>
+          <CardContent sx={{ p: 2 }}>
+            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
+              <AccountBalanceIcon />
+            </Avatar>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main' }}>
+              €{currentBalance.toLocaleString('de-DE')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Kontostand
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
     </Box>
   )
 }
 
-// ** Detail Dialog Component
-const DetailDialog: React.FC<{
-  open: boolean
-  onClose: () => void
-  title: string
-  type: string
-  data: any
-}> = ({ open, onClose, title, type, data }) => {
-  const renderContent = () => {
-    switch (type) {
-      case 'participants':
-        return (
-          <Box>
-            <Typography variant="h6" color="success.main" sx={{ mb: 2 }}>
-              Aktive Teilnehmer ({data.active.length})
-            </Typography>
-            <List sx={{ mb: 3 }}>
-              {data.active.map((participant: Participant) => (
-                <ListItem key={participant.id}>
-                  <ListItemIcon>
-                    <Avatar sx={{ bgcolor: participant.gender === 'F' ? 'secondary.main' : 'primary.main', width: 32, height: 32 }}>
-                      {participant.name?.charAt(0)}
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText primary={participant.name} secondary={`${participant.age} Jahre, ${participant.gender === 'F' ? 'Weiblich' : 'Männlich'}`} />
-                </ListItem>
-              ))}
-            </List>
-            {data.inactive.length > 0 && (
-              <>
-                <Typography variant="h6" color="error.main" sx={{ mb: 2 }}>
-                  Inaktive Teilnehmer ({data.inactive.length})
-                </Typography>
-                <List>
-                  {data.inactive.map((participant: Participant) => (
-                    <ListItem key={participant.id}>
-                      <ListItemIcon>
-                        <Avatar sx={{ bgcolor: 'grey.400', width: 32, height: 32 }}>
-                          {participant.name?.charAt(0)}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText primary={participant.name} secondary={`${participant.age} Jahre, ${participant.gender === 'F' ? 'Weiblich' : 'Männlich'}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-          </Box>
-        )
-      
-      case 'women':
-      case 'men':
-        return (
-          <List>
-            {data.map((participant: Participant) => (
-              <ListItem key={participant.id}>
-                <ListItemIcon>
-                  <Avatar sx={{ bgcolor: participant.gender === 'F' ? 'secondary.main' : 'primary.main', width: 32, height: 32 }}>
-                    {participant.name?.charAt(0)}
-                  </Avatar>
-                </ListItemIcon>
-                <ListItemText 
-                  primary={participant.name} 
-                  secondary={`${participant.age} Jahre • ${participant.active !== false ? 'Aktiv' : 'Inaktiv'} • ${participant.knownFrom || 'Unbekannt'}`} 
-                />
-              </ListItem>
-            ))}
-          </List>
-        )
-      
-      case 'perfect-matches':
-        return (
-          <List>
-            {data.map((matchbox: Matchbox, index: number) => (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <FavoriteIcon color="success" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary={`${matchbox.woman} ❤️ ${matchbox.man}`}
-                  secondary={`Erstellt: ${matchbox.createdAt ? new Date(matchbox.createdAt).toLocaleDateString('de-DE') : 'Unbekannt'}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )
-      
-      case 'sold-matchboxes':
-        return (
-          <List>
-            {data.map((matchbox: Matchbox, index: number) => (
-              <ListItem key={index}>
-                <ListItemIcon>
-                  <EuroIcon color="info" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary={`${matchbox.woman} & ${matchbox.man}`}
-                  secondary={`Käufer: ${matchbox.buyer} • Preis: €${matchbox.price?.toLocaleString('de-DE')} • ${matchbox.soldDate ? new Date(matchbox.soldDate).toLocaleDateString('de-DE') : 'Unbekannt'}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        )
-      
-      case 'budget':
-        return (
-          <Box>
-            <List>
-              <ListItem>
-                <ListItemIcon><AccountBalanceIcon color="primary" /></ListItemIcon>
-                <ListItemText primary="Startkapital" secondary={`€${data.startingBudget.toLocaleString('de-DE')}`} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><TrendingUpIcon color="info" /></ListItemIcon>
-                <ListItemText primary="Einnahmen (Verkaufte Matchboxes)" secondary={`-€${data.totalRevenue.toLocaleString('de-DE')}`} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><InfoIcon color="warning" /></ListItemIcon>
-                <ListItemText primary="Strafen" secondary={`-€${data.totalPenalties.toLocaleString('de-DE')}`} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><TrendingUpIcon color="success" /></ListItemIcon>
-                <ListItemText primary="Gutschriften" secondary={`+€${data.totalCredits.toLocaleString('de-DE')}`} />
-              </ListItem>
-              <Divider sx={{ my: 2 }} />
-              <ListItem>
-                <ListItemIcon>
-                  <AccountBalanceIcon color={data.currentBalance >= 0 ? 'success' : 'error'} />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Aktueller Kontostand" 
-                  secondary={`€${data.currentBalance.toLocaleString('de-DE')}`}
-                  sx={{ '& .MuiListItemText-secondary': { color: data.currentBalance >= 0 ? 'success.main' : 'error.main', fontWeight: 'bold' } }}
-                />
-              </ListItem>
-            </List>
-            
-            {data.penalties.length > 0 && (
-              <>
-                <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>Strafen Details:</Typography>
-                <List>
-                  {data.penalties.map((penalty: Penalty) => (
-                    <ListItem key={penalty.id}>
-                      <ListItemText 
-                        primary={`${penalty.participantName} - ${penalty.reason}`}
-                        secondary={`${penalty.amount > 0 ? '+' : ''}€${penalty.amount.toLocaleString('de-DE')} • ${new Date(penalty.date).toLocaleDateString('de-DE')} • ${penalty.description || 'Keine Beschreibung'}`}
-                        sx={{
-                          '& .MuiListItemText-secondary': {
-                            color: penalty.amount > 0 ? 'success.main' : 'error.main'
-                          }
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </>
-            )}
-          </Box>
-        )
-      
-      default:
-        return <Typography>Keine Details verfügbar</Typography>
-    }
-  }
-
-  return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
-      fullWidth
-      PaperProps={{
-        sx: { maxHeight: '80vh' }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5">{title}</Typography>
-        <IconButton onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
-        {renderContent()}
-      </DialogContent>
-    </Dialog>
-  )
-}
 
 // ** Main Overview Component
 const OverviewMUI: React.FC = () => {
@@ -806,17 +536,6 @@ const OverviewMUI: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState(0)
   const [expandedMatchingNights, setExpandedMatchingNights] = useState<Set<number>>(new Set())
-  const [detailDialog, setDetailDialog] = useState<{
-    open: boolean
-    title: string
-    type: string
-    data: any
-  }>({
-    open: false,
-    title: '',
-    type: '',
-    data: null
-  })
 
   useEffect(() => {
     loadAllData()
@@ -854,32 +573,6 @@ const OverviewMUI: React.FC = () => {
     setExpandedMatchingNights(newExpanded)
   }
 
-  const handleCardClick = (type: string, data: any) => {
-    const titles: { [key: string]: string } = {
-      'participants': 'Teilnehmer Details',
-      'women': 'Frauen Details',
-      'men': 'Männer Details',
-      'perfect-matches': 'Perfect Match Details',
-      'sold-matchboxes': 'Verkaufte Matchbox Details',
-      'budget': 'Budget Details'
-    }
-    
-    setDetailDialog({
-      open: true,
-      title: titles[type] || 'Details',
-      type,
-      data
-    })
-  }
-
-  const closeDetailDialog = () => {
-    setDetailDialog({
-      open: false,
-      title: '',
-      type: '',
-      data: null
-    })
-  }
 
   const tabItems = [
     { label: 'Übersicht', icon: <PeopleIcon /> },
@@ -915,12 +608,11 @@ const OverviewMUI: React.FC = () => {
     buyer: ''
   })
   const [draggedParticipants, setDraggedParticipants] = useState<{woman?: Participant, man?: Participant}>({})
-  const [isDragMode, setIsDragMode] = useState(false)
   const [dragOverTarget, setDragOverTarget] = useState<'woman' | 'man' | null>(null)
   
   // Floating box position state
   const [boxPosition, setBoxPosition] = useState(() => ({
-    x: Math.max(10, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 300),
+    x: Math.max(10, (typeof window !== 'undefined' ? window.innerWidth : 1200) - 300), // Back to original position
     y: Math.max(10, (typeof window !== 'undefined' ? window.innerHeight : 800) - 450) // Unten rechts
   }))
   const [isDraggingBox, setIsDraggingBox] = useState(false)
@@ -940,27 +632,21 @@ const OverviewMUI: React.FC = () => {
     
     // AYTO Rule: Total Perfect Matches = max(womenCount, menCount)
     // If unequal, some participants have multiple perfect matches
-    const totalPerfectMatches = Math.max(womenCount, menCount)
     
     let baseProbabilityForWomen: number
-    let baseProbabilityForMen: number
     
     if (womenCount === menCount) {
       // Equal numbers: each person has exactly 1 perfect match
       baseProbabilityForWomen = 1 / menCount
-      baseProbabilityForMen = 1 / womenCount
     } else if (womenCount < menCount) {
       // More men: some women have multiple perfect matches
       // Total matches = menCount, distributed among womenCount women
       const avgMatchesPerWoman = menCount / womenCount
       baseProbabilityForWomen = avgMatchesPerWoman / menCount
-      baseProbabilityForMen = 1 / womenCount
     } else {
       // More women: some men have multiple perfect matches  
       // Total matches = womenCount, distributed among menCount men
-      const avgMatchesPerMan = womenCount / menCount
       baseProbabilityForWomen = 1 / menCount
-      baseProbabilityForMen = avgMatchesPerMan / womenCount
     }
     
     // Initialize probability matrix with correct AYTO mathematics
@@ -1158,7 +844,6 @@ const OverviewMUI: React.FC = () => {
       buyer: ''
     })
     setDraggedParticipants({})
-    setIsDragMode(false)
   }
 
   // Drag and Drop handlers
@@ -1257,46 +942,36 @@ const OverviewMUI: React.FC = () => {
   }, [draggedParticipants])
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
-      {/* Header */}
-      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
-        <Box sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'between', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                AYTO RSIL 2025
-              </Typography>
-              <Chip label="Overview" color="primary" />
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex' }}>
+      {/* Main Content Area */}
+      <Box sx={{ flex: 1 }}>
+        {/* Header with Menu */}
+        <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                  AYTO RSIL 2025
+                </Typography>
+                <Chip label="Overview" color="primary" />
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AdminIcon />}
+                onClick={() => window.location.href = '/?admin=1&mui=1'}
+              >
+                Admin Panel
+              </Button>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={<AdminIcon />}
-              onClick={() => window.location.href = '/?admin=1&mui=1'}
-              sx={{ ml: 'auto' }}
-            >
-              Admin Panel
-            </Button>
+            
+            <Typography variant="h6" color="text.secondary">
+              Übersicht aller Teilnehmer der aktuellen Staffel
+            </Typography>
           </Box>
-          
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-            Übersicht aller Teilnehmer der aktuellen Staffel
-          </Typography>
-          
-          {/* Statistics */}
-          <StatisticsCards 
-            participants={participants}
-            matchboxes={matchboxes}
-            matchingNights={matchingNights}
-            penalties={penalties}
-            onCardClick={handleCardClick}
-          />
-        </Box>
-      </Paper>
+        </Paper>
 
-      {/* Main Content */}
-      <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
-        {/* Tabs */}
-        <Card sx={{ mb: 4 }}>
+        {/* Menu Tabs - Moved to top */}
+        <Paper sx={{ position: 'sticky', top: 120, zIndex: 999, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
           <Tabs 
             value={activeTab} 
             onChange={(_, newValue) => setActiveTab(newValue)}
@@ -1313,6 +988,11 @@ const OverviewMUI: React.FC = () => {
               />
             ))}
           </Tabs>
+        </Paper>
+
+        {/* Main Content */}
+        <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
+          <Card sx={{ mb: 4 }}>
 
           {/* Overview Tab */}
           <TabPanel value={activeTab} index={0}>
@@ -2067,8 +1747,16 @@ const OverviewMUI: React.FC = () => {
               </Card>
             </Box>
           </TabPanel>
-        </Card>
+          </Card>
+        </Box>
       </Box>
+
+      {/* Statistics Sidebar */}
+      <StatisticsSidebar 
+        matchboxes={matchboxes}
+        matchingNights={matchingNights}
+        penalties={penalties}
+      />
 
 
       {/* Matching Night Dialog */}
@@ -2443,14 +2131,6 @@ const OverviewMUI: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      {/* Detail Dialog */}
-      <DetailDialog
-        open={detailDialog.open}
-        onClose={closeDetailDialog}
-        title={detailDialog.title}
-        type={detailDialog.type}
-        data={detailDialog.data}
-      />
     </Box>
   )
 }
