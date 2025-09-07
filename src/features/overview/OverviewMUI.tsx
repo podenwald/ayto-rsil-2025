@@ -357,7 +357,10 @@ const MatchingNightCard: React.FC<{
               <Box>
                 <Typography variant="h6">{matchingNight.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {new Date(matchingNight.date).toLocaleDateString('de-DE')}
+                  {matchingNight.ausstrahlungsdatum ? 
+                    `Ausstrahlung: ${new Date(matchingNight.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
+                    `Ausstrahlung: ${new Date(matchingNight.date).toLocaleDateString('de-DE')}`
+                  }
                 </Typography>
               </Box>
             </Box>
@@ -439,88 +442,120 @@ const StatisticsSidebar: React.FC<{
   const totalRevenue = soldMatchboxes.reduce((sum, mb) => sum + (mb.price || 0), 0)
   const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
 
-  // Get latest matching night lights
+  // Get latest matching night lights (sort by ausstrahlungsdatum, fallback to createdAt)
   const latestMatchingNight = matchingNights
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+    .sort((a, b) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+      return dateB - dateA
+    })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
 
   return (
     <Box sx={{ 
       width: 280,
       height: '100vh',
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
+      right: 0,
       bgcolor: 'background.paper',
       borderLeft: '1px solid',
       borderColor: 'divider',
       overflowY: 'auto',
       p: 3,
-      flexShrink: 0
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column'
     }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
         Statistiken
       </Typography>
       
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
         {/* Matching Nights Count */}
-        <Card sx={{ textAlign: 'center' }}>
-          <CardContent sx={{ p: 2 }}>
-            <Avatar sx={{ bgcolor: 'primary.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
-              <FavoriteIcon />
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+              <FavoriteIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              {matchingNights.length}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Matching Nights
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Matching Nights
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {matchingNights.length}
             </Typography>
+            </Box>
           </CardContent>
         </Card>
 
         {/* Current Lights */}
-        <Card sx={{ textAlign: 'center' }}>
-          <CardContent sx={{ p: 2 }}>
-            <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
-              <TrendingUpIcon />
-            </Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
-              {currentLights}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Lichter aktuell
-            </Typography>
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+              <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                    </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Lichter aktuell
+                </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {currentLights}
+              </Typography>
+          </Box>
           </CardContent>
         </Card>
 
         {/* Perfect Matches */}
-        <Card sx={{ textAlign: 'center' }}>
-          <CardContent sx={{ p: 2 }}>
-            <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
-              <FavoriteIcon />
-            </Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-              {perfectMatches.length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Perfect Matches
-            </Typography>
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Perfect Matches
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {perfectMatches.length}
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
 
         {/* Current Balance */}
-        <Card sx={{ textAlign: 'center' }}>
-          <CardContent sx={{ p: 2 }}>
-            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', mx: 'auto', mb: 1, width: 40, height: 40 }}>
-              <AccountBalanceIcon />
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
+              <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main' }}>
-              €{currentBalance.toLocaleString('de-DE')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Kontostand
-            </Typography>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Kontostand
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                €{currentBalance.toLocaleString('de-DE')}
+              </Typography>
+          </Box>
           </CardContent>
         </Card>
+      </Box>
+      
+      {/* Admin Button at bottom */}
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<AdminIcon />}
+          onClick={() => window.location.href = '/?admin=1&mui=1'}
+      fullWidth
+          sx={{ 
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 'bold'
+          }}
+        >
+          Admin Panel
+        </Button>
       </Box>
     </Box>
   )
@@ -942,36 +977,25 @@ const OverviewMUI: React.FC = () => {
   }, [draggedParticipants])
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50', display: 'flex' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ mr: '280px' }}>
         {/* Header with Menu */}
-        <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
-          <Box sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  AYTO RSIL 2025
-                </Typography>
-                <Chip label="Overview" color="primary" />
-              </Box>
-              <Button
-                variant="contained"
-                startIcon={<AdminIcon />}
-                onClick={() => window.location.href = '/?admin=1&mui=1'}
-              >
-                Admin Panel
-              </Button>
-            </Box>
-            
-            <Typography variant="h6" color="text.secondary">
-              Übersicht aller Teilnehmer der aktuellen Staffel
-            </Typography>
+      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
+          <Box sx={{ p: 3, pb: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                AYTO RSIL 2025
+              </Typography>
+              <Chip label="Overview" color="primary" />
           </Box>
-        </Paper>
+          
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+            Übersicht aller Teilnehmer der aktuellen Staffel
+          </Typography>
+        </Box>
 
-        {/* Menu Tabs - Moved to top */}
-        <Paper sx={{ position: 'sticky', top: 120, zIndex: 999, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+          {/* Menu Tabs integrated into header */}
           <Tabs 
             value={activeTab} 
             onChange={(_, newValue) => setActiveTab(newValue)}
@@ -1385,7 +1409,11 @@ const OverviewMUI: React.FC = () => {
             ) : (
               <Box>
                 {matchingNights
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .sort((a, b) => {
+                    const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+                    const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                    return dateB - dateA
+                  })
                   .map((matchingNight) => (
                     <MatchingNightCard
                       key={matchingNight.id}
@@ -1424,12 +1452,18 @@ const OverviewMUI: React.FC = () => {
                 justifyContent: 'flex-start'
               }}>
                 {matchboxes
-                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .sort((a, b) => {
+                    const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+                    const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                    return dateB - dateA
+                  })
                   .map((matchbox) => {
                     const additionalInfo = [
                       matchbox.matchType === 'sold' && matchbox.price ? `€${matchbox.price.toLocaleString('de-DE')}` : null,
                       matchbox.matchType === 'sold' && matchbox.buyer ? `Käufer: ${matchbox.buyer}` : null,
-                      new Date(matchbox.createdAt).toLocaleDateString('de-DE')
+                      matchbox.ausstrahlungsdatum ? 
+                        `Ausstrahlung: ${new Date(matchbox.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
+                        `Erstellt: ${new Date(matchbox.createdAt).toLocaleDateString('de-DE')}`
                     ].filter(Boolean).join(' • ')
                     
                     return (
@@ -1453,31 +1487,7 @@ const OverviewMUI: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Wahrscheinlichkeits-Analyse
-              </Typography>
-              <Box>
-                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                  🧮 Basiert auf Matching Nights & Matchbox-Ergebnissen
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
-                  {(() => {
-                    const womenCount = women.length
-                    const menCount = men.length
-                    const totalMatches = Math.max(womenCount, menCount)
-                    
-                    if (womenCount === menCount) {
-                      return `📊 Basis: 1/${menCount} = ${Math.round(100/menCount)}% (${womenCount}F + ${menCount}M = ${totalMatches} Matches, je 1:1)`
-                    } else if (womenCount < menCount) {
-                      const avgPerWoman = menCount / womenCount
-                      const probPerPair = Math.round(avgPerWoman * 100 / menCount)
-                      return `📊 Basis: ${avgPerWoman.toFixed(1)}/${menCount} = ${probPerPair}% (${womenCount}F + ${menCount}M = ${totalMatches} Matches, ⌀${avgPerWoman.toFixed(1)} pro Frau)`
-                    } else {
-                      const avgPerMan = womenCount / menCount  
-                      const probPerPair = Math.round(100 / menCount)
-                      return `📊 Basis: 1/${menCount} = ${probPerPair}% (${womenCount}F + ${menCount}M = ${totalMatches} Matches, ⌀${avgPerMan.toFixed(1)} pro Mann)`
-                    }
-                  })()}
-                </Typography>
-              </Box>
             </Box>
 
             {/* Overall Statistics */}
@@ -1528,226 +1538,177 @@ const OverviewMUI: React.FC = () => {
         </Card>
       </Box>
 
-            {/* Probability Matrix */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
-              {/* Top Matches per Person */}
-              <Card sx={{ height: 'fit-content' }}>
-                <CardHeader 
-                  title="Top Matches pro Person"
-                  subheader="Die wahrscheinlichsten Partner basierend auf bisherigen Daten"
-                />
-                <CardContent>
-                  <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
-                    {[...women, ...men].map(person => {
-                      const topMatches = getTopMatches(person.name!, person.gender === 'F')
-                      return (
-                        <Box key={person.id} sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Avatar 
-                              src={person.photoUrl}
-                              sx={{ 
-                                width: 50, 
-                                height: 50,
-                                bgcolor: person.gender === 'F' ? 'secondary.main' : 'primary.main'
-                              }}
-                            >
-                              {person.name?.charAt(0)}
-                            </Avatar>
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                              {person.name}
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            {topMatches.slice(0, 3).map((match, index) => {
-                              const partner = participants.find(p => p.name === match.name)
-                              const percentage = Math.round(match.probability * 100)
-                              
-                              return (
-                                <Box key={match.name} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Typography variant="body2" sx={{ 
-                                      color: index === 0 ? 'success.main' : index === 1 ? 'warning.main' : 'text.secondary',
-                                      fontWeight: 'bold',
-                                      minWidth: '20px'
-                                    }}>
-                                      #{index + 1}
-                                    </Typography>
-                                    <Avatar 
-                                      src={partner?.photoUrl}
-                                      sx={{ width: 24, height: 24, fontSize: '0.75rem' }}
-                                    >
-                                      {match.name.charAt(0)}
-                                    </Avatar>
-                                    <Typography variant="body2">
-                                      {match.name}
-                                    </Typography>
-                                  </Box>
-                                  
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Box sx={{ 
-                                      width: 60, 
-                                      height: 6, 
-                                      bgcolor: 'grey.200', 
-                                      borderRadius: 3,
-                                      overflow: 'hidden'
-                                    }}>
-                                      <Box sx={{ 
-                                        width: `${percentage}%`, 
-                                        height: '100%',
-                                        bgcolor: percentage >= 80 ? 'success.main' : 
-                                                percentage >= 60 ? 'warning.main' : 
-                                                percentage >= 40 ? 'info.main' : 'error.main',
-                                        transition: 'width 0.3s ease'
-                                      }} />
-                                    </Box>
-                                    <Typography variant="body2" sx={{ 
-                                      minWidth: '35px',
-                                      fontWeight: 'bold',
-                                      color: percentage >= 80 ? 'success.main' : 
-                                             percentage >= 60 ? 'warning.main' : 
-                                             percentage >= 40 ? 'info.main' : 'error.main'
-                                    }}>
-                                      {percentage}%
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              )
-                            })}
-                          </Box>
-                        </Box>
-                      )
-                    })}
-                  </Box>
-                </CardContent>
-              </Card>
-
-              {/* Heatmap Matrix */}
-              <Card sx={{ height: 'fit-content' }}>
-                <CardHeader 
-                  title="Wahrscheinlichkeits-Matrix"
-                  subheader="Heatmap aller Paar-Kombinationen"
-                  action={
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: '0.7rem' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 12, height: 12, bgcolor: 'success.main', borderRadius: '2px' }} />
-                        <Typography variant="caption">100% Perfect Match ✓</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 12, height: 12, bgcolor: 'error.main', borderRadius: '2px' }} />
-                        <Typography variant="caption">0% No Match ✗</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ 
-                          width: 12, 
-                          height: 12, 
-                          background: 'linear-gradient(90deg, hsl(0, 70%, 80%) 0%, hsl(60, 70%, 70%) 50%, hsl(120, 70%, 60%) 100%)',
-                          borderRadius: '2px' 
-                        }} />
-                        <Typography variant="caption">1-99% Wahrscheinlichkeit</Typography>
-                      </Box>
+            {/* Heatmap Matrix */}
+            <Card sx={{ height: 'fit-content', mb: 3 }}>
+              <CardHeader 
+                title="Wahrscheinlichkeits-Matrix"
+                subheader="Heatmap aller Paar-Kombinationen"
+                action={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: '0.7rem' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: 'success.main', borderRadius: '2px' }} />
+                      <Typography variant="caption">100% Perfect Match ✓</Typography>
                     </Box>
-                  }
-                />
-                <CardContent>
-                  <Box sx={{ overflow: 'auto', maxHeight: 600 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}>👩‍🦰 \ 👨‍🦱</TableCell>
-                          {men.map(man => (
-                            <TableCell key={man.id} sx={{ 
-                              fontWeight: 'bold', 
-                              fontSize: '0.75rem',
-                              minWidth: '60px',
-                              textAlign: 'center',
-                              transform: 'rotate(-45deg)',
-                              transformOrigin: 'center',
-                              height: '80px',
-                              verticalAlign: 'bottom'
-                            }}>
-                              {man.name?.substring(0, 8)}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {women.map(woman => (
-                          <TableRow key={woman.id}>
-                            <TableCell sx={{ 
-                              fontWeight: 'bold', 
-                              fontSize: '0.75rem',
-                              minWidth: '80px'
-                            }}>
-                              {woman.name?.substring(0, 10)}
-                            </TableCell>
-                            {men.map(man => {
-                              const probability = pairProbabilities[woman.name!]?.[man.name!] || 0
-                              const percentage = Math.round(probability * 100)
-                              
-                              return (
-                                <TableCell 
-                                  key={`${woman.id}-${man.id}`}
-                                  sx={{ 
-                                    bgcolor: percentage === 100 ? 'success.main' :  // 100% = Grün
-                                             percentage === 0 ? 'error.main' :      // 0% = Rot
-                                             `hsl(${probability * 120}, 70%, ${90 - probability * 30}%)`, // Normal HSL
-                                    textAlign: 'center',
-                                    fontWeight: percentage === 0 || percentage === 100 ? 'bold' : 'bold',
-                                    fontSize: percentage === 0 || percentage === 100 ? '0.9rem' : '0.75rem',
-                                    color: percentage === 100 ? 'white' :           // Perfect Match = Weiß
-                                           percentage === 0 ? 'white' :             // No Match = Weiß  
-                                           probability > 0.5 ? 'white' : 'black',   // Normal logic
-                                    cursor: 'pointer',
-                                    border: percentage === 0 || percentage === 100 ? '2px solid' : 'none',
-                                    borderColor: percentage === 100 ? 'success.dark' : 
-                                                percentage === 0 ? 'error.dark' : 'transparent',
-                                    '&:hover': {
-                                      bgcolor: percentage === 100 ? 'success.dark' :
-                                               percentage === 0 ? 'error.dark' :
-                                               `hsl(${probability * 120}, 70%, ${80 - probability * 30}%)`,
-                                      transform: 'scale(1.1)',
-                                      boxShadow: percentage === 0 || percentage === 100 ? 3 : 1
-                                    },
-                                    transition: 'all 0.2s ease',
-                                    position: 'relative',
-                                    '&::after': percentage === 100 ? {
-                                      content: '"✓"',
-                                      position: 'absolute',
-                                      top: 2,
-                                      right: 2,
-                                      fontSize: '0.7rem',
-                                      color: 'white',
-                                      fontWeight: 'bold'
-                                    } : percentage === 0 ? {
-                                      content: '"✗"',
-                                      position: 'absolute',
-                                      top: 2,
-                                      right: 2,
-                                      fontSize: '0.7rem',
-                                      color: 'white',
-                                      fontWeight: 'bold'
-                                    } : {}
-                                  }}
-                                  title={`${woman.name} & ${man.name}: ${percentage}%${
-                                    percentage === 100 ? ' (PERFECT MATCH ✓)' : 
-                                    percentage === 0 ? ' (NO MATCH ✗)' : ''
-                                  }`}
-                                >
-                                  {percentage === 100 ? '100%' : percentage === 0 ? '0%' : `${percentage}%`}
-                                </TableCell>
-                              )
-                            })}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, bgcolor: 'error.main', borderRadius: '2px' }} />
+                      <Typography variant="caption">0% No Match ✗</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        background: 'linear-gradient(90deg, hsl(0, 70%, 80%) 0%, hsl(60, 70%, 70%) 50%, hsl(120, 70%, 60%) 100%)',
+                        borderRadius: '2px' 
+                      }} />
+                      <Typography variant="caption">1-99% Wahrscheinlichkeit</Typography>
+                    </Box>
                   </Box>
-                </CardContent>
-              </Card>
-            </Box>
+                }
+              />
+              <CardContent>
+                <Box sx={{ overflow: 'auto', maxHeight: 600 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                        {men.map(man => (
+                          <TableCell key={man.id} sx={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '0.75rem',
+                            minWidth: '80px',
+                            textAlign: 'center',
+                            height: '80px',
+                            verticalAlign: 'bottom',
+                            p: 1
+                          }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                              <Avatar 
+                                src={man.photoUrl}
+                                sx={{ 
+                                  width: 24, 
+                                  height: 24, 
+                                  fontSize: '0.7rem',
+                                  bgcolor: 'white',
+                                  border: '1px solid',
+                                  borderColor: 'grey.300'
+                                }}
+                              >
+                                {man.name?.charAt(0)}
+                              </Avatar>
+                              <Typography variant="caption" sx={{ 
+                                fontSize: '0.65rem',
+                                lineHeight: 1,
+                                textAlign: 'center',
+                                wordBreak: 'break-word',
+                                color: 'black'
+                              }}>
+                                {man.name?.substring(0, 8)}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {women.map(woman => (
+                        <TableRow key={woman.id}>
+                          <TableCell sx={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '0.75rem',
+                            minWidth: '100px',
+                            p: 1
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                              <Typography variant="caption" sx={{ 
+                                fontSize: '0.65rem',
+                                lineHeight: 1,
+                                wordBreak: 'break-word',
+                                color: 'black'
+                              }}>
+                                {woman.name?.substring(0, 10)}
+                              </Typography>
+                              <Avatar 
+                                src={woman.photoUrl}
+                                sx={{ 
+                                  width: 24, 
+                                  height: 24, 
+                                  fontSize: '0.7rem',
+                                  bgcolor: 'white',
+                                  border: '1px solid',
+                                  borderColor: 'grey.300'
+                                }}
+                              >
+                                {woman.name?.charAt(0)}
+                              </Avatar>
+                            </Box>
+                          </TableCell>
+                          {men.map(man => {
+                            const probability = pairProbabilities[woman.name!]?.[man.name!] || 0
+                            const percentage = Math.round(probability * 100)
+                            
+                            return (
+                              <TableCell 
+                                key={`${woman.id}-${man.id}`}
+                                sx={{ 
+                                  bgcolor: percentage === 100 ? 'success.main' :  // 100% = Grün
+                                           percentage === 0 ? 'error.main' :      // 0% = Rot
+                                           `hsl(${probability * 120}, 70%, ${90 - probability * 30}%)`, // Normal HSL
+                                  textAlign: 'center',
+                                  fontWeight: percentage === 0 || percentage === 100 ? 'bold' : 'bold',
+                                  fontSize: percentage === 0 || percentage === 100 ? '0.9rem' : '0.75rem',
+                                  color: percentage === 100 ? 'white' :           // Perfect Match = Weiß
+                                         percentage === 0 ? 'white' :             // No Match = Weiß  
+                                         probability > 0.5 ? 'white' : 'black',   // Normal logic
+                                  cursor: 'pointer',
+                                  border: percentage === 0 || percentage === 100 ? '2px solid' : 'none',
+                                  borderColor: percentage === 100 ? 'success.dark' : 
+                                              percentage === 0 ? 'error.dark' : 'transparent',
+                                  '&:hover': {
+                                    bgcolor: percentage === 100 ? 'success.dark' :
+                                             percentage === 0 ? 'error.dark' :
+                                             `hsl(${probability * 120}, 70%, ${80 - probability * 30}%)`,
+                                    transform: 'scale(1.1)',
+                                    boxShadow: percentage === 0 || percentage === 100 ? 3 : 1
+                                  },
+                                  transition: 'all 0.2s ease',
+                                  position: 'relative',
+                                  '&::after': percentage === 100 ? {
+                                    content: '"✓"',
+                                    position: 'absolute',
+                                    top: 2,
+                                    right: 2,
+                                    fontSize: '0.7rem',
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                  } : percentage === 0 ? {
+                                    content: '"✗"',
+                                    position: 'absolute',
+                                    top: 2,
+                                    right: 2,
+                                    fontSize: '0.7rem',
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                  } : {}
+                                }}
+                                title={`${woman.name} & ${man.name}: ${percentage}%${
+                                  percentage === 100 ? ' (PERFECT MATCH ✓)' : 
+                                  percentage === 0 ? ' (NO MATCH ✗)' : ''
+                                }`}
+                              >
+                                {percentage === 100 ? '100%' : percentage === 0 ? '0%' : `${percentage}%`}
+                              </TableCell>
+                            )
+                          })}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+              </CardContent>
+            </Card>
+
           </TabPanel>
-          </Card>
+        </Card>
         </Box>
       </Box>
 

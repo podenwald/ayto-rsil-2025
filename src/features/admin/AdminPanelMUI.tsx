@@ -117,9 +117,11 @@ const StatisticsCards: React.FC<{
   // Calculate current lights from the latest matching night
   const getCurrentLights = () => {
     if (matchingNights.length === 0) return 0
-    const sortedNights = matchingNights.sort((a: any, b: any) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
+    const sortedNights = matchingNights.sort((a: any, b: any) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+      return dateB - dateA
+    })
     return sortedNights[0]?.totalLights || 0
   }
   const currentLights = getCurrentLights()
@@ -802,7 +804,9 @@ const MatchboxManagement: React.FC<{
     matchType: 'no-match',
     price: undefined,
     buyer: undefined,
-    soldDate: undefined
+    soldDate: undefined,
+    ausstrahlungsdatum: undefined,
+    ausstrahlungszeit: undefined
   })
   const [showDialog, setShowDialog] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -864,7 +868,9 @@ const MatchboxManagement: React.FC<{
       matchType: matchbox.matchType,
       price: matchbox.price,
       buyer: matchbox.buyer,
-      soldDate: matchbox.soldDate
+      soldDate: matchbox.soldDate,
+      ausstrahlungsdatum: matchbox.ausstrahlungsdatum,
+      ausstrahlungszeit: matchbox.ausstrahlungszeit
     })
     setShowDialog(true)
   }
@@ -993,7 +999,11 @@ const MatchboxManagement: React.FC<{
               gap: 2
             }}>
               {matchboxes
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort((a, b) => {
+                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                  return dateB - dateA
+                })
                 .map((matchbox) => (
                 <Card key={matchbox.id} variant="outlined">
                   <CardContent>
@@ -1053,10 +1063,13 @@ const MatchboxManagement: React.FC<{
                     )}
                     
                     <Typography variant="caption" color="text.secondary">
-                      Erstellt: {new Date(matchbox.createdAt).toLocaleString('de-DE', { 
-                        day: '2-digit', month: '2-digit', year: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
-                      })}
+                      {matchbox.ausstrahlungsdatum ? 
+                        `Ausstrahlung: ${new Date(matchbox.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
+                        `Erstellt: ${new Date(matchbox.createdAt).toLocaleString('de-DE', { 
+                          day: '2-digit', month: '2-digit', year: 'numeric', 
+                          hour: '2-digit', minute: '2-digit' 
+                        })}`
+                      }
                     </Typography>
                   </CardContent>
                 </Card>
@@ -1120,6 +1133,30 @@ const MatchboxManagement: React.FC<{
                   <MenuItem value="sold">Verkauft</MenuItem>
                 </Select>
               </FormControl>
+            </Box>
+
+            {/* Ausstrahlungsdatum und Zeit */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 2
+            }}>
+              <TextField
+                fullWidth
+                label="Ausstrahlungsdatum"
+                type="date"
+                value={matchboxForm.ausstrahlungsdatum || ''}
+                onChange={(e) => setMatchboxForm({...matchboxForm, ausstrahlungsdatum: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                fullWidth
+                label="Ausstrahlungszeit"
+                type="time"
+                value={matchboxForm.ausstrahlungszeit || ''}
+                onChange={(e) => setMatchboxForm({...matchboxForm, ausstrahlungszeit: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+              />
             </Box>
 
             {matchboxForm.matchType === 'sold' && (
@@ -1196,10 +1233,14 @@ const MatchingNightManagement: React.FC<{
     name: string;
     totalLights: number;
     pairs: Array<{woman: string, man: string}>;
+    ausstrahlungsdatum: string;
+    ausstrahlungszeit: string;
   }>({
     name: '',
     totalLights: 0,
-    pairs: []
+    pairs: [],
+    ausstrahlungsdatum: '',
+    ausstrahlungszeit: ''
   })
   const [selectedWoman, setSelectedWoman] = useState<string>('')
   const [selectedMan, setSelectedMan] = useState<string>('')
@@ -1238,7 +1279,9 @@ const MatchingNightManagement: React.FC<{
     setMatchingNightForm({
       name: '',
       totalLights: 0,
-      pairs: []
+      pairs: [],
+      ausstrahlungsdatum: '',
+      ausstrahlungszeit: ''
     })
     setSelectedWoman('')
     setSelectedMan('')
@@ -1251,7 +1294,9 @@ const MatchingNightManagement: React.FC<{
     setMatchingNightForm({
       name: matchingNight.name,
       totalLights: matchingNight.totalLights || 0,
-      pairs: [...matchingNight.pairs]
+      pairs: [...matchingNight.pairs],
+      ausstrahlungsdatum: matchingNight.ausstrahlungsdatum || '',
+      ausstrahlungszeit: matchingNight.ausstrahlungszeit || ''
     })
     setShowDialog(true)
   }
@@ -1296,7 +1341,9 @@ const MatchingNightManagement: React.FC<{
         await db.matchingNights.update(editingMatchingNight.id!, {
           name: matchingNightForm.name,
           totalLights: matchingNightForm.totalLights,
-          pairs: matchingNightForm.pairs
+          pairs: matchingNightForm.pairs,
+          ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
+          ausstrahlungszeit: matchingNightForm.ausstrahlungszeit
         })
         setSnackbar({ open: true, message: 'Matching Night wurde erfolgreich aktualisiert!', severity: 'success' })
       } else {
@@ -1305,7 +1352,9 @@ const MatchingNightManagement: React.FC<{
           date: new Date().toISOString().split('T')[0],
           totalLights: matchingNightForm.totalLights,
           pairs: matchingNightForm.pairs,
-          createdAt: now
+          createdAt: now,
+          ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
+          ausstrahlungszeit: matchingNightForm.ausstrahlungszeit
         })
         setSnackbar({ open: true, message: 'Matching Night wurde erfolgreich erstellt!', severity: 'success' })
       }
@@ -1332,9 +1381,11 @@ const MatchingNightManagement: React.FC<{
   // Calculate current lights from the latest matching night
   const getCurrentLights = () => {
     if (matchingNights.length === 0) return 0
-    const sortedNights = matchingNights.sort((a: MatchingNight, b: MatchingNight) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
+    const sortedNights = matchingNights.sort((a: MatchingNight, b: MatchingNight) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+      return dateB - dateA
+    })
     return sortedNights[0]?.totalLights || 0
   }
 
@@ -1414,7 +1465,11 @@ const MatchingNightManagement: React.FC<{
               gap: 2
             }}>
               {matchingNights
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort((a, b) => {
+                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                  return dateB - dateA
+                })
                 .map((matchingNight) => (
                 <Card key={matchingNight.id} variant="outlined">
                   <CardContent>
@@ -1460,7 +1515,10 @@ const MatchingNightManagement: React.FC<{
                     </Box>
                     
                     <Typography variant="body2" color="text.secondary">
-                      Datum: {new Date(matchingNight.date).toLocaleDateString('de-DE')}
+                      {matchingNight.ausstrahlungsdatum ? 
+                        `Ausstrahlung: ${new Date(matchingNight.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
+                        `Datum: ${new Date(matchingNight.date).toLocaleDateString('de-DE')}`
+                      }
                     </Typography>
                     
                     <Typography variant="caption" color="text.secondary">
@@ -1505,6 +1563,30 @@ const MatchingNightManagement: React.FC<{
                 value={matchingNightForm.totalLights}
                 onChange={(e) => setMatchingNightForm({...matchingNightForm, totalLights: parseInt(e.target.value) || 0})}
                 placeholder="0"
+              />
+            </Box>
+
+            {/* Ausstrahlungsdatum und Zeit */}
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 2
+            }}>
+              <TextField
+                fullWidth
+                label="Ausstrahlungsdatum"
+                type="date"
+                value={matchingNightForm.ausstrahlungsdatum}
+                onChange={(e) => setMatchingNightForm({...matchingNightForm, ausstrahlungsdatum: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                fullWidth
+                label="Ausstrahlungszeit"
+                type="time"
+                value={matchingNightForm.ausstrahlungszeit}
+                onChange={(e) => setMatchingNightForm({...matchingNightForm, ausstrahlungszeit: e.target.value})}
+                InputLabelProps={{ shrink: true }}
               />
             </Box>
 

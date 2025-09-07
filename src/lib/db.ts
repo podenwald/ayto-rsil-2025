@@ -24,6 +24,8 @@ export interface MatchingNight {
   pairs: Array<{woman: string, man: string}>
   totalLights?: number  // Gesamtanzahl der Lichter aus der Show
   createdAt: Date
+  ausstrahlungsdatum?: string  // Ausstrahlungsdatum (YYYY-MM-DD)
+  ausstrahlungszeit?: string   // Ausstrahlungszeit (HH:MM)
 }
 
 export interface Matchbox {
@@ -36,6 +38,8 @@ export interface Matchbox {
   soldDate?: Date
   createdAt: Date
   updatedAt: Date
+  ausstrahlungsdatum?: string  // Ausstrahlungsdatum (YYYY-MM-DD)
+  ausstrahlungszeit?: string   // Ausstrahlungszeit (HH:MM)
 }
 
 export interface Penalty {
@@ -96,6 +100,30 @@ export class AytoDB extends Dexie {
       matchingNights: '++id, name, date, pairs, totalLights, createdAt',
       matchboxes: '++id, woman, man, matchType, price, buyer, soldDate, createdAt, updatedAt',
       penalties: '++id, participantName, reason, amount, date, createdAt'
+    })
+    this.version(9).stores({
+      participants: '++id, name, gender, status, active, socialMediaAccount, freeProfilePhotoUrl',
+      matchingNights: '++id, name, date, pairs, totalLights, createdAt, ausstrahlungsdatum, ausstrahlungszeit',
+      matchboxes: '++id, woman, man, matchType, price, buyer, soldDate, createdAt, updatedAt, ausstrahlungsdatum, ausstrahlungszeit',
+      penalties: '++id, participantName, reason, amount, date, createdAt'
+    }).upgrade(tx => {
+      // Migration: Übertrage Erstellungsdatum in Ausstrahlungsdatum für bestehende Daten
+      return Promise.all([
+        tx.table('matchingNights').toCollection().modify((matchingNight: any) => {
+          if (!matchingNight.ausstrahlungsdatum && matchingNight.createdAt) {
+            const createdDate = new Date(matchingNight.createdAt)
+            matchingNight.ausstrahlungsdatum = createdDate.toISOString().split('T')[0] // YYYY-MM-DD
+            matchingNight.ausstrahlungszeit = createdDate.toTimeString().split(' ')[0].substring(0, 5) // HH:MM
+          }
+        }),
+        tx.table('matchboxes').toCollection().modify((matchbox: any) => {
+          if (!matchbox.ausstrahlungsdatum && matchbox.createdAt) {
+            const createdDate = new Date(matchbox.createdAt)
+            matchbox.ausstrahlungsdatum = createdDate.toISOString().split('T')[0] // YYYY-MM-DD
+            matchbox.ausstrahlungszeit = createdDate.toTimeString().split(' ')[0].substring(0, 5) // HH:MM
+          }
+        })
+      ])
     })
   }
 }
