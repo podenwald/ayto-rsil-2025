@@ -46,7 +46,9 @@ import {
   Female as FemaleIcon,
   Male as MaleIcon,
   Add as AddIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
@@ -717,113 +719,158 @@ const StatisticsSidebar: React.FC<{
     })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
 
+  // Mobile Off-Canvas State
+  const [isMobile, setIsMobile] = useState(false)
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   return (
-    <Box sx={{ 
-      width: 280,
-      height: '100vh',
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      bgcolor: 'background.paper',
-      borderLeft: '1px solid',
-      borderColor: 'divider',
-      overflowY: 'auto',
-      p: 3,
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
-        Statistiken
-      </Typography>
-      
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-        {/* Matching Nights Count */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Matching Nights
-            </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {matchingNights.length}
-            </Typography>
-            </Box>
-          </CardContent>
-        </Card>
+    <>
+      {isMobile && (
+        <Box sx={{ position: 'fixed', top: 8, right: 8, zIndex: 1400 }}>
+          <IconButton color="primary" onClick={() => setOpen(true)} aria-label="Statistik öffnen" sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </Box>
+      )}
 
-        {/* Current Lights */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-              <TrendingUpIcon sx={{ fontSize: '1rem' }} />
-                    </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Lichter aktuell
+      <Box sx={{ 
+        width: 280,
+        height: '100vh',
+        position: 'fixed',
+        top: 0,
+        right: isMobile ? (open ? 0 : -290) : 0,
+        bgcolor: 'background.paper',
+        borderLeft: '1px solid',
+        borderColor: 'divider',
+        overflowY: 'auto',
+        p: 3,
+        zIndex: 1300,
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'right 0.3s ease'
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+            Statistiken
+          </Typography>
+          {isMobile && (
+            <IconButton onClick={() => setOpen(false)} aria-label="Statistik schließen">
+              <ChevronRightIcon />
+            </IconButton>
+          )}
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+          {/* Matching Nights Count */}
+          <Card>
+            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                  Matching Nights
                 </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {currentLights}
-              </Typography>
-          </Box>
-          </CardContent>
-        </Card>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                  {matchingNights.length}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
 
-        {/* Perfect Matches */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Perfect Matches
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {perfectMatches.length}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
+          {/* Current Lights */}
+          <Card>
+            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+              <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+                <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                  Lichter aktuell
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                  {currentLights}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
 
-        {/* Current Balance */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
-              <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Kontostand
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                €{currentBalance.toLocaleString('de-DE')}
-              </Typography>
+          {/* Perfect Matches */}
+          <Card>
+            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+              <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+                <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                  Perfect Matches
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                  {perfectMatches.length}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Current Balance */}
+          <Card>
+            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+              <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
+                <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                  Kontostand
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                  €{currentBalance.toLocaleString('de-DE')}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Mobile-only: Matchbox öffnen Button */}
+        {isMobile && (
+          <Box sx={{ mt: 2 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<AnalyticsIcon />}
+              onClick={() => {
+                const event = new CustomEvent('open-matchbox-dialog')
+                window.dispatchEvent(event)
+              }}
+            >
+              Matchbox anlegen
+            </Button>
           </Box>
-          </CardContent>
-        </Card>
+        )}
+
+        {/* Admin Button at bottom */}
+        <Box sx={{ mt: 'auto', pt: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<AdminIcon />}
+            onClick={() => window.location.href = '/admin'}
+        fullWidth
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Admin Panel
+          </Button>
+        </Box>
       </Box>
-      
-      {/* Admin Button at bottom */}
-      <Box sx={{ mt: 'auto', pt: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<AdminIcon />}
-          onClick={() => window.location.href = '/admin'}
-      fullWidth
-          sx={{ 
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Admin Panel
-        </Button>
-      </Box>
-    </Box>
+    </>
   )
 }
 
@@ -840,6 +887,22 @@ const OverviewMUI: React.FC = () => {
 
   useEffect(() => {
     loadAllData()
+  }, [])
+
+  // Responsiveness: detect mobile
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Listen for global event to open matchbox dialog
+  useEffect(() => {
+    const handler = () => setMatchboxDialog(true)
+    window.addEventListener('open-matchbox-dialog', handler as EventListener)
+    return () => window.removeEventListener('open-matchbox-dialog', handler as EventListener)
   }, [])
 
   const loadAllData = async () => {
@@ -1513,279 +1576,281 @@ const OverviewMUI: React.FC = () => {
 
           {/* Overview Tab */}
           <TabPanel value={activeTab} index={0}>
-            {/* Floating Matchbox Creator */}
-            <Box
-              data-floating-box
-              sx={{
-                position: 'fixed',
-                left: boxPosition.x,
-                top: boxPosition.y,
-                zIndex: 1200,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                userSelect: 'none',
-                transition: isDraggingBox ? 'none' : 'all 0.3s ease'
-              }}
-            >
-              {/* Quick Matchbox Creator */}
-              <Card
+            {/* Floating Matchbox Creator (disabled on mobile) */}
+            {!isMobile && (
+              <Box
+                data-floating-box
                 sx={{
-                  width: 280,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  boxShadow: 4,
-                  borderRadius: 3,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    boxShadow: 8,
-                    transform: 'scale(1.02)'
-                  }
+                  position: 'fixed',
+                  left: boxPosition.x,
+                  top: boxPosition.y,
+                  zIndex: 1200,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  userSelect: 'none',
+                  transition: isDraggingBox ? 'none' : 'all 0.3s ease'
                 }}
               >
-                <CardHeader
-                  onMouseDown={handleBoxMouseDown}
-                  title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FavoriteIcon />
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          Neue Matchbox
-                        </Typography>
-                      </Box>
-                      <Box 
-                        sx={{ 
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          opacity: 0.7,
-                          p: 1,
-                          borderRadius: 1,
-                          '&:hover': { 
-                            opacity: 1,
-                            bgcolor: 'rgba(255,255,255,0.1)'
-                          }
-                        }}
-                      >
-                        <Typography sx={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
-                          ⋮⋮⋮
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                  subheader={
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Ziehe Teilnehmer hier hinein • Header klicken zum Verschieben
-                    </Typography>
-                  }
-                  sx={{ 
-                    pb: 1,
-                    cursor: isDraggingBox ? 'grabbing' : 'grab',
-                    '&:hover': { 
-                      bgcolor: 'rgba(255,255,255,0.05)'
+                {/* Quick Matchbox Creator */}
+                <Card
+                  sx={{
+                    width: 280,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    boxShadow: 4,
+                    borderRadius: 3,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: 8,
+                      transform: 'scale(1.02)'
                     }
                   }}
-                />
-                <CardContent sx={{ pt: 0 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {/* Woman Drop Zone */}
-                    <Box
-                      onDrop={(e) => {
-                        e.stopPropagation()
-                        handleDrop(e, 'woman')
-                      }}
-                      onDragOver={(e) => {
-                        e.stopPropagation()
-                        handleDragOver(e, 'woman')
-                      }}
-                      onDragLeave={(e) => {
-                        e.stopPropagation()
-                        handleDragLeave()
-                      }}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      sx={{
-                        border: '2px dashed rgba(255,255,255,0.5)',
-                        borderRadius: 2,
-                        p: 2,
-                        textAlign: 'center',
-                        bgcolor: dragOverTarget === 'woman' ? 'rgba(255,255,255,0.4)' : 
-                                 matchboxForm.woman ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                        borderColor: dragOverTarget === 'woman' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
-                        transform: dragOverTarget === 'woman' ? 'scale(1.05)' : 'scale(1)',
-                        transition: 'all 0.3s ease',
-                        minHeight: 80,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1,
-                        '&:hover': {
-                          bgcolor: 'rgba(255,255,255,0.2)',
-                          borderColor: 'rgba(255,255,255,0.8)'
-                        }
-                      }}
-                    >
-                      {matchboxForm.woman ? (
+                >
+                  <CardHeader
+                    onMouseDown={handleBoxMouseDown}
+                    title={
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {(() => {
-                            const woman = women.find(w => w.name === matchboxForm.woman)
-                            const hasPhoto = woman?.photoUrl && woman.photoUrl.trim() !== ''
-                            return (
-                              <Avatar 
-                                src={hasPhoto ? woman.photoUrl : undefined}
-                                sx={{ 
-                                  width: 40, 
-                                  height: 40, 
-                                  bgcolor: hasPhoto ? undefined : 'secondary.main',
-                                  border: '2px solid white'
-                                }}
-                              >
-                                {!hasPhoto && (woman?.name?.charAt(0) || 'F')}
-                              </Avatar>
-                            )
-                          })()}
-                          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
-                            {matchboxForm.woman}
-                          </Typography>
-                          <IconButton
-                            size="small"
-                            onClick={() => setMatchboxForm(prev => ({...prev, woman: ''}))}
-                            sx={{ color: 'white', ml: 'auto' }}
-                          >
-                            <Typography sx={{ fontSize: '16px' }}>×</Typography>
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                            Frau hinzufügen
+                          <FavoriteIcon />
+                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            Neue Matchbox
                           </Typography>
                         </Box>
-                      )}
-                    </Box>
-
-                    {/* Man Drop Zone */}
-                    <Box
-                      onDrop={(e) => {
-                        e.stopPropagation()
-                        handleDrop(e, 'man')
-                      }}
-                      onDragOver={(e) => {
-                        e.stopPropagation()
-                        handleDragOver(e, 'man')
-                      }}
-                      onDragLeave={(e) => {
-                        e.stopPropagation()
-                        handleDragLeave()
-                      }}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      sx={{
-                        border: '2px dashed rgba(255,255,255,0.5)',
-                        borderRadius: 2,
-                        p: 2,
-                        textAlign: 'center',
-                        bgcolor: dragOverTarget === 'man' ? 'rgba(255,255,255,0.4)' : 
-                                 matchboxForm.man ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                        borderColor: dragOverTarget === 'man' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
-                        transform: dragOverTarget === 'man' ? 'scale(1.05)' : 'scale(1)',
-                        transition: 'all 0.3s ease',
-                        minHeight: 80,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 1,
-                        '&:hover': {
-                          bgcolor: 'rgba(255,255,255,0.2)',
-                          borderColor: 'rgba(255,255,255,0.8)'
-                        }
-                      }}
-                    >
-                      {matchboxForm.man ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {(() => {
-                            const man = men.find(m => m.name === matchboxForm.man)
-                            const hasPhoto = man?.photoUrl && man.photoUrl.trim() !== ''
-                            return (
-                              <Avatar 
-                                src={hasPhoto ? man.photoUrl : undefined}
-                                sx={{ 
-                                  width: 40, 
-                                  height: 40, 
-                                  bgcolor: hasPhoto ? undefined : 'primary.main',
-                                  border: '2px solid white'
-                                }}
-                              >
-                                {!hasPhoto && (man?.name?.charAt(0) || 'M')}
-                              </Avatar>
-                            )
-                          })()}
-                          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
-                            {matchboxForm.man}
-                          </Typography>
-                          <IconButton
-                            size="small"
-                            onClick={() => setMatchboxForm(prev => ({...prev, man: ''}))}
-                            sx={{ color: 'white', ml: 'auto' }}
-                          >
-                            <Typography sx={{ fontSize: '16px' }}>×</Typography>
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                            Mann hinzufügen
-                          </Typography>
-                        </Box>
-                      )}
-                    </Box>
-
-                    {/* Action Buttons */}
-                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }} onMouseDown={(e) => e.stopPropagation()}>
-                      {matchboxForm.woman && matchboxForm.man ? (
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setMatchboxDialog(true)
-                          }}
-                          sx={{
-                            bgcolor: 'white',
-                            color: 'primary.main',
-                            fontWeight: 'bold',
-                            '&:hover': {
-                              bgcolor: 'grey.100'
+                        <Box 
+                          sx={{ 
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            opacity: 0.7,
+                            p: 1,
+                            borderRadius: 1,
+                            '&:hover': { 
+                              opacity: 1,
+                              bgcolor: 'rgba(255,255,255,0.1)'
                             }
                           }}
                         >
-                          Details festlegen
-                        </Button>
-                      ) : (
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', width: '100%', py: 1 }}>
-                          Beide Teilnehmer hinzufügen
-                        </Typography>
-                      )}
-                      {(matchboxForm.woman || matchboxForm.man) && (
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            resetMatchboxForm()
-                          }}
-                          sx={{
-                            color: 'white',
+                          <Typography sx={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
+                            ⋮⋮⋮
+                          </Typography>
+                        </Box>
+                      </Box>
+                    }
+                    subheader={
+                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                        Ziehe Teilnehmer hier hinein • Header klicken zum Verschieben
+                      </Typography>
+                    }
+                    sx={{ 
+                      pb: 1,
+                      cursor: isDraggingBox ? 'grabbing' : 'grab',
+                      '&:hover': { 
+                        bgcolor: 'rgba(255,255,255,0.05)'
+                      }
+                    }}
+                  />
+                  <CardContent sx={{ pt: 0 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {/* Woman Drop Zone */}
+                      <Box
+                        onDrop={(e) => {
+                          e.stopPropagation()
+                          handleDrop(e, 'woman')
+                        }}
+                        onDragOver={(e) => {
+                          e.stopPropagation()
+                          handleDragOver(e, 'woman')
+                        }}
+                        onDragLeave={(e) => {
+                          e.stopPropagation()
+                          handleDragLeave()
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        sx={{
+                          border: '2px dashed rgba(255,255,255,0.5)',
+                          borderRadius: 2,
+                          p: 2,
+                          textAlign: 'center',
+                          bgcolor: dragOverTarget === 'woman' ? 'rgba(255,255,255,0.4)' : 
+                                   matchboxForm.woman ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                          borderColor: dragOverTarget === 'woman' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
+                          transform: dragOverTarget === 'woman' ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.3s ease',
+                          minHeight: 80,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1,
+                          '&:hover': {
                             bgcolor: 'rgba(255,255,255,0.2)',
-                            '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
-                          }}
-                        >
-                          <Typography sx={{ fontSize: '16px' }}>↻</Typography>
-                        </IconButton>
-                      )}
+                            borderColor: 'rgba(255,255,255,0.8)'
+                          }
+                        }}
+                      >
+                        {matchboxForm.woman ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {(() => {
+                              const woman = women.find(w => w.name === matchboxForm.woman)
+                              const hasPhoto = woman?.photoUrl && woman.photoUrl.trim() !== ''
+                              return (
+                                <Avatar 
+                                  src={hasPhoto ? woman.photoUrl : undefined}
+                                  sx={{ 
+                                    width: 40, 
+                                    height: 40, 
+                                    bgcolor: hasPhoto ? undefined : 'secondary.main',
+                                    border: '2px solid white'
+                                  }}
+                                >
+                                  {!hasPhoto && (woman?.name?.charAt(0) || 'F')}
+                                </Avatar>
+                              )
+                            })()}
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
+                              {matchboxForm.woman}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => setMatchboxForm(prev => ({...prev, woman: ''}))}
+                              sx={{ color: 'white', ml: 'auto' }}
+                            >
+                              <Typography sx={{ fontSize: '16px' }}>×</Typography>
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                              Frau hinzufügen
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+
+                      {/* Man Drop Zone */}
+                      <Box
+                        onDrop={(e) => {
+                          e.stopPropagation()
+                          handleDrop(e, 'man')
+                        }}
+                        onDragOver={(e) => {
+                          e.stopPropagation()
+                          handleDragOver(e, 'man')
+                        }}
+                        onDragLeave={(e) => {
+                          e.stopPropagation()
+                          handleDragLeave()
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        sx={{
+                          border: '2px dashed rgba(255,255,255,0.5)',
+                          borderRadius: 2,
+                          p: 2,
+                          textAlign: 'center',
+                          bgcolor: dragOverTarget === 'man' ? 'rgba(255,255,255,0.4)' : 
+                                   matchboxForm.man ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                          borderColor: dragOverTarget === 'man' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
+                          transform: dragOverTarget === 'man' ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.3s ease',
+                          minHeight: 80,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1,
+                          '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            borderColor: 'rgba(255,255,255,0.8)'
+                          }
+                        }}
+                      >
+                        {matchboxForm.man ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {(() => {
+                              const man = men.find(m => m.name === matchboxForm.man)
+                              const hasPhoto = man?.photoUrl && man.photoUrl.trim() !== ''
+                              return (
+                                <Avatar 
+                                  src={hasPhoto ? man.photoUrl : undefined}
+                                  sx={{ 
+                                    width: 40, 
+                                    height: 40, 
+                                    bgcolor: hasPhoto ? undefined : 'primary.main',
+                                    border: '2px solid white'
+                                  }}
+                                >
+                                  {!hasPhoto && (man?.name?.charAt(0) || 'M')}
+                                </Avatar>
+                              )
+                            })()}
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
+                              {matchboxForm.man}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => setMatchboxForm(prev => ({...prev, man: ''}))}
+                              sx={{ color: 'white', ml: 'auto' }}
+                            >
+                              <Typography sx={{ fontSize: '16px' }}>×</Typography>
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                              Mann hinzufügen
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+
+                      {/* Action Buttons */}
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }} onMouseDown={(e) => e.stopPropagation()}>
+                        {matchboxForm.woman && matchboxForm.man ? (
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMatchboxDialog(true)
+                            }}
+                            sx={{
+                              bgcolor: 'white',
+                              color: 'primary.main',
+                              fontWeight: 'bold',
+                              '&:hover': {
+                                bgcolor: 'grey.100'
+                              }
+                            }}
+                          >
+                            Details festlegen
+                          </Button>
+                        ) : (
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', width: '100%', py: 1 }}>
+                            Beide Teilnehmer hinzufügen
+                          </Typography>
+                        )}
+                        {(matchboxForm.woman || matchboxForm.man) && (
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              resetMatchboxForm()
+                            }}
+                            sx={{
+                              color: 'white',
+                              bgcolor: 'rgba(255,255,255,0.2)',
+                              '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '16px' }}>↻</Typography>
+                          </IconButton>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            )}
 
             {/* Search */}
             <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'center' }}>
