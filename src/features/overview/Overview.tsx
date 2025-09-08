@@ -567,7 +567,7 @@ export default function Overview() {
                   <CardTitle className="text-2xl font-bold">Teilnehmer Übersicht</CardTitle>
                   <Button 
                     variant="outline" 
-                    onClick={() => window.location.href = '/?admin=1'}
+                    onClick={() => window.location.href = '/admin'}
                     className="bg-white/20 border-white/30 text-white hover:bg-white/30 h-14 px-8 rounded-2xl font-semibold text-base shadow-lg"
                   >
                     <Users className="h-6 w-6 mr-3"/>Admin Panel
@@ -677,7 +677,7 @@ export default function Overview() {
                       Testdaten laden
                     </Button>
                     <Button 
-                      onClick={() => window.location.href = '/?admin=1'}
+                      onClick={() => window.location.href = '/admin'}
                       className="bg-blue-500 hover:bg-blue-600"
                     >
                       Teilnehmer hinzufügen
@@ -698,7 +698,7 @@ export default function Overview() {
                   <CardTitle className="text-2xl font-bold">Matching Nights</CardTitle>
                   <Button 
                     variant="outline" 
-                    onClick={() => window.location.href = '/?admin=1'}
+                    onClick={() => window.location.href = '/admin'}
                     className="bg-white/20 border-white/30 text-white hover:bg-white/30 h-14 px-8 rounded-2xl font-semibold text-base shadow-lg"
                   >
                     <Users className="h-6 w-6 mr-3"/>Admin Panel
@@ -1132,7 +1132,7 @@ export default function Overview() {
                   <CardTitle className="text-2xl font-bold">Matchbox</CardTitle>
                   <Button 
                     variant="outline" 
-                    onClick={() => window.location.href = '/?admin=1'}
+                    onClick={() => window.location.href = '/admin'}
                     className="bg-white/20 border-white/30 text-white hover:bg-white/30 h-14 px-8 rounded-2xl font-semibold text-base shadow-lg"
                   >
                     <Users className="h-6 w-6 mr-3"/>Admin Panel

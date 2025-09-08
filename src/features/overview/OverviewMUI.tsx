@@ -812,12 +812,12 @@ const StatisticsSidebar: React.FC<{
         <Button
           variant="contained"
           startIcon={<AdminIcon />}
-          onClick={() => window.location.href = '/?admin=1&mui=1'}
+          onClick={() => window.location.href = '/admin'}
       fullWidth
           sx={{ 
             borderRadius: 2,
             textTransform: 'none',
-            fontWeight: 'bold'
+            fontWeight: 600
           }}
         >
           Admin Panel
