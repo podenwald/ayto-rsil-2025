@@ -1251,10 +1251,28 @@ const MatchingNightManagement: React.FC<{
     severity: 'success'
   })
 
-  // Perfect Match Logik
-  const perfectMatchPairs = matchboxes
-    .filter(mb => mb.matchType === 'perfect')
-    .map(mb => ({ woman: mb.woman, man: mb.man }))
+  // Perfect Match Logik - nur Matchboxes die VOR der aktuellen Matching Night ausgestrahlt wurden
+  const getValidPerfectMatches = (currentMatchingNightDate?: string) => {
+    if (!currentMatchingNightDate) {
+      // Wenn keine Matching Night ausgewählt ist, alle Perfect Matches anzeigen
+      return matchboxes
+        .filter(mb => mb.matchType === 'perfect')
+        .map(mb => ({ woman: mb.woman, man: mb.man }))
+    }
+    
+    const currentDate = new Date(currentMatchingNightDate)
+    return matchboxes
+      .filter(mb => {
+        if (mb.matchType !== 'perfect') return false
+        
+        // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
+        const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
+        return matchboxDate.getTime() < currentDate.getTime()
+      })
+      .map(mb => ({ woman: mb.woman, man: mb.man }))
+  }
+  
+  const perfectMatchPairs = getValidPerfectMatches(matchingNightForm.ausstrahlungsdatum)
 
   const women = participants.filter(p => p.gender === 'F')
   const men = participants.filter(p => p.gender === 'M')

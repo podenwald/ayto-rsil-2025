@@ -153,10 +153,28 @@ export default function Overview() {
   const women = filteredParticipants.filter(p => p.gender === 'F') || [];
   const men = filteredParticipants.filter(p => p.gender === 'M') || [];
 
-  // Get perfect match pairs
-  const perfectMatchPairs = (matchboxes || [])
-    .filter(mb => mb && mb.matchType === 'perfect')
-    .map(mb => ({ woman: mb.woman, man: mb.man }));
+  // Get perfect match pairs - nur die die VOR der aktuellen Matching Night ausgestrahlt wurden
+  const getValidPerfectMatches = (currentMatchingNightDate?: string) => {
+    if (!currentMatchingNightDate) {
+      // Wenn keine Matching Night ausgewählt ist, alle Perfect Matches anzeigen
+      return (matchboxes || [])
+        .filter(mb => mb && mb.matchType === 'perfect')
+        .map(mb => ({ woman: mb.woman, man: mb.man }))
+    }
+    
+    const currentDate = new Date(currentMatchingNightDate)
+    return (matchboxes || [])
+      .filter(mb => {
+        if (!mb || mb.matchType !== 'perfect') return false
+        
+        // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
+        const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
+        return matchboxDate.getTime() < currentDate.getTime()
+      })
+      .map(mb => ({ woman: mb.woman, man: mb.man }))
+  }
+  
+  const perfectMatchPairs = getValidPerfectMatches()
 
   // Get already used participants for current matching night (including perfect matches)
   const usedWomen = [
