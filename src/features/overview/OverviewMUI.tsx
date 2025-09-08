@@ -31,7 +31,8 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  useMediaQuery
 } from '@mui/material'
 import {
   People as PeopleIcon,
@@ -46,7 +47,8 @@ import {
   Female as FemaleIcon,
   Male as MaleIcon,
   Add as AddIcon,
-  Save as SaveIcon
+  Save as SaveIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
@@ -687,7 +689,15 @@ const StatisticsSidebar: React.FC<{
   matchboxes: Matchbox[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
-}> = ({ matchboxes, matchingNights, penalties }) => {
+  onCreateMatchbox: () => void
+  onCreateMatchingNight: () => void
+  isOpenMobile?: boolean
+  onToggleMobile?: () => void
+}> = ({ matchboxes, matchingNights, penalties, onCreateMatchbox, onCreateMatchingNight, isOpenMobile, onToggleMobile }) => {
+  const isMobile = useMediaQuery('(max-width:600px)')
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const mobileOpen = typeof isOpenMobile === 'boolean' ? isOpenMobile : internalOpen
+  const toggleMobile = onToggleMobile ? onToggleMobile : () => setInternalOpen(v => !v)
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect')
   
   // Calculate penalties and credits like in AdminPanelMUI
@@ -717,6 +727,105 @@ const StatisticsSidebar: React.FC<{
     })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
 
+  if (isMobile) {
+    return (
+      <Box sx={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        bgcolor: 'background.paper',
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        zIndex: 1000,
+      }}>
+        <Box onClick={toggleMobile} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Statistiken</Typography>
+          {mobileOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+        </Box>
+        {mobileOpen && (
+          <Box sx={{ maxHeight: '33vh', overflowY: 'auto', p: 2 }}>
+            <Button variant="contained" color="secondary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
+              Neue Matching Night
+            </Button>
+            <Button variant="contained" color="primary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
+              Matchbox erstellen
+            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Matching Nights Count */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Matching Nights
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {matchingNights.length}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Current Lights */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+                    <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Lichter aktuell
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {currentLights}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+              
+              {/* Perfect matches */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Perfect Matches
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {perfectMatches.length}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Budget */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'info.main', width: 32, height: 32 }}>
+                    <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Budget
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'info.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {currentBalance.toLocaleString('de-DE')} €
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
+        )}
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ 
       width: 280,
@@ -736,6 +845,12 @@ const StatisticsSidebar: React.FC<{
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
         Statistiken
       </Typography>
+      <Button variant="contained" color="secondary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
+        Neue Matching Night
+      </Button>
+      <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
+        Matchbox erstellen
+      </Button>
       
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
         {/* Matching Nights Count */}
@@ -1464,18 +1579,27 @@ const OverviewMUI: React.FC = () => {
     }
   }, [draggedParticipants])
 
+  const isMobile = useMediaQuery('(max-width:600px)')
+  const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
-      <Box sx={{ mr: '280px' }}>
+      <Box sx={{ mr: isMobile ? 0 : '280px' }}>
         {/* Header with Menu */}
-      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
-          <Box sx={{ p: 3, pb: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper', left: 0, right: 0, width: isMobile ? '100vw' : 'auto' }}>
+          <Box sx={{ p: isMobile ? 2 : 3, pb: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                 AYTO RSIL 2025
               </Typography>
               <Chip label="Overview" color="primary" />
+              </Box>
+              {isMobile && (
+                <IconButton aria-label="Statistik öffnen" onClick={() => setIsStatsOpenMobile(prev => !prev)}>
+                  <MenuIcon />
+                </IconButton>
+              )}
           </Box>
           
           <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
@@ -1508,12 +1632,13 @@ const OverviewMUI: React.FC = () => {
         </Paper>
 
         {/* Main Content */}
-        <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
+        <Box sx={{ maxWidth: isMobile ? '100%' : '1200px', mx: isMobile ? 0 : 'auto', p: isMobile ? 2 : 3 }}>
           <Card sx={{ mb: 4 }}>
 
           {/* Overview Tab */}
           <TabPanel value={activeTab} index={0}>
-            {/* Floating Matchbox Creator */}
+            {/* Floating Matchbox Creator - nur auf Desktop */}
+            {!isMobile && (
             <Box
               data-floating-box
               sx={{
@@ -1786,6 +1911,7 @@ const OverviewMUI: React.FC = () => {
                 </CardContent>
               </Card>
             </Box>
+            )}
 
             {/* Search */}
             <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -1803,31 +1929,6 @@ const OverviewMUI: React.FC = () => {
                 }}
                 sx={{ maxWidth: 600 }}
               />
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  resetMatchingNightFormWithPerfectMatches()
-                  setMatchingNightDialog(true)
-                }}
-                sx={{ 
-                  borderRadius: 2, 
-                  whiteSpace: 'nowrap',
-                  minHeight: 56,
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  boxShadow: 3,
-                  '&:hover': {
-                    boxShadow: 6,
-                    transform: 'translateY(-2px)',
-                    transition: 'all 0.2s ease-in-out'
-                  }
-                }}
-              >
-                Neue Matching Night
-              </Button>
             </Box>
 
             {/* Participants by Gender */}
@@ -2235,6 +2336,13 @@ const OverviewMUI: React.FC = () => {
         matchboxes={matchboxes}
         matchingNights={matchingNights}
         penalties={penalties}
+        onCreateMatchbox={() => setMatchboxDialog(true)}
+        onCreateMatchingNight={() => {
+          resetMatchingNightFormWithPerfectMatches()
+          setMatchingNightDialog(true)
+        }}
+        isOpenMobile={isStatsOpenMobile}
+        onToggleMobile={() => setIsStatsOpenMobile(v => !v)}
       />
 
 
@@ -2569,13 +2677,14 @@ const OverviewMUI: React.FC = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             Neue Matchbox erstellen
             <Typography variant="body2" color="text.secondary">
-              💡 Ziehe Teilnehmer aus der Übersicht hier hinein
+              {isMobile ? '📱 Wähle Teilnehmer aus den Listen aus' : '💡 Ziehe Teilnehmer aus der Übersicht hier hinein'}
             </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Drag & Drop Areas */}
+            {/* Drag & Drop Areas - nur auf Desktop */}
+            {!isMobile && (
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
               {/* Woman Drop Zone */}
               <Box
@@ -2759,9 +2868,10 @@ const OverviewMUI: React.FC = () => {
                 )}
               </Box>
             </Box>
+            )}
 
-            {/* Fallback Dropdowns */}
-            <Typography variant="h6" sx={{ mt: 2 }}>Oder manuell auswählen:</Typography>
+            {/* Manuelle Auswahl - immer sichtbar */}
+            <Typography variant="h6" sx={{ mt: 2 }}>{isMobile ? 'Teilnehmer auswählen:' : 'Oder manuell auswählen:'}</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Frau auswählen</InputLabel>

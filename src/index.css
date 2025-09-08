@@ -119,6 +119,12 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground; }
+  body { @apply bg-background text-foreground; margin: 0; }
+}
+
+/* Mobile: erzwinge volle Breite für häufig genutzte Containerklassen */
+@media (max-width: 768px) {
+  .max-w-7xl, .max-w-6xl, .max-w-3xl { max-width: 100% !important; }
+  .mx-auto { margin-left: 0 !important; margin-right: 0 !important; }
 }
   
