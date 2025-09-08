@@ -5,6 +5,7 @@ import AdminPanel from "@/features/admin/AdminPanel"
 import AdminPanelMUI from "@/features/admin/AdminPanelMUI"
 import AYTO_Mobile_MVP from "@/features/ayto/AYTO_Mobile_MVP"
 import ThemeProvider from "@/theme/ThemeProvider"
+import LegalFooter from "@/components/LegalFooter"
 
 export default function App() {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -24,19 +25,42 @@ export default function App() {
     if (useMUIAdmin) {
       return (
         <ThemeProvider>
-          <AdminPanelMUI />
+          <div>
+            <AdminPanelMUI />
+            <LegalFooter />
+          </div>
         </ThemeProvider>
       )
     }
-    return <AdminPanel />
+    return (
+      <div>
+        <AdminPanel />
+        <LegalFooter />
+      </div>
+    )
   }
 
   if (isOverview) {
     if (useMUIOverview) {
-      return <OverviewMUI />
+      return (
+        <div>
+          <OverviewMUI />
+          <LegalFooter />
+        </div>
+      )
     }
-    return <Overview />
+    return (
+      <div>
+        <Overview />
+        <LegalFooter />
+      </div>
+    )
   }
 
-  return <AYTO_Mobile_MVP />
+  return (
+    <div>
+      <AYTO_Mobile_MVP />
+      <LegalFooter />
+    </div>
+  )
 }

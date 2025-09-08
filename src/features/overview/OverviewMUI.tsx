@@ -878,7 +878,7 @@ const OverviewMUI: React.FC = () => {
   const tabItems = [
     { label: 'Home', icon: <PeopleIcon /> },
     { label: 'Matchbox', icon: <AnalyticsIcon /> },
-    { label: 'Wahrscheinlichkeiten', icon: <TrendingUpIcon /> }
+    { label: 'Wahrscheinlichkeiten', icon: <TrendingUpIcon />, disabled: true }
   ]
 
   // Admin functionality states
@@ -1371,6 +1371,11 @@ const OverviewMUI: React.FC = () => {
     const participantData = e.dataTransfer.getData('participant')
     if (participantData) {
       const participant = JSON.parse(participantData) as Participant
+      // Blockiere bestätigte Perfect Matches für neue Matchboxen
+      if (getAllConfirmedPerfectMatchParticipants().has(participant.name || '')) {
+        setSnackbar({ open: true, message: `${participant.name} ist bereits als Perfect Match bestätigt und kann nicht für eine neue Matchbox verwendet werden.`, severity: 'error' })
+        return
+      }
       if ((target === 'woman' && participant.gender === 'F') || 
           (target === 'man' && participant.gender === 'M')) {
         setMatchboxForm(prev => ({
@@ -1481,7 +1486,11 @@ const OverviewMUI: React.FC = () => {
           {/* Menu Tabs integrated into header */}
           <Tabs 
             value={activeTab} 
-            onChange={(_, newValue) => setActiveTab(newValue)}
+            onChange={(_, newValue) => {
+              // Wechsel zum deaktivierten Tab (Index 2) verhindern
+              if (newValue === 2) return
+              setActiveTab(newValue)
+            }}
             variant="fullWidth"
             sx={{ borderBottom: 1, borderColor: 'divider' }}
           >
@@ -1491,6 +1500,7 @@ const OverviewMUI: React.FC = () => {
                 label={tab.label} 
                 icon={tab.icon}
                 iconPosition="start"
+                disabled={Boolean(tab.disabled)}
                 sx={{ minHeight: 64, fontSize: '1rem', fontWeight: 'bold' }}
               />
             ))}
@@ -1847,15 +1857,19 @@ const OverviewMUI: React.FC = () => {
                       {filteredParticipants
                         .filter(p => p.gender === 'F')
                         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'))
-                        .map((participant) => (
-                          <ParticipantCard 
-                            key={participant.id} 
-                            participant={participant} 
-                            draggable={true}
-                            onDragStart={(p) => setDraggedParticipant(p)}
-                            isPlaced={placedParticipants.has(participant.name || '')}
-                          />
-                        ))}
+                        .map((participant) => {
+                          const isConfirmedPM = getAllConfirmedPerfectMatchParticipants().has(participant.name || '')
+                          const isUnavailable = isConfirmedPM || placedParticipants.has(participant.name || '')
+                          return (
+                            <ParticipantCard 
+                              key={participant.id} 
+                              participant={participant} 
+                              draggable={!isUnavailable}
+                              onDragStart={(p) => setDraggedParticipant(p)}
+                              isPlaced={isUnavailable}
+                            />
+                          )
+                        })}
                     </Box>
                   </Box>
                 )}
@@ -1880,15 +1894,19 @@ const OverviewMUI: React.FC = () => {
                       {filteredParticipants
                         .filter(p => p.gender === 'M')
                         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'))
-                        .map((participant) => (
-                          <ParticipantCard 
-                            key={participant.id} 
-                            participant={participant} 
-                            draggable={true}
-                            onDragStart={(p) => setDraggedParticipant(p)}
-                            isPlaced={placedParticipants.has(participant.name || '')}
-                          />
-                        ))}
+                        .map((participant) => {
+                          const isConfirmedPM = getAllConfirmedPerfectMatchParticipants().has(participant.name || '')
+                          const isUnavailable = isConfirmedPM || placedParticipants.has(participant.name || '')
+                          return (
+                            <ParticipantCard 
+                              key={participant.id} 
+                              participant={participant} 
+                              draggable={!isUnavailable}
+                              onDragStart={(p) => setDraggedParticipant(p)}
+                              isPlaced={isUnavailable}
+                            />
+                          )
+                        })}
                     </Box>
                   </Box>
                 )}
