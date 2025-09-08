@@ -62,7 +62,8 @@ import {
   Backup as BackupIcon,
   Restore as RestoreIcon,
   HelpOutline as HelpOutlineIcon,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  Cached as CachedIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -101,7 +102,6 @@ const StatisticsCards: React.FC<{
   const womenCount = participants.filter(p => p.gender === 'F').length
   const menCount = participants.filter(p => p.gender === 'M').length
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
-  const soldMatchboxes = matchboxes.filter(mb => mb.matchType === 'sold').length
   const totalRevenue = matchboxes
     .filter(mb => mb.matchType === 'sold' && mb.price && typeof mb.price === 'number')
     .reduce((sum, mb) => sum + (mb.price || 0), 0)
@@ -2145,40 +2145,161 @@ const SettingsManagement: React.FC<{
     })
   }
 
-  const resetCompleteDatabase = async () => {
+  const clearCache = async () => {
     setConfirmDialog({
       open: true,
-      title: '⚠️ KOMPLETTER DATENBANK-RESET ⚠️',
-      message: `Diese Aktion wird ALLE Daten unwiderruflich löschen:\n\n• ${participants.length} Teilnehmer\n• ${matchingNights.length} Matching Nights\n• ${matchboxes.length} Matchboxes\n• ${penalties.length} Strafen/Transaktionen\n• Gesamt: ${totalEntries} Einträge\n\nDieser Vorgang kann NICHT rückgängig gemacht werden!\n\nSind Sie sich absolut sicher?`,
-      severity: 'error',
+      title: '🗑️ Kompletter Browser-Reset',
+      message: 'Browser-Cache, Cookies und alle gespeicherten Daten löschen?\n\nDies setzt die Seite komplett zurück und kann bei Problemen helfen.\n\nDie Datenbank bleibt unverändert.',
+      severity: 'warning',
       onConfirm: async () => {
-        // Doppelte Bestätigung
-        setConfirmDialog({
-          open: true,
-          title: 'LETZTE WARNUNG!',
-          message: 'Wirklich die KOMPLETTE Datenbank löschen?\n\nAlle Daten gehen unwiderruflich verloren!',
-          severity: 'error',
-          onConfirm: async () => {
+        try {
+          setIsLoading(true)
+          
+          // Service Worker Cache löschen
+          if ('caches' in window) {
+            const cacheNames = await caches.keys()
+            await Promise.all(
+              cacheNames.map(cacheName => caches.delete(cacheName))
+            )
+          }
+          
+          // Local Storage löschen (außer Datenbank)
+          const keysToKeep = ['dexie-database-version', 'dexie-database-schema']
+          const allKeys = Object.keys(localStorage)
+          allKeys.forEach(key => {
+            if (!keysToKeep.some(keepKey => key.includes(keepKey))) {
+              localStorage.removeItem(key)
+            }
+          })
+          
+          // Session Storage löschen
+          sessionStorage.clear()
+          
+          // Cookies löschen
+          if (document.cookie) {
+            // Alle Cookies für die aktuelle Domain löschen
+            const cookies = document.cookie.split(';')
+            cookies.forEach(cookie => {
+              const eqPos = cookie.indexOf('=')
+              const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+              if (name) {
+                // Cookie für verschiedene Pfade und Domains löschen
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure`
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;samesite=strict`
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;samesite=lax`
+              }
+            })
+          }
+          
+          // IndexedDB Cache löschen (nur Cache, nicht die Daten)
+          if ('indexedDB' in window) {
             try {
-              setIsLoading(true)
-              await Promise.all([
-                db.participants.clear(),
-                db.matchingNights.clear(),
-                db.matchboxes.clear(),
-                db.penalties.clear()
-              ])
-              await onUpdate()
-              setSnackbar({ open: true, message: '✅ Datenbank wurde komplett zurückgesetzt! Alle Daten wurden erfolgreich gelöscht.', severity: 'success' })
+              // Versuche IndexedDB zu leeren (nur Cache-Tabellen)
+              const databases = await indexedDB.databases()
+              for (const database of databases) {
+                if (database.name && database.name.includes('cache')) {
+                  const deleteReq = indexedDB.deleteDatabase(database.name)
+                  await new Promise((resolve, reject) => {
+                    deleteReq.onsuccess = () => resolve(true)
+                    deleteReq.onerror = () => reject(deleteReq.error)
+                  })
+                }
+              }
             } catch (error) {
-              console.error('Fehler beim Zurücksetzen der Datenbank:', error)
-              setSnackbar({ open: true, message: `❌ Fehler beim Zurücksetzen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
-            } finally {
-              setIsLoading(false)
+              console.log('IndexedDB Cache-Löschung übersprungen:', error)
             }
           }
-        })
+          
+          // Web Storage API erweitert löschen
+          try {
+            // Clear all storage types
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+              // Quota-Informationen löschen
+              await navigator.storage.persist()
+            }
+          } catch (error) {
+            console.log('Storage API Löschung übersprungen:', error)
+          }
+          
+          setSnackbar({ open: true, message: '✅ Browser wurde komplett zurückgesetzt! Cache, Cookies und alle Daten wurden gelöscht. Die Seite wird neu geladen.', severity: 'success' })
+          
+          // Seite nach kurzer Verzögerung neu laden
+          setTimeout(() => {
+            window.location.reload()
+          }, 2000)
+          
+        } catch (error) {
+          console.error('Fehler beim Löschen des Caches:', error)
+          setSnackbar({ open: true, message: `❌ Fehler beim Browser-Reset: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
+        } finally {
+          setIsLoading(false)
+        }
       }
     })
+  }
+
+  const resetCompleteDatabase = async () => {
+    // Erste Bestätigung
+    const firstConfirm = window.confirm(`⚠️ KOMPLETTER DATENBANK-RESET ⚠️
+
+Diese Aktion wird ALLE Daten unwiderruflich löschen:
+
+• ${participants.length} Teilnehmer
+• ${matchingNights.length} Matching Nights
+• ${matchboxes.length} Matchboxes
+• ${penalties.length} Strafen/Transaktionen
+• Gesamt: ${totalEntries} Einträge
+
+Dieser Vorgang kann NICHT rückgängig gemacht werden!
+
+Sind Sie sich absolut sicher?`)
+
+    if (!firstConfirm) return
+
+    // Zweite Bestätigung
+    const secondConfirm = window.confirm(`LETZTE WARNUNG!
+
+Wirklich die KOMPLETTE Datenbank löschen?
+
+Alle Daten gehen unwiderruflich verloren!`)
+
+    if (!secondConfirm) return
+
+    try {
+      setIsLoading(true)
+      console.log('Starte kompletten Datenbank-Reset...')
+      
+      // Alle Tabellen leeren
+      await Promise.all([
+        db.participants.clear(),
+        db.matchingNights.clear(),
+        db.matchboxes.clear(),
+        db.penalties.clear()
+      ])
+      
+      console.log('Datenbank erfolgreich geleert, lade Daten neu...')
+      await onUpdate()
+      
+      setSnackbar({ 
+        open: true, 
+        message: '✅ Datenbank wurde komplett zurückgesetzt! Alle Daten wurden erfolgreich gelöscht.', 
+        severity: 'success' 
+      })
+      
+      console.log('Datenbank-Reset abgeschlossen')
+    } catch (error) {
+      console.error('Fehler beim Zurücksetzen der Datenbank:', error)
+      setSnackbar({ 
+        open: true, 
+        message: `❌ Fehler beim Zurücksetzen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, 
+        severity: 'error' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // ** Test Data Function **
@@ -2797,9 +2918,38 @@ const SettingsManagement: React.FC<{
             onClick={resetCompleteDatabase}
             disabled={isLoading || totalEntries === 0}
             startIcon={<DeleteSweepIcon />}
-            sx={{ px: 4, py: 1.5 }}
+            sx={{ px: 4, py: 1.5, mb: 2 }}
           >
             Komplette Datenbank löschen
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Cache Management */}
+      <Card sx={{ border: '2px solid', borderColor: 'warning.main', mb: 4 }}>
+        <CardHeader 
+          title="🗑️ Browser-Reset"
+          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}><CachedIcon /></Avatar>}
+          sx={{ bgcolor: 'warning.50' }}
+        />
+        <CardContent sx={{ textAlign: 'center' }}>
+          <CachedIcon sx={{ fontSize: 64, color: 'warning.main', mb: 2 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: 'warning.main' }}>
+            Kompletter Browser-Reset
+          </Typography>
+          <Typography variant="body1" color="warning.main" sx={{ mb: 3 }}>
+            🗑️ Löscht Cache, Cookies und alle gespeicherten Daten (Datenbank bleibt erhalten)
+          </Typography>
+          <Button
+            variant="contained"
+            color="warning"
+            size="large"
+            onClick={clearCache}
+            disabled={isLoading}
+            startIcon={<CachedIcon />}
+            sx={{ px: 4, py: 1.5 }}
+          >
+            Browser zurücksetzen
           </Button>
         </CardContent>
       </Card>

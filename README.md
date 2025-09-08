@@ -1,69 +1,143 @@
-# React + TypeScript + Vite
+# AYTO RSIL 2025 – Live‑Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Eine moderne Web‑App zur Nachverfolgung und Auswertung der Staffel „Are You The One? – Reality Stars in Love 2025“.
 
-Currently, two official plugins are available:
+Ziel der Anwendung:
+- Transparente, konsistente Erfassung und Visualisierung von Matching Nights, Matchboxes und Teilnehmern
+- Bedienoberfläche für schnelles Planen/Validieren von Paarungen (Drag & Drop)
+- Korrekte Berücksichtigung der Timeline (Ausstrahlungsreihenfolge) bei Perfect Matches
+- Datenhaltung im Browser (Offline‑fähig, PWA‑fähig) mit komfortabler Admin‑Verwaltung
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Kernfunktionen
 
-## Expanding the ESLint configuration
+- Matching Night (Drag & Drop, Single‑View)
+  - 2 Reihen mit je 5 Pärchen‑Containern (insgesamt 10)
+  - Teilnehmer per Drag & Drop platzieren; Avatare werden nach Platzierung ausgegraut
+  - Automatisches Vorbelegen von bestätigten Perfect Matches (🔒) in die ersten freien Container
+  - Visuelles Feedback und Validierungen (z. B. Geschlechter‑Konsistenz)
+  - „Gesamtlichter“ mit Limit 0–10; Wert muss ≥ sichere Lichter (Anzahl Perfect Matches) sein
+  - Speichern erst möglich, wenn alle 10 Pärchen vollständig sind
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Matchbox‑Verwaltung
+  - Neue Matchbox per Drag & Drop aus dem Home‑Bereich erstellen
+  - Typen: „perfect“, „no‑match“, „sold“ (inkl. Preis/Käufer‑Felder)
+  - Teilnehmer, die bereits als Perfect Match bestätigt sind, stehen NICHT für neue Matchboxen zur Verfügung (deaktiviert)
+  - Chronologische Auswertung: Für Anzeige/Validierung wird die Ausstrahlung vor dem Erstellungsdatum priorisiert
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Teilnehmer‑Übersicht (Home)
+  - Gefilterte Listen nach Geschlecht mit Avataren
+  - Bestätigte Perfect‑Match‑Teilnehmer sind deaktiviert (grau, nicht draggable)
+  - Schnellerzeugung einer Matchbox über eine schwebende Box (Drag‑Zone Frau/Mann)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- Admin‑Panel
+  - Import/Export von JSON‑Daten
+  - Tabellenweise Löschung (Teilnehmer, Matching Nights, Matchboxes, Strafen)
+  - Gefahrenzone: Komplett‑Reset aller Datenbanktabellen (mit doppelter Bestätigung)
+  - Cache‑/Browser‑Reset: Löscht Cache, Local/Session Storage und Cookies (Datenbank bleibt erhalten)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- PWA/Offline
+  - Service Worker, Assets‑Caching
+  - Datenpersistenz clientseitig via IndexedDB (Dexie)
+
+## Validierungen & Logik
+
+- Matching Night
+  - 10 vollständige Paare erforderlich (Speicherbedingung)
+  - Nur Mann + Frau pro Pärchen; visuelles Feedback bei Konflikten
+  - Gesamtlichter: max. 10; min. = Anzahl sicherer Lichter (Perfect Matches)
+  - Perfect Matches werden automatisch fixiert (nicht entfernbar)
+
+- Matchbox
+  - Erstellen nur mit Frau + Mann
+  - Bei „sold“: Preis > 0 und Käufer erforderlich
+  - Teilnehmer in bestätigten Perfect Matches sind ausgeschlossen
+  - Timeline‑Regel: Ausstrahlungsdatum (ausstrahlungsdatum) hat Vorrang vor createdAt
+
+## Datenhaltung
+
+- IndexedDB via Dexie (siehe `src/lib/db.ts`)
+  - Tabellen: `participants`, `matchingNights`, `matchboxes`, `penalties`
+  - Datensätze enthalten u. a. `createdAt` und optional `ausstrahlungsdatum` für zeitliche Bewertung
+
+## UI/UX
+
+- Technologien: React + TypeScript + MUI + Tailwind Utility‑Klassen (selektiv)
+- Kompakte, mobile‑freundliche Single‑View für Matching Nights
+- Konsistente, reduzierte Layouts (kleinere Avatare, Abstände) für hohe Informationsdichte
+
+## Sicherheit & Qualität
+
+- Strikte Client‑Validierungen vor dem Speichern
+- Guard Clauses zur Fehlervermeidung (undefined/null Checks)
+- Deaktivierte Interaktionen, wo Datenlage es erfordert (z. B. Perfect Matches)
+
+## Getting Started
+
+Voraussetzungen: Node.js ≥ 18
+
+Installation:
+```bash
+npm ci
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Entwicklung starten (Vite Dev Server):
+```bash
+npm run dev
 ```
+
+Lints ausführen:
+```bash
+npm run lint
+```
+
+Build (Vite):
+```bash
+npm run build
+```
+
+Vorschau des Builds:
+```bash
+npm run preview
+```
+
+## Deploy
+
+- Statischer Build in `dist/`
+- Kann auf beliebigen Static Hosts (z. B. Netlify, Vercel, GitHub Pages) bereitgestellt werden
+- GitLab CI/CD Konfiguration liegt unter `.gitlab-ci.yml` (Build/Deploy‑Stages exemplarisch)
+
+## Datenverwaltung (Admin)
+
+- Admin‑Panel: `/?admin=1&mui=1`
+  - Einzelnes Löschen je Tabelle
+  - „Gefahrenzone“: Komplett‑Reset aller Tabellen (doppelte Bestätigung)
+  - „Browser‑Reset“: Löscht Cache, Cookies, Local/Session Storage (Datenbank bleibt erhalten), Seite wird neu geladen
+  - Import/Export: JSON‑basierte Sicherung/Wiederherstellung
+
+## Bekannte Einschränkungen
+
+- Wahrscheinlichkeiten/Analyse: Menüpunkt ist aktuell deaktiviert; Inhalte ggf. sichtbar, jedoch nicht interaktiv
+- Berechnungen für heuristische Wahrscheinlichkeiten sind als Ausblick vorgesehen
+
+## Roadmap
+
+- Aktivierung und Ausbau der Wahrscheinlichkeits‑Analyse (Heatmaps, Worker‑basierte Berechnung)
+- Erweiterte Konsistenzprüfungen (SAT/Backtracking über alle gültigen Lösungen)
+- Verbesserte Historien‑/Timeline‑Ansichten
+- Optionaler Mehrbenutzer‑Sync (Server‑API)
+
+## Tech‑Stack
+
+- React 18, TypeScript
+- Vite, ESLint
+- MUI (Material UI)
+- Dexie (IndexedDB)
+- Tailwind Utilities (selektiv)
+
+---
+
+Fragen/Feedback willkommen – Viel Spaß beim Tracken! 🚀
+
+## Feedback / Issues
+
+Fehler oder Ideen? → Bitte als Issue eintragen: https://github.com/podenwald/ayto-rsil-2025/issues

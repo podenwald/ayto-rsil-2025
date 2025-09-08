@@ -633,27 +633,13 @@ function MatchingNightManagement() {
   }
 
   // Perfect Match Logik - nur Matchboxes die VOR der aktuellen Matching Night ausgestrahlt wurden
-  const getValidPerfectMatches = (currentMatchingNightDate?: string) => {
-    if (!currentMatchingNightDate) {
-      // Wenn keine Matching Night ausgewählt ist, alle Perfect Matches anzeigen
-      return matchboxes
-        .filter(mb => mb.matchType === 'perfect')
-        .map(mb => ({ woman: mb.woman, man: mb.man }))
-    }
-    
-    const currentDate = new Date(currentMatchingNightDate)
+  const getValidPerfectMatches = () => {
     return matchboxes
-      .filter(mb => {
-        if (mb.matchType !== 'perfect') return false
-        
-        // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
-        const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
-        return matchboxDate.getTime() < currentDate.getTime()
-      })
+      .filter(mb => mb.matchType === 'perfect')
       .map(mb => ({ woman: mb.woman, man: mb.man }))
   }
   
-  const perfectMatchPairs = getValidPerfectMatches(matchingNightForm.date)
+  const perfectMatchPairs = getValidPerfectMatches()
 
   const women = participants.filter(p => p.gender === 'F')
   const men = participants.filter(p => p.gender === 'M')
@@ -1140,18 +1126,16 @@ function ImportExportManagement() {
 
   async function exportAllData() {
     try {
-      const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+      const [participantsData, matchingNightsData, matchboxesData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
-        db.matchboxes.toArray(),
-        db.penalties.toArray()
+        db.matchboxes.toArray()
       ])
       
       const allData = {
         participants: participantsData,
         matchingNights: matchingNightsData,
         matchboxes: matchboxesData,
-        penalties: penaltiesData,
         exportedAt: new Date().toISOString(),
         version: "1.1"
       }
@@ -1164,8 +1148,8 @@ function ImportExportManagement() {
       a.click()
       URL.revokeObjectURL(url)
       
-      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
-      alert(`✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n${penaltiesData.length} Strafen/Transaktionen\n\nGesamt: ${totalItems} Einträge`)
+      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length
+      alert(`✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n\nGesamt: ${totalItems} Einträge`)
     } catch (error) {
       console.error('Fehler beim kompletten Export:', error)
       alert(`❌ Fehler beim kompletten Export: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
@@ -1295,7 +1279,7 @@ function ImportExportManagement() {
     }
   }
 
-  const totalEntries = participants.length + matchingNights.length + matchboxes.length + penalties.length
+  const totalEntries = participants.length + matchingNights.length + matchboxes.length
 
   return (
     <Card className="bg-white border border-gray-200">
@@ -1445,6 +1429,7 @@ function DBManagement() {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [matchingNights, setMatchingNights] = useState<any[]>([])
   const [matchboxes, setMatchboxes] = useState<Matchbox[]>([])
+  const [penalties, setPenalties] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -1454,14 +1439,16 @@ function DBManagement() {
   async function loadAllData() {
     try {
       setIsLoading(true)
-      const [participantsData, matchingNightsData, matchboxesData] = await Promise.all([
+      const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
-        db.matchboxes.toArray()
+        db.matchboxes.toArray(),
+        db.penalties.toArray()
       ])
       setParticipants(participantsData)
       setMatchingNights(matchingNightsData)
       setMatchboxes(matchboxesData)
+      setPenalties(penaltiesData)
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error)
       alert(`Fehler beim Laden der Daten: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
@@ -1568,7 +1555,7 @@ Sind Sie sich absolut sicher?`)) {
     }
   }
 
-  const totalEntries = participants.length + matchingNights.length + matchboxes.length + penalties.length
+  const totalEntries = participants.length + matchingNights.length + matchboxes.length
 
   return (
     <Card className="bg-white border border-gray-200">

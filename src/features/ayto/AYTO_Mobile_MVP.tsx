@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Upload, Download, X, HelpCircle, Heart, Users, Calendar, BarChart3, CheckCircle, XCircle, Search, Edit, Trash2, User } from "lucide-react";
+import { Download, X, Heart, Users, Calendar, BarChart3, CheckCircle, XCircle, Search, Edit, Trash2, User } from "lucide-react";
 
 /**
  * AYTO RSIL 2025 – Mobile MVP (React PWA shell)
@@ -129,13 +129,6 @@ export default function AYTO_Mobile_MVP() {
     ceremonies: [],
   });
 
-  function renamePerson(list: "men"|"women", id: string, name: string) {
-    const src = list === "men" ? [...model.men] : [...model.women];
-    const idx = src.findIndex(p => p.id === id); if (idx<0) return;
-    src[idx] = { ...src[idx], name };
-    list === "men" ? setModel({ ...model, men: src }) : setModel({ ...model, women: src });
-  }
-
   function addTruthBooth(mId: string, wId: string, isMatch: boolean) {
     const tb: TruthBoothEntry = { pair: { a: mId, b: wId }, isMatch };
     const withTB: StateModel = { ...model, truthBooths: [...model.truthBooths, tb] };
@@ -160,15 +153,6 @@ export default function AYTO_Mobile_MVP() {
     const a = document.createElement("a");
     a.href = url; a.download = `ayto-rsil-2025.json`; a.click();
     URL.revokeObjectURL(url);
-  }
-  function importJSON(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return;
-    const fr = new FileReader();
-    fr.onload = () => {
-      try { const parsed = JSON.parse(String(fr.result)); setModel(parsed); }
-      catch { alert("Ungültige Datei"); }
-    };
-    fr.readAsText(file);
   }
 
   const probs = useMemo(() => computeHeuristicProbabilities(model), [model]);
@@ -415,7 +399,7 @@ export default function AYTO_Mobile_MVP() {
                 
                 {/* Participant Grid - 4 per row - Apple Style */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-                  {filteredParticipants.map((person, index) => (
+                  {filteredParticipants.map((person) => (
                     <ParticipantCard key={person.id} person={person} />
                   ))}
                 </div>
