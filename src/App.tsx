@@ -1,65 +1,59 @@
 import { useEffect, useState } from 'react'
-import Overview from "@/features/overview/Overview"
 import OverviewMUI from "@/features/overview/OverviewMUI"
-import AdminPanel from "@/features/admin/AdminPanel"
 import AdminPanelMUI from "@/features/admin/AdminPanelMUI"
-import AYTO_Mobile_MVP from "@/features/ayto/AYTO_Mobile_MVP"
 import ThemeProvider from "@/theme/ThemeProvider"
 import LegalFooter from "@/components/LegalFooter"
 
 export default function App() {
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [isOverview, setIsOverview] = useState(false)
-  const [useMUIAdmin, setUseMUIAdmin] = useState(false)
-  const [useMUIOverview, setUseMUIOverview] = useState(false)
+  const [route, setRoute] = useState<'root' | 'admin'>('root')
 
+  // Legacy-Query-Weiterleitungen und pfadbasiertes Routing
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    setIsAdmin(urlParams.get('admin') === '1')
-    setIsOverview(urlParams.get('overview') === '1' || (!urlParams.get('admin') && !urlParams.get('ayto')))
-    setUseMUIAdmin(urlParams.get('mui') === '1')
-    setUseMUIOverview(urlParams.get('mui') === '1')
+    const url = new URL(window.location.href)
+    const pathname = url.pathname
+    const searchParams = url.searchParams
+
+    // Legacy: /?overview=1&mui=1 -> /
+    const isOverviewLegacy = searchParams.get('overview') === '1'
+    const isAdminLegacy = searchParams.get('admin') === '1'
+    const isMuiLegacy = searchParams.get('mui') === '1'
+
+    // Wenn Legacy-Parameter vorhanden sind, entsprechend umleiten
+    if (isOverviewLegacy || isMuiLegacy || isAdminLegacy) {
+      if (isAdminLegacy) {
+        window.history.replaceState({}, '', '/admin')
+        setRoute('admin')
+        return
+      }
+      // Standard: OverviewMUI unter /
+      window.history.replaceState({}, '', '/')
+      setRoute('root')
+      return
+    }
+
+    // Pfadbasiertes Routing
+    if (pathname.startsWith('/admin')) {
+      setRoute('admin')
+      return
+    }
+    setRoute('root')
   }, [])
 
-  if (isAdmin) {
-    if (useMUIAdmin) {
-      return (
-        <ThemeProvider>
-          <div>
-            <AdminPanelMUI />
-            <LegalFooter />
-          </div>
-        </ThemeProvider>
-      )
-    }
+  if (route === 'admin') {
     return (
-      <div>
-        <AdminPanel />
-        <LegalFooter />
-      </div>
-    )
-  }
-
-  if (isOverview) {
-    if (useMUIOverview) {
-      return (
+      <ThemeProvider>
         <div>
-          <OverviewMUI />
+          <AdminPanelMUI />
           <LegalFooter />
         </div>
-      )
-    }
-    return (
-      <div>
-        <Overview />
-        <LegalFooter />
-      </div>
+      </ThemeProvider>
     )
   }
 
+  // Root rendert OverviewMUI als Standard
   return (
     <div>
-      <AYTO_Mobile_MVP />
+      <OverviewMUI />
       <LegalFooter />
     </div>
   )
