@@ -3,9 +3,12 @@ import OverviewMUI from "@/features/overview/OverviewMUI"
 import AdminPanelMUI from "@/features/admin/AdminPanelMUI"
 import ThemeProvider from "@/theme/ThemeProvider"
 import LegalFooter from "@/components/LegalFooter"
+import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from "@/lib/db"
 
 export default function App() {
   const [route, setRoute] = useState<'root' | 'admin'>('root')
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState<string | null>(null)
 
   // Legacy-Query-Weiterleitungen und pfadbasiertes Routing
   useEffect(() => {
@@ -23,21 +26,102 @@ export default function App() {
       if (isAdminLegacy) {
         window.history.replaceState({}, '', '/admin')
         setRoute('admin')
-        return
+      } else {
+        window.history.replaceState({}, '', '/')
+        setRoute('root')
       }
-      // Standard: OverviewMUI unter /
-      window.history.replaceState({}, '', '/')
-      setRoute('root')
-      return
+    } else {
+      // Pfadbasiertes Routing
+      if (pathname.startsWith('/admin')) {
+        setRoute('admin')
+      } else {
+        setRoute('root')
+      }
+    }
+  }, [])
+
+  // Bootstrap: Seed-Load aus public/ayto-complete-noPicture.json beim ersten Start
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        // Überspringen, wenn bereits Daten vorhanden sind
+        const [pCount, mnCount, mbCount, peCount] = await Promise.all([
+          db.participants.count(),
+          db.matchingNights.count(),
+          db.matchboxes.count(),
+          db.penalties.count()
+        ])
+        if (pCount + mnCount + mbCount + peCount > 0) {
+          setIsInitializing(false)
+          return
+        }
+
+        const resp = await fetch('/ayto-complete-noPicture.json', { cache: 'no-store' })
+        if (!resp.ok) throw new Error(`Seed-JSON nicht ladbar (${resp.status})`)
+        const json = await resp.json() as {
+          participants: Participant[]
+          matchingNights: (Omit<MatchingNight, 'createdAt'> & { createdAt: string })[]
+          matchboxes: (Omit<Matchbox, 'createdAt' | 'updatedAt' | 'soldDate'> & { createdAt: string, updatedAt: string, soldDate?: string })[]
+          penalties: (Omit<Penalty, 'createdAt'> & { createdAt: string })[]
+        }
+
+        // Konvertiere Datumsfelder zu Date
+        const matchingNights: MatchingNight[] = json.matchingNights.map(mn => ({
+          ...mn,
+          createdAt: new Date(mn.createdAt)
+        }))
+        const matchboxes: Matchbox[] = json.matchboxes.map(mb => ({
+          ...mb,
+          createdAt: new Date(mb.createdAt),
+          updatedAt: new Date(mb.updatedAt),
+          soldDate: mb.soldDate ? new Date(mb.soldDate) : undefined
+        }))
+        const penalties: Penalty[] = json.penalties.map(p => ({
+          ...p,
+          createdAt: new Date(p.createdAt)
+        }))
+
+        // Atomar neu befüllen
+        await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
+          await Promise.all([
+            db.participants.clear(),
+            db.matchingNights.clear(),
+            db.matchboxes.clear(),
+            db.penalties.clear()
+          ])
+          await Promise.all([
+            db.participants.bulkAdd(json.participants),
+            db.matchingNights.bulkAdd(matchingNights),
+            db.matchboxes.bulkAdd(matchboxes),
+            db.penalties.bulkAdd(penalties)
+          ])
+        })
+      } catch (err: any) {
+        console.error('Bootstrap-Fehler:', err)
+        setInitError(err?.message ?? 'Unbekannter Fehler beim Initialisieren')
+      } finally {
+        setIsInitializing(false)
+      }
     }
 
-    // Pfadbasiertes Routing
-    if (pathname.startsWith('/admin')) {
-      setRoute('admin')
-      return
-    }
-    setRoute('root')
+    bootstrap()
   }, [])
+
+  if (isInitializing) {
+    return (
+      <div style={{ padding: 16 }}>
+        Initialisiere Daten ...
+      </div>
+    )
+  }
+
+  if (initError) {
+    return (
+      <div style={{ padding: 16, color: 'red' }}>
+        Fehler bei der Initialisierung: {initError}
+      </div>
+    )
+  }
 
   if (route === 'admin') {
     return (
