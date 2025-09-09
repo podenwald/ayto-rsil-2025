@@ -245,7 +245,7 @@
   ],
   "matchingNights": [
     {
-      "name": "MATCHNIGHT #01",
+      "name": "Matching Night #1",
       "date": "2025-09-04",
       "pairs": [
         { "woman": "Viki", "man": "Leandro" },
@@ -266,7 +266,7 @@
       "ausstrahlungszeit": "19:00"
     },
     {
-      "name": "MATCHNIGHT #02",
+      "name": "Matching Night #2",
       "date": "2025-09-04",
       "pairs": [
         { "woman": "Elli", "man": "Xander" },
@@ -287,7 +287,7 @@
       "ausstrahlungszeit": "19:00"
     },
     {
-      "name": "MATCHNIGHT #03",
+      "name": "Matching Night #3",
       "date": "2025-09-04",
       "pairs": [
         { "woman": "Elli", "man": "Xander" },
