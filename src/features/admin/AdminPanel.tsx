@@ -715,8 +715,43 @@ function MatchingNightManagement() {
 
   async function saveMatchingNight() {
     try {
-      if (matchingNightForm.pairs.length === 0) {
-        alert('Bitte mindestens ein Paar hinzufügen!')
+      // Validierung: Maximum 10 Lichter erlaubt
+      if (matchingNightForm.totalLights > 10) {
+        alert('Maximum 10 Lichter erlaubt!')
+        return
+      }
+
+      // Validierung: Alle 10 Paare müssen vollständig sein
+      const completePairs = matchingNightForm.pairs.filter(pair => pair && pair.woman && pair.man)
+      
+      if (completePairs.length !== 10) {
+        alert(`Alle 10 Pärchen müssen vollständig sein! Aktuell: ${completePairs.length}/10 vollständig`)
+        return
+      }
+
+      // Validierung: Geschlechts-Konflikte prüfen
+      const genderConflicts = completePairs.filter(pair => {
+        const womanParticipant = participants.find(p => p.name === pair.woman)
+        const manParticipant = participants.find(p => p.name === pair.man)
+        return womanParticipant && manParticipant && womanParticipant.gender === manParticipant.gender
+      })
+
+      if (genderConflicts.length > 0) {
+        alert('Geschlechts-Konflikt gefunden! Jedes Paar muss aus einem Mann und einer Frau bestehen.')
+        return
+      }
+      
+      // Validierung: Gesamtlichter dürfen nicht weniger als Perfect Match Lichter sein
+      const perfectMatchLights = completePairs.filter(pair => 
+        matchboxes.some(mb => 
+          mb.matchType === 'perfect' && 
+          mb.woman === pair.woman && 
+          mb.man === pair.man
+        )
+      ).length
+
+      if (matchingNightForm.totalLights < perfectMatchLights) {
+        alert(`Gesamtlichter (${matchingNightForm.totalLights}) dürfen nicht weniger als sichere Lichter (${perfectMatchLights}) sein!`)
         return
       }
 
