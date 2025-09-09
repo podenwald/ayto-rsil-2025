@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-version.cjs",
     "build": "tsc -b tsconfig.node.json tsconfig.app.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
