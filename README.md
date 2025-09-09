@@ -65,6 +65,41 @@ Ziel der Anwendung:
 - Kompakte, mobile‑freundliche Single‑View für Matching Nights
 - Konsistente, reduzierte Layouts (kleinere Avatare, Abstände) für hohe Informationsdichte
 
+### Responsive Design & Geräteerkennung
+
+Die App implementiert ein erweiterte Geräteerkennung für optimale Benutzererfahrung:
+
+#### **Smartphones** 📱
+- **Ansicht**: Mobile UI mit allen mobilen Features
+- **Rotation-Lock**: Portrait-Modus wird blockiert mit Hinweis-Overlay (nur Hochformat)
+- **Features**: 
+  - Eingeklappte Statistik-Sidebar (max. 1/3 Bildschirmhöhe)
+  - Menü-Icon oben rechts zum Aufklappen
+  - Vollbreite Content-Bereiche
+  - Manuelle Teilnehmer-Auswahl (kein Drag & Drop)
+  - Vergrößerte Eingabefelder für bessere Bedienbarkeit
+
+#### **Tablets** 📱
+- **Ansicht**: Desktop UI (nur im Querformat)
+- **Rotation-Lock**: Portrait-Modus wird blockiert mit Hinweis-Overlay (nur Querformat)
+- **Features**: Vollständige Desktop-Funktionalität mit Drag & Drop
+
+#### **Desktop** 🖥️
+- **Ansicht**: Desktop UI
+- **Features**: Vollständige Funktionalität ohne Einschränkungen
+
+#### **Geräteerkennung**
+```typescript
+// Automatische Erkennung basierend auf:
+- User Agent Patterns
+- Bildschirmgröße
+- Orientierung
+
+// Smartphone: ≤480px Breite
+// Tablet: 481px-1024px Breite  
+// Desktop: >1024px Breite
+```
+
 ## Sicherheit & Qualität
 
 - Strikte Client‑Validierungen vor dem Speichern
@@ -133,6 +168,15 @@ npm run preview
 - MUI (Material UI)
 - Dexie (IndexedDB)
 - Tailwind Utilities (selektiv)
+
+### Erweiterte Features
+
+- **Geräteerkennung**: Intelligente Unterscheidung zwischen Smartphones, Tablets und Desktop
+- **Responsive Design**: Mobile-First Ansatz mit gerätespezifischen UI-Anpassungen
+- **Rotation-Lock**: 
+  - Smartphones: Nur Hochformat (Portrait)
+  - Tablets: Nur Querformat (Landscape)
+- **PWA-Ready**: Service Worker und Offline-Funktionalität
 
 ---
 

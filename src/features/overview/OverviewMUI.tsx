@@ -33,6 +33,7 @@ import {
   TableRow,
   TableCell
 } from '@mui/material'
+import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
 import {
   People as PeopleIcon,
   Search as SearchIcon,
@@ -47,8 +48,7 @@ import {
   Male as MaleIcon,
   Add as AddIcon,
   Save as SaveIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  Menu as MenuIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
@@ -689,7 +689,16 @@ const StatisticsSidebar: React.FC<{
   matchboxes: Matchbox[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
-}> = ({ matchboxes, matchingNights, penalties }) => {
+  onCreateMatchbox: () => void
+  onCreateMatchingNight: () => void
+  isOpenMobile?: boolean
+  onToggleMobile?: () => void
+}> = ({ matchboxes, matchingNights, penalties, onCreateMatchbox, onCreateMatchingNight, isOpenMobile, onToggleMobile }) => {
+  const deviceInfo = useDeviceDetection()
+  const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const mobileOpen = typeof isOpenMobile === 'boolean' ? isOpenMobile : internalOpen
+  const toggleMobile = onToggleMobile ? onToggleMobile : () => setInternalOpen(v => !v)
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect')
   
   // Calculate penalties and credits like in AdminPanelMUI
@@ -719,158 +728,218 @@ const StatisticsSidebar: React.FC<{
     })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
 
-  // Mobile Off-Canvas State
-  const [isMobile, setIsMobile] = useState(false)
-  const [open, setOpen] = useState(false)
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768)
-    onResize()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  return (
-    <>
-      {isMobile && (
-        <Box sx={{ position: 'fixed', top: 8, right: 8, zIndex: 1400 }}>
-          <IconButton color="primary" onClick={() => setOpen(true)} aria-label="Statistik öffnen" sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </Box>
-      )}
-
-      <Box sx={{ 
-        width: 280,
-        height: '100vh',
+  if (isMobile) {
+    return (
+      <Box sx={{
         position: 'fixed',
-        top: 0,
-        right: isMobile ? (open ? 0 : -290) : 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         bgcolor: 'background.paper',
-        borderLeft: '1px solid',
+        borderTop: '1px solid',
         borderColor: 'divider',
-        overflowY: 'auto',
-        p: 3,
-        zIndex: 1300,
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'right 0.3s ease'
+        zIndex: 1000,
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-            Statistiken
-          </Typography>
-          {isMobile && (
-            <IconButton onClick={() => setOpen(false)} aria-label="Statistik schließen">
-              <ChevronRightIcon />
-            </IconButton>
-          )}
+        <Box onClick={toggleMobile} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Statistiken</Typography>
+          {mobileOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
         </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-          {/* Matching Nights Count */}
-          <Card>
-            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                <FavoriteIcon sx={{ fontSize: '1rem' }} />
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                  Matching Nights
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                  {matchingNights.length}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Current Lights */}
-          <Card>
-            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-              <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-                <TrendingUpIcon sx={{ fontSize: '1rem' }} />
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                  Lichter aktuell
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                  {currentLights}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Perfect Matches */}
-          <Card>
-            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-              <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-                <FavoriteIcon sx={{ fontSize: '1rem' }} />
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                  Perfect Matches
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                  {perfectMatches.length}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Current Balance */}
-          <Card>
-            <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-              <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
-                <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
-              </Avatar>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                  Kontostand
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                  €{currentBalance.toLocaleString('de-DE')}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        {/* Mobile-only: Matchbox öffnen Button */}
-        {isMobile && (
-          <Box sx={{ mt: 2 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<AnalyticsIcon />}
-              onClick={() => {
-                const event = new CustomEvent('open-matchbox-dialog')
-                window.dispatchEvent(event)
-              }}
-            >
-              Matchbox anlegen
+        {mobileOpen && (
+          <Box sx={{ maxHeight: '33vh', overflowY: 'auto', p: 2 }}>
+            <Button variant="contained" color="secondary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
+              Neue Matching Night
             </Button>
+            <Button variant="contained" color="primary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
+              Matchbox erstellen
+            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Matching Nights Count */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Matching Nights
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {matchingNights.length}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Current Lights */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+                    <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Lichter aktuell
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {currentLights}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+              
+              {/* Perfect matches */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Perfect Matches
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {perfectMatches.length}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Budget */}
+              <Card>
+                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+                  <Avatar sx={{ bgcolor: 'info.main', width: 32, height: 32 }}>
+                    <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                      Budget
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'info.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                      {currentBalance.toLocaleString('de-DE')} €
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
           </Box>
         )}
-
-        {/* Admin Button at bottom */}
-        <Box sx={{ mt: 'auto', pt: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<AdminIcon />}
-            onClick={() => window.location.href = '/admin'}
-        fullWidth
-            sx={{ 
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            Admin Panel
-          </Button>
-        </Box>
       </Box>
-    </>
+    )
+  }
+
+  return (
+    <Box sx={{ 
+      width: 280,
+      height: '100vh',
+      position: 'fixed',
+      top: 0,
+      right: 0,
+      bgcolor: 'background.paper',
+      borderLeft: '1px solid',
+      borderColor: 'divider',
+      overflowY: 'auto',
+      p: 3,
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
+        Statistiken
+      </Typography>
+      <Button variant="contained" color="secondary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
+        Neue Matching Night
+      </Button>
+      <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
+        Matchbox erstellen
+      </Button>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
+        {/* Matching Nights Count */}
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Matching Nights
+            </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {matchingNights.length}
+            </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Current Lights */}
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
+              <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                    </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Lichter aktuell
+                </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {currentLights}
+              </Typography>
+          </Box>
+          </CardContent>
+        </Card>
+
+        {/* Perfect Matches */}
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
+              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                  </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Perfect Matches
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                {perfectMatches.length}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Current Balance */}
+        <Card>
+          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
+            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
+              <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
+                Kontostand
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
+                €{currentBalance.toLocaleString('de-DE')}
+              </Typography>
+          </Box>
+          </CardContent>
+        </Card>
+      </Box>
+      
+      {/* Admin Button at bottom */}
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<AdminIcon />}
+          onClick={() => window.location.href = '/admin'}
+      fullWidth
+          sx={{ 
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 600
+          }}
+        >
+          Admin Panel
+        </Button>
+      </Box>
+    </Box>
   )
 }
 
@@ -887,22 +956,6 @@ const OverviewMUI: React.FC = () => {
 
   useEffect(() => {
     loadAllData()
-  }, [])
-
-  // Responsiveness: detect mobile
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 768)
-    onResize()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  // Listen for global event to open matchbox dialog
-  useEffect(() => {
-    const handler = () => setMatchboxDialog(true)
-    window.addEventListener('open-matchbox-dialog', handler as EventListener)
-    return () => window.removeEventListener('open-matchbox-dialog', handler as EventListener)
   }, [])
 
   const loadAllData = async () => {
@@ -1527,22 +1580,42 @@ const OverviewMUI: React.FC = () => {
     }
   }, [draggedParticipants])
 
+  // Erweiterte Geräteerkennung
+  const deviceInfo = useDeviceDetection()
+  const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
+  const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
+  
+  // Geräte-spezifische Rotation-Locks aktivieren
+  useEffect(() => {
+    if (deviceInfo.isTablet) {
+      lockTabletOrientation()
+    } else if (deviceInfo.isSmartphone) {
+      lockSmartphoneOrientation()
+    }
+  }, [deviceInfo.isTablet, deviceInfo.isSmartphone])
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
-      <Box sx={{ mr: '280px' }}>
+      <Box sx={{ mr: isMobile ? 0 : '280px' }}>
         {/* Header with Menu */}
-      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper' }}>
-          <Box sx={{ p: 3, pb: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper', left: 0, right: 0, width: isMobile ? '100vw' : 'auto' }}>
+          <Box sx={{ p: isMobile ? 2 : 3, pb: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                AYTO RSIL 2025
+                AYTO - Reality Stars in Love 2025
               </Typography>
-              <Chip label="Overview" color="primary" />
+              <Chip label="Beta" color="primary" />
+              </Box>
+              {isMobile && (
+                <IconButton aria-label="Statistik öffnen" onClick={() => setIsStatsOpenMobile(prev => !prev)}>
+                  <MenuIcon />
+                </IconButton>
+              )}
           </Box>
           
           <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-            Übersicht aller Teilnehmer der aktuellen Staffel
+            Aktuelle Staffel
           </Typography>
         </Box>
 
@@ -1571,285 +1644,285 @@ const OverviewMUI: React.FC = () => {
         </Paper>
 
         {/* Main Content */}
-        <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
+        <Box sx={{ maxWidth: isMobile ? '100%' : '1200px', mx: isMobile ? 0 : 'auto', p: isMobile ? 2 : 3 }}>
           <Card sx={{ mb: 4 }}>
 
           {/* Overview Tab */}
           <TabPanel value={activeTab} index={0}>
-            {/* Floating Matchbox Creator (disabled on mobile) */}
+            {/* Floating Matchbox Creator - nur auf Desktop */}
             {!isMobile && (
-              <Box
-                data-floating-box
+            <Box
+              data-floating-box
+              sx={{
+                position: 'fixed',
+                left: boxPosition.x,
+                top: boxPosition.y,
+                zIndex: 1200,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                userSelect: 'none',
+                transition: isDraggingBox ? 'none' : 'all 0.3s ease'
+              }}
+            >
+              {/* Quick Matchbox Creator */}
+              <Card
                 sx={{
-                  position: 'fixed',
-                  left: boxPosition.x,
-                  top: boxPosition.y,
-                  zIndex: 1200,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  userSelect: 'none',
-                  transition: isDraggingBox ? 'none' : 'all 0.3s ease'
+                  width: 280,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  boxShadow: 4,
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    boxShadow: 8,
+                    transform: 'scale(1.02)'
+                  }
                 }}
               >
-                {/* Quick Matchbox Creator */}
-                <Card
-                  sx={{
-                    width: 280,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    boxShadow: 4,
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: 8,
-                      transform: 'scale(1.02)'
+                <CardHeader
+                  onMouseDown={handleBoxMouseDown}
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <FavoriteIcon />
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          Neue Matchbox
+                        </Typography>
+                      </Box>
+                      <Box 
+                        sx={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          opacity: 0.7,
+                          p: 1,
+                          borderRadius: 1,
+                          '&:hover': { 
+                            opacity: 1,
+                            bgcolor: 'rgba(255,255,255,0.1)'
+                          }
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
+                          ⋮⋮⋮
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                  subheader={
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                      Ziehe Teilnehmer hier hinein • Header klicken zum Verschieben
+                    </Typography>
+                  }
+                  sx={{ 
+                    pb: 1,
+                    cursor: isDraggingBox ? 'grabbing' : 'grab',
+                    '&:hover': { 
+                      bgcolor: 'rgba(255,255,255,0.05)'
                     }
                   }}
-                >
-                  <CardHeader
-                    onMouseDown={handleBoxMouseDown}
-                    title={
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                />
+                <CardContent sx={{ pt: 0 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* Woman Drop Zone */}
+                    <Box
+                      onDrop={(e) => {
+                        e.stopPropagation()
+                        handleDrop(e, 'woman')
+                      }}
+                      onDragOver={(e) => {
+                        e.stopPropagation()
+                        handleDragOver(e, 'woman')
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation()
+                        handleDragLeave()
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      sx={{
+                        border: '2px dashed rgba(255,255,255,0.5)',
+                        borderRadius: 2,
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: dragOverTarget === 'woman' ? 'rgba(255,255,255,0.4)' : 
+                                 matchboxForm.woman ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                        borderColor: dragOverTarget === 'woman' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
+                        transform: dragOverTarget === 'woman' ? 'scale(1.05)' : 'scale(1)',
+                        transition: 'all 0.3s ease',
+                        minHeight: 80,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          borderColor: 'rgba(255,255,255,0.8)'
+                        }
+                      }}
+                    >
+                      {matchboxForm.woman ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <FavoriteIcon />
-                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            Neue Matchbox
+                          {(() => {
+                            const woman = women.find(w => w.name === matchboxForm.woman)
+                            const hasPhoto = woman?.photoUrl && woman.photoUrl.trim() !== ''
+                            return (
+                              <Avatar 
+                                src={hasPhoto ? woman.photoUrl : undefined}
+                                sx={{ 
+                                  width: 40, 
+                                  height: 40, 
+                                  bgcolor: hasPhoto ? undefined : 'secondary.main',
+                                  border: '2px solid white'
+                                }}
+                              >
+                                {!hasPhoto && (woman?.name?.charAt(0) || 'F')}
+                              </Avatar>
+                            )
+                          })()}
+                          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
+                            {matchboxForm.woman}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setMatchboxForm(prev => ({...prev, woman: ''}))}
+                            sx={{ color: 'white', ml: 'auto' }}
+                          >
+                            <Typography sx={{ fontSize: '16px' }}>×</Typography>
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                            Frau hinzufügen
                           </Typography>
                         </Box>
-                        <Box 
-                          sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            opacity: 0.7,
-                            p: 1,
-                            borderRadius: 1,
-                            '&:hover': { 
-                              opacity: 1,
-                              bgcolor: 'rgba(255,255,255,0.1)'
+                      )}
+                    </Box>
+
+                    {/* Man Drop Zone */}
+                    <Box
+                      onDrop={(e) => {
+                        e.stopPropagation()
+                        handleDrop(e, 'man')
+                      }}
+                      onDragOver={(e) => {
+                        e.stopPropagation()
+                        handleDragOver(e, 'man')
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation()
+                        handleDragLeave()
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      sx={{
+                        border: '2px dashed rgba(255,255,255,0.5)',
+                        borderRadius: 2,
+                        p: 2,
+                        textAlign: 'center',
+                        bgcolor: dragOverTarget === 'man' ? 'rgba(255,255,255,0.4)' : 
+                                 matchboxForm.man ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                        borderColor: dragOverTarget === 'man' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
+                        transform: dragOverTarget === 'man' ? 'scale(1.05)' : 'scale(1)',
+                        transition: 'all 0.3s ease',
+                        minHeight: 80,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          borderColor: 'rgba(255,255,255,0.8)'
+                        }
+                      }}
+                    >
+                      {matchboxForm.man ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {(() => {
+                            const man = men.find(m => m.name === matchboxForm.man)
+                            const hasPhoto = man?.photoUrl && man.photoUrl.trim() !== ''
+                            return (
+                              <Avatar 
+                                src={hasPhoto ? man.photoUrl : undefined}
+                                sx={{ 
+                                  width: 40, 
+                                  height: 40, 
+                                  bgcolor: hasPhoto ? undefined : 'primary.main',
+                                  border: '2px solid white'
+                                }}
+                              >
+                                {!hasPhoto && (man?.name?.charAt(0) || 'M')}
+                              </Avatar>
+                            )
+                          })()}
+                          <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
+                            {matchboxForm.man}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => setMatchboxForm(prev => ({...prev, man: ''}))}
+                            sx={{ color: 'white', ml: 'auto' }}
+                          >
+                            <Typography sx={{ fontSize: '16px' }}>×</Typography>
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                            Mann hinzufügen
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* Action Buttons */}
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }} onMouseDown={(e) => e.stopPropagation()}>
+                      {matchboxForm.woman && matchboxForm.man ? (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMatchboxDialog(true)
+                          }}
+                          sx={{
+                            bgcolor: 'white',
+                            color: 'primary.main',
+                            fontWeight: 'bold',
+                            '&:hover': {
+                              bgcolor: 'grey.100'
                             }
                           }}
                         >
-                          <Typography sx={{ fontSize: '16px', color: 'rgba(255,255,255,0.8)' }}>
-                            ⋮⋮⋮
-                          </Typography>
-                        </Box>
-                      </Box>
-                    }
-                    subheader={
-                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                        Ziehe Teilnehmer hier hinein • Header klicken zum Verschieben
-                      </Typography>
-                    }
-                    sx={{ 
-                      pb: 1,
-                      cursor: isDraggingBox ? 'grabbing' : 'grab',
-                      '&:hover': { 
-                        bgcolor: 'rgba(255,255,255,0.05)'
-                      }
-                    }}
-                  />
-                  <CardContent sx={{ pt: 0 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {/* Woman Drop Zone */}
-                      <Box
-                        onDrop={(e) => {
-                          e.stopPropagation()
-                          handleDrop(e, 'woman')
-                        }}
-                        onDragOver={(e) => {
-                          e.stopPropagation()
-                          handleDragOver(e, 'woman')
-                        }}
-                        onDragLeave={(e) => {
-                          e.stopPropagation()
-                          handleDragLeave()
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        sx={{
-                          border: '2px dashed rgba(255,255,255,0.5)',
-                          borderRadius: 2,
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: dragOverTarget === 'woman' ? 'rgba(255,255,255,0.4)' : 
-                                   matchboxForm.woman ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                          borderColor: dragOverTarget === 'woman' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
-                          transform: dragOverTarget === 'woman' ? 'scale(1.05)' : 'scale(1)',
-                          transition: 'all 0.3s ease',
-                          minHeight: 80,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 1,
-                          '&:hover': {
+                          Details festlegen
+                        </Button>
+                      ) : (
+                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', width: '100%', py: 1 }}>
+                          Beide Teilnehmer hinzufügen
+                        </Typography>
+                      )}
+                      {(matchboxForm.woman || matchboxForm.man) && (
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            resetMatchboxForm()
+                          }}
+                          sx={{
+                            color: 'white',
                             bgcolor: 'rgba(255,255,255,0.2)',
-                            borderColor: 'rgba(255,255,255,0.8)'
-                          }
-                        }}
-                      >
-                        {matchboxForm.woman ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {(() => {
-                              const woman = women.find(w => w.name === matchboxForm.woman)
-                              const hasPhoto = woman?.photoUrl && woman.photoUrl.trim() !== ''
-                              return (
-                                <Avatar 
-                                  src={hasPhoto ? woman.photoUrl : undefined}
-                                  sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    bgcolor: hasPhoto ? undefined : 'secondary.main',
-                                    border: '2px solid white'
-                                  }}
-                                >
-                                  {!hasPhoto && (woman?.name?.charAt(0) || 'F')}
-                                </Avatar>
-                              )
-                            })()}
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
-                              {matchboxForm.woman}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => setMatchboxForm(prev => ({...prev, woman: ''}))}
-                              sx={{ color: 'white', ml: 'auto' }}
-                            >
-                              <Typography sx={{ fontSize: '16px' }}>×</Typography>
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                              Frau hinzufügen
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-
-                      {/* Man Drop Zone */}
-                      <Box
-                        onDrop={(e) => {
-                          e.stopPropagation()
-                          handleDrop(e, 'man')
-                        }}
-                        onDragOver={(e) => {
-                          e.stopPropagation()
-                          handleDragOver(e, 'man')
-                        }}
-                        onDragLeave={(e) => {
-                          e.stopPropagation()
-                          handleDragLeave()
-                        }}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        sx={{
-                          border: '2px dashed rgba(255,255,255,0.5)',
-                          borderRadius: 2,
-                          p: 2,
-                          textAlign: 'center',
-                          bgcolor: dragOverTarget === 'man' ? 'rgba(255,255,255,0.4)' : 
-                                   matchboxForm.man ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                          borderColor: dragOverTarget === 'man' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)',
-                          transform: dragOverTarget === 'man' ? 'scale(1.05)' : 'scale(1)',
-                          transition: 'all 0.3s ease',
-                          minHeight: 80,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 1,
-                          '&:hover': {
-                            bgcolor: 'rgba(255,255,255,0.2)',
-                            borderColor: 'rgba(255,255,255,0.8)'
-                          }
-                        }}
-                      >
-                        {matchboxForm.man ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {(() => {
-                              const man = men.find(m => m.name === matchboxForm.man)
-                              const hasPhoto = man?.photoUrl && man.photoUrl.trim() !== ''
-                              return (
-                                <Avatar 
-                                  src={hasPhoto ? man.photoUrl : undefined}
-                                  sx={{ 
-                                    width: 40, 
-                                    height: 40, 
-                                    bgcolor: hasPhoto ? undefined : 'primary.main',
-                                    border: '2px solid white'
-                                  }}
-                                >
-                                  {!hasPhoto && (man?.name?.charAt(0) || 'M')}
-                                </Avatar>
-                              )
-                            })()}
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'white' }}>
-                              {matchboxForm.man}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => setMatchboxForm(prev => ({...prev, man: ''}))}
-                              sx={{ color: 'white', ml: 'auto' }}
-                            >
-                              <Typography sx={{ fontSize: '16px' }}>×</Typography>
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                              Mann hinzufügen
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-
-                      {/* Action Buttons */}
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }} onMouseDown={(e) => e.stopPropagation()}>
-                        {matchboxForm.woman && matchboxForm.man ? (
-                          <Button
-                            fullWidth
-                            variant="contained"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setMatchboxDialog(true)
-                            }}
-                            sx={{
-                              bgcolor: 'white',
-                              color: 'primary.main',
-                              fontWeight: 'bold',
-                              '&:hover': {
-                                bgcolor: 'grey.100'
-                              }
-                            }}
-                          >
-                            Details festlegen
-                          </Button>
-                        ) : (
-                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', width: '100%', py: 1 }}>
-                            Beide Teilnehmer hinzufügen
-                          </Typography>
-                        )}
-                        {(matchboxForm.woman || matchboxForm.man) && (
-                          <IconButton
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              resetMatchboxForm()
-                            }}
-                            sx={{
-                              color: 'white',
-                              bgcolor: 'rgba(255,255,255,0.2)',
-                              '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
-                            }}
-                          >
-                            <Typography sx={{ fontSize: '16px' }}>↻</Typography>
-                          </IconButton>
-                        )}
-                      </Box>
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '16px' }}>↻</Typography>
+                        </IconButton>
+                      )}
                     </Box>
-                  </CardContent>
-                </Card>
-              </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
             )}
 
             {/* Search */}
@@ -1868,31 +1941,6 @@ const OverviewMUI: React.FC = () => {
                 }}
                 sx={{ maxWidth: 600 }}
               />
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  resetMatchingNightFormWithPerfectMatches()
-                  setMatchingNightDialog(true)
-                }}
-                sx={{ 
-                  borderRadius: 2, 
-                  whiteSpace: 'nowrap',
-                  minHeight: 56,
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  boxShadow: 3,
-                  '&:hover': {
-                    boxShadow: 6,
-                    transform: 'translateY(-2px)',
-                    transition: 'all 0.2s ease-in-out'
-                  }
-                }}
-              >
-                Neue Matching Night
-              </Button>
             </Box>
 
             {/* Participants by Gender */}
@@ -2017,9 +2065,6 @@ const OverviewMUI: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Matchboxes ({matchboxes.length})
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                💡 Nutze die schwebende Matchbox-Zone rechts für Drag & Drop
               </Typography>
             </Box>
             
@@ -2300,19 +2345,29 @@ const OverviewMUI: React.FC = () => {
         matchboxes={matchboxes}
         matchingNights={matchingNights}
         penalties={penalties}
+        onCreateMatchbox={() => setMatchboxDialog(true)}
+        onCreateMatchingNight={() => {
+          resetMatchingNightFormWithPerfectMatches()
+          setMatchingNightDialog(true)
+        }}
+        isOpenMobile={isStatsOpenMobile}
+        onToggleMobile={() => setIsStatsOpenMobile(v => !v)}
       />
 
 
       {/* Matching Night Dialog */}
       <Dialog open={matchingNightDialog} onClose={() => setMatchingNightDialog(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="h6">Neue Matching Night erstellen</Typography>
-              <Typography variant="body2" color="text.secondary">
-                🎯 Ziehe Teilnehmer direkt in die Pärchen-Container
-              </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" sx={{ width: '100%' }}>Neue Matching Night erstellen</Typography>
+              {!isMobile && (
+                <Typography variant="body2" color="text.secondary">
+                  🎯 Ziehe Teilnehmer direkt in die Pärchen-Container
+                </Typography>
+              )}
             </Box>
+            {!isMobile && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
               <Button
                 variant="outlined"
@@ -2335,25 +2390,45 @@ const OverviewMUI: React.FC = () => {
                 {getAutoPlaceablePerfectMatches().length} bestätigte Perfect Matches verfügbar
               </Typography>
             </Box>
+            )}
           </Box>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Basic Info */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Name der Matching Night"
-                value={matchingNightForm.name}
-                onChange={(e) => setMatchingNightForm({...matchingNightForm, name: e.target.value})}
-                placeholder="z.B. Matching Night 1"
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 'bold', 
+                color: 'text.primary',
+                fontSize: isMobile ? '18px' : '16px',
+                textAlign: 'center'
+              }}>
+                {matchingNightForm.name}
+              </Typography>
               
-              <Box>
-                <TextField
-                  fullWidth
-                  label="Gesamtlichter aus der Show (max. 10)"
-                  type="number"
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-start' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    Lichter:
+                  </Typography>
+                  <TextField
+                    fullWidth={false}
+                    label="Lichter (max. 10)"
+                    type="number"
+                    sx={{ 
+                      '& .MuiInputBase-input': { 
+                        width: '60px !important',
+                        minWidth: '60px !important',
+                        maxWidth: '60px !important',
+                        fontSize: '16px !important',
+                        padding: '16px 14px !important'
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        width: '100px !important',
+                        minWidth: '100px !important',
+                        maxWidth: '100px !important'
+                      }
+                    }}
                   inputProps={{ 
                     min: (() => {
                       const perfectMatchLights = matchingNightForm.pairs.filter(pair => 
@@ -2404,8 +2479,10 @@ const OverviewMUI: React.FC = () => {
                     return ""
                   })()}
                 />
-                {/* Visual Light Indicator */}
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                </Box>
+                
+                {/* Visual Light Dots */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="caption" color="text.secondary">
                     Lichter:
                   </Typography>
@@ -2461,7 +2538,8 @@ const OverviewMUI: React.FC = () => {
               </Box>
             </Box>
 
-            {/* Drag & Drop Pairs Grid - 2 rows of 5 pairs */}
+            {/* Drag & Drop Pairs Grid - nur auf Desktop */}
+            {!isMobile && (
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -2524,8 +2602,113 @@ const OverviewMUI: React.FC = () => {
                 </Box>
               </Box>
             </Box>
+            )}
 
-            {/* Available Participants for Drag & Drop */}
+            {/* Manuelle Paar-Auswahl - mobil */}
+            {isMobile && (
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Pärchen zusammenstellen
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {Array.from({ length: 10 }, (_, index) => {
+                  const pair = matchingNightForm.pairs[index] || { woman: '', man: '' }
+                  const isPerfectMatch = matchboxes.some(mb => 
+                    mb.matchType === 'perfect' && 
+                    mb.woman === pair.woman && 
+                    mb.man === pair.man
+                  )
+                  return (
+                    <Card key={index} sx={{ p: 2, bgcolor: isPerfectMatch ? 'warning.50' : 'grey.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', minWidth: 60 }}>
+                          Paar {index + 1}
+                        </Typography>
+                        {isPerfectMatch && (
+                          <Chip label="Perfect Match" color="warning" size="small" />
+                        )}
+                      </Box>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Frau</InputLabel>
+                          <Select
+                            value={pair.woman}
+                            label="Frau"
+                            disabled={isPerfectMatch}
+                            sx={isMobile ? {
+                              '& .MuiFormControl-root': {
+                                width: '100% !important'
+                              },
+                              '& .MuiInputBase-input': {
+                                width: '100% !important',
+                                minWidth: '100% !important'
+                              }
+                            } : {}}
+                            onChange={(e) => {
+                              const newPairs = [...matchingNightForm.pairs]
+                              if (!newPairs[index]) newPairs[index] = { woman: '', man: '' }
+                              newPairs[index].woman = e.target.value
+                              setMatchingNightForm({...matchingNightForm, pairs: newPairs})
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>Keine Auswahl</em>
+                            </MenuItem>
+                            {women.map((woman) => {
+                              const isUsed = matchingNightForm.pairs.some((p, i) => i !== index && p.woman === woman.name)
+                              return (
+                                <MenuItem key={woman.id} value={woman.name} disabled={isUsed || isPerfectMatch}>
+                                  {woman.name} {isUsed && '(bereits verwendet)'} {isPerfectMatch && '(Perfect Match - gesperrt)'}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Mann</InputLabel>
+                          <Select
+                            value={pair.man}
+                            label="Mann"
+                            disabled={isPerfectMatch}
+                            sx={isMobile ? {
+                              '& .MuiFormControl-root': {
+                                width: '100% !important'
+                              },
+                              '& .MuiInputBase-input': {
+                                width: '100% !important',
+                                minWidth: '100% !important'
+                              }
+                            } : {}}
+                            onChange={(e) => {
+                              const newPairs = [...matchingNightForm.pairs]
+                              if (!newPairs[index]) newPairs[index] = { woman: '', man: '' }
+                              newPairs[index].man = e.target.value
+                              setMatchingNightForm({...matchingNightForm, pairs: newPairs})
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>Keine Auswahl</em>
+                            </MenuItem>
+                            {men.map((man) => {
+                              const isUsed = matchingNightForm.pairs.some((p, i) => i !== index && p.man === man.name)
+                              return (
+                                <MenuItem key={man.id} value={man.name} disabled={isUsed || isPerfectMatch}>
+                                  {man.name} {isUsed && '(bereits verwendet)'} {isPerfectMatch && '(Perfect Match - gesperrt)'}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Card>
+                  )
+                })}
+              </Box>
+            </Box>
+            )}
+
+            {/* Available Participants for Drag & Drop - nur auf Desktop */}
+            {!isMobile && (
             <Box>
               
               {/* Participants Layout: Men Left, Women Right */}
@@ -2599,6 +2782,7 @@ const OverviewMUI: React.FC = () => {
                 </Box>
               </Box>
             </Box>
+            )}
 
           </Box>
         </DialogContent>
@@ -2631,16 +2815,19 @@ const OverviewMUI: React.FC = () => {
       {/* Matchbox Dialog */}
       <Dialog open={matchboxDialog} onClose={() => setMatchboxDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            Neue Matchbox erstellen
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Neue Matchbox erstellen
+            </Typography>
             <Typography variant="body2" color="text.secondary">
-              💡 Ziehe Teilnehmer aus der Übersicht hier hinein
+              {isMobile ? '📱 Wähle Teilnehmer aus den Listen aus' : '💡 Ziehe Teilnehmer aus der Übersicht hier hinein'}
             </Typography>
           </Box>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Drag & Drop Areas */}
+            {/* Drag & Drop Areas - nur auf Desktop */}
+            {!isMobile && (
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
               {/* Woman Drop Zone */}
               <Box
@@ -2824,9 +3011,10 @@ const OverviewMUI: React.FC = () => {
                 )}
               </Box>
             </Box>
+            )}
 
-            {/* Fallback Dropdowns */}
-            <Typography variant="h6" sx={{ mt: 2 }}>Oder manuell auswählen:</Typography>
+            {/* Manuelle Auswahl - immer sichtbar */}
+            <Typography variant="h6" sx={{ mt: 2 }}>{isMobile ? 'Teilnehmer auswählen:' : 'Oder manuell auswählen:'}</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Frau auswählen</InputLabel>
