@@ -31,9 +31,9 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell,
-  useMediaQuery
+  TableCell
 } from '@mui/material'
+import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
 import {
   People as PeopleIcon,
   Search as SearchIcon,
@@ -694,7 +694,8 @@ const StatisticsSidebar: React.FC<{
   isOpenMobile?: boolean
   onToggleMobile?: () => void
 }> = ({ matchboxes, matchingNights, penalties, onCreateMatchbox, onCreateMatchingNight, isOpenMobile, onToggleMobile }) => {
-  const isMobile = useMediaQuery('(max-width:600px)')
+  const deviceInfo = useDeviceDetection()
+  const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
   const [internalOpen, setInternalOpen] = React.useState(false)
   const mobileOpen = typeof isOpenMobile === 'boolean' ? isOpenMobile : internalOpen
   const toggleMobile = onToggleMobile ? onToggleMobile : () => setInternalOpen(v => !v)
@@ -1579,8 +1580,19 @@ const OverviewMUI: React.FC = () => {
     }
   }, [draggedParticipants])
 
-  const isMobile = useMediaQuery('(max-width:600px)')
+  // Erweiterte Geräteerkennung
+  const deviceInfo = useDeviceDetection()
+  const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
   const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
+  
+  // Geräte-spezifische Rotation-Locks aktivieren
+  useEffect(() => {
+    if (deviceInfo.isTablet) {
+      lockTabletOrientation()
+    } else if (deviceInfo.isSmartphone) {
+      lockSmartphoneOrientation()
+    }
+  }, [deviceInfo.isTablet, deviceInfo.isSmartphone])
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
@@ -1591,9 +1603,9 @@ const OverviewMUI: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                AYTO RSIL 2025
+                AYTO - Reality Stars in Love 2025
               </Typography>
-              <Chip label="Overview" color="primary" />
+              <Chip label="Beta" color="primary" />
               </Box>
               {isMobile && (
                 <IconButton aria-label="Statistik öffnen" onClick={() => setIsStatsOpenMobile(prev => !prev)}>
@@ -1603,7 +1615,7 @@ const OverviewMUI: React.FC = () => {
           </Box>
           
           <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-            Übersicht aller Teilnehmer der aktuellen Staffel
+            Aktuelle Staffel
           </Typography>
         </Box>
 
@@ -2054,9 +2066,6 @@ const OverviewMUI: React.FC = () => {
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Matchboxes ({matchboxes.length})
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                💡 Nutze die schwebende Matchbox-Zone rechts für Drag & Drop
-              </Typography>
             </Box>
             
             {matchboxes.length === 0 ? (
@@ -2349,13 +2358,16 @@ const OverviewMUI: React.FC = () => {
       {/* Matching Night Dialog */}
       <Dialog open={matchingNightDialog} onClose={() => setMatchingNightDialog(false)} maxWidth="lg" fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box>
-              <Typography variant="h6">Neue Matching Night erstellen</Typography>
-              <Typography variant="body2" color="text.secondary">
-                🎯 Ziehe Teilnehmer direkt in die Pärchen-Container
-              </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" sx={{ width: '100%' }}>Neue Matching Night erstellen</Typography>
+              {!isMobile && (
+                <Typography variant="body2" color="text.secondary">
+                  🎯 Ziehe Teilnehmer direkt in die Pärchen-Container
+                </Typography>
+              )}
             </Box>
+            {!isMobile && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
               <Button
                 variant="outlined"
@@ -2378,25 +2390,45 @@ const OverviewMUI: React.FC = () => {
                 {getAutoPlaceablePerfectMatches().length} bestätigte Perfect Matches verfügbar
               </Typography>
             </Box>
+            )}
           </Box>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Basic Info */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Name der Matching Night"
-                value={matchingNightForm.name}
-                onChange={(e) => setMatchingNightForm({...matchingNightForm, name: e.target.value})}
-                placeholder="z.B. Matching Night 1"
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 'bold', 
+                color: 'text.primary',
+                fontSize: isMobile ? '18px' : '16px',
+                textAlign: 'center'
+              }}>
+                {matchingNightForm.name}
+              </Typography>
               
-              <Box>
-                <TextField
-                  fullWidth
-                  label="Gesamtlichter aus der Show (max. 10)"
-                  type="number"
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-start' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    Lichter:
+                  </Typography>
+                  <TextField
+                    fullWidth={false}
+                    label="Lichter (max. 10)"
+                    type="number"
+                    sx={{ 
+                      '& .MuiInputBase-input': { 
+                        width: '60px !important',
+                        minWidth: '60px !important',
+                        maxWidth: '60px !important',
+                        fontSize: '16px !important',
+                        padding: '16px 14px !important'
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        width: '100px !important',
+                        minWidth: '100px !important',
+                        maxWidth: '100px !important'
+                      }
+                    }}
                   inputProps={{ 
                     min: (() => {
                       const perfectMatchLights = matchingNightForm.pairs.filter(pair => 
@@ -2447,8 +2479,10 @@ const OverviewMUI: React.FC = () => {
                     return ""
                   })()}
                 />
-                {/* Visual Light Indicator */}
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                </Box>
+                
+                {/* Visual Light Dots */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="caption" color="text.secondary">
                     Lichter:
                   </Typography>
@@ -2504,7 +2538,8 @@ const OverviewMUI: React.FC = () => {
               </Box>
             </Box>
 
-            {/* Drag & Drop Pairs Grid - 2 rows of 5 pairs */}
+            {/* Drag & Drop Pairs Grid - nur auf Desktop */}
+            {!isMobile && (
             <Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -2567,8 +2602,113 @@ const OverviewMUI: React.FC = () => {
                 </Box>
               </Box>
             </Box>
+            )}
 
-            {/* Available Participants for Drag & Drop */}
+            {/* Manuelle Paar-Auswahl - mobil */}
+            {isMobile && (
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Pärchen zusammenstellen
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {Array.from({ length: 10 }, (_, index) => {
+                  const pair = matchingNightForm.pairs[index] || { woman: '', man: '' }
+                  const isPerfectMatch = matchboxes.some(mb => 
+                    mb.matchType === 'perfect' && 
+                    mb.woman === pair.woman && 
+                    mb.man === pair.man
+                  )
+                  return (
+                    <Card key={index} sx={{ p: 2, bgcolor: isPerfectMatch ? 'warning.50' : 'grey.50' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', minWidth: 60 }}>
+                          Paar {index + 1}
+                        </Typography>
+                        {isPerfectMatch && (
+                          <Chip label="Perfect Match" color="warning" size="small" />
+                        )}
+                      </Box>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Frau</InputLabel>
+                          <Select
+                            value={pair.woman}
+                            label="Frau"
+                            disabled={isPerfectMatch}
+                            sx={isMobile ? {
+                              '& .MuiFormControl-root': {
+                                width: '100% !important'
+                              },
+                              '& .MuiInputBase-input': {
+                                width: '100% !important',
+                                minWidth: '100% !important'
+                              }
+                            } : {}}
+                            onChange={(e) => {
+                              const newPairs = [...matchingNightForm.pairs]
+                              if (!newPairs[index]) newPairs[index] = { woman: '', man: '' }
+                              newPairs[index].woman = e.target.value
+                              setMatchingNightForm({...matchingNightForm, pairs: newPairs})
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>Keine Auswahl</em>
+                            </MenuItem>
+                            {women.map((woman) => {
+                              const isUsed = matchingNightForm.pairs.some((p, i) => i !== index && p.woman === woman.name)
+                              return (
+                                <MenuItem key={woman.id} value={woman.name} disabled={isUsed || isPerfectMatch}>
+                                  {woman.name} {isUsed && '(bereits verwendet)'} {isPerfectMatch && '(Perfect Match - gesperrt)'}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel>Mann</InputLabel>
+                          <Select
+                            value={pair.man}
+                            label="Mann"
+                            disabled={isPerfectMatch}
+                            sx={isMobile ? {
+                              '& .MuiFormControl-root': {
+                                width: '100% !important'
+                              },
+                              '& .MuiInputBase-input': {
+                                width: '100% !important',
+                                minWidth: '100% !important'
+                              }
+                            } : {}}
+                            onChange={(e) => {
+                              const newPairs = [...matchingNightForm.pairs]
+                              if (!newPairs[index]) newPairs[index] = { woman: '', man: '' }
+                              newPairs[index].man = e.target.value
+                              setMatchingNightForm({...matchingNightForm, pairs: newPairs})
+                            }}
+                          >
+                            <MenuItem value="">
+                              <em>Keine Auswahl</em>
+                            </MenuItem>
+                            {men.map((man) => {
+                              const isUsed = matchingNightForm.pairs.some((p, i) => i !== index && p.man === man.name)
+                              return (
+                                <MenuItem key={man.id} value={man.name} disabled={isUsed || isPerfectMatch}>
+                                  {man.name} {isUsed && '(bereits verwendet)'} {isPerfectMatch && '(Perfect Match - gesperrt)'}
+                                </MenuItem>
+                              )
+                            })}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Card>
+                  )
+                })}
+              </Box>
+            </Box>
+            )}
+
+            {/* Available Participants for Drag & Drop - nur auf Desktop */}
+            {!isMobile && (
             <Box>
               
               {/* Participants Layout: Men Left, Women Right */}
@@ -2642,6 +2782,7 @@ const OverviewMUI: React.FC = () => {
                 </Box>
               </Box>
             </Box>
+            )}
 
           </Box>
         </DialogContent>
@@ -2674,8 +2815,10 @@ const OverviewMUI: React.FC = () => {
       {/* Matchbox Dialog */}
       <Dialog open={matchboxDialog} onClose={() => setMatchboxDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            Neue Matchbox erstellen
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Neue Matchbox erstellen
+            </Typography>
             <Typography variant="body2" color="text.secondary">
               {isMobile ? '📱 Wähle Teilnehmer aus den Listen aus' : '💡 Ziehe Teilnehmer aus der Übersicht hier hinein'}
             </Typography>
