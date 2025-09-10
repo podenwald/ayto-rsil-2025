@@ -68,6 +68,7 @@ import {
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import BroadcastManagement from './BroadcastManagement'
+import JsonImportManagement from './JsonImportManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
 import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
 
@@ -3432,6 +3433,13 @@ const AdminPanelMUI: React.FC = () => {
                 penalties={penalties}
                 onUpdate={loadAllData}
               />
+            </Box>
+          )}
+
+          {/* JSON Import */}
+          {activeTab === 'json-import' && (
+            <Box sx={{ p: 3 }}>
+              <JsonImportManagement onDataUpdate={loadAllData} />
             </Box>
           )}
         </Card>
