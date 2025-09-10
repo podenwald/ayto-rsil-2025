@@ -3434,25 +3434,25 @@ const AdminPanelMUI: React.FC = () => {
             </Box>
           </TabPanel>
 
-          {/* Matchbox Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={1}>
-            <Box sx={{ p: 3 }}>
-              <MatchboxManagement 
-                participants={participants}
-                matchboxes={matchboxes}
-                penalties={penalties}
-                onUpdate={loadAllData}
-              />
-            </Box>
-          </TabPanel>
-
           {/* Matching Nights Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={2}>
+          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={1}>
             <Box sx={{ p: 3 }}>
               <MatchingNightManagement 
                 participants={participants}
                 matchboxes={matchboxes}
                 matchingNights={matchingNights}
+                onUpdate={loadAllData}
+              />
+            </Box>
+          </TabPanel>
+
+          {/* Matchbox Tab */}
+          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={2}>
+            <Box sx={{ p: 3 }}>
+              <MatchboxManagement 
+                participants={participants}
+                matchboxes={matchboxes}
+                penalties={penalties}
                 onUpdate={loadAllData}
               />
             </Box>
