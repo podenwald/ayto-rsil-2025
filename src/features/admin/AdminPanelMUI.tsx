@@ -486,7 +486,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                     <Badge
                       badgeContent=""
-                      color={participant.active !== false ? "success" : "secondary"}
+                      color="default"
                       variant="dot"
                     sx={{
                       position: 'absolute',
@@ -497,7 +497,8 @@ const ParticipantsList: React.FC<{
                         width: 12,
                         height: 12,
                         borderRadius: '50%',
-                        border: '2px solid white'
+                        border: '2px solid white',
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
                       }
                     }}
                   />
@@ -679,7 +680,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                   <Badge
                     badgeContent=""
-                    color={participant.active !== false ? "success" : "secondary"}
+                    color="default"
                     variant="dot"
                     sx={{
                       position: 'absolute',
@@ -690,7 +691,8 @@ const ParticipantsList: React.FC<{
                         width: 12,
                         height: 12,
                         borderRadius: '50%',
-                        border: '2px solid white'
+                        border: '2px solid white',
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
                       }
                     }}
                   />
