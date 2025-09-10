@@ -9,18 +9,18 @@ export interface JsonImportData {
 }
 
 /**
- * Lädt die neueste JSON-Datei und importiert die Daten in die Datenbank
+ * Lädt eine spezifische JSON-Datei und importiert die Daten in die Datenbank
+ * @param fileName - Der Name der JSON-Datei (z.B. "ayto-complete-export-2025-09-08.json")
  * @param version - Die Version für die neue JSON-Datei (z.B. "0.2.1")
  * @returns Promise<boolean> - true wenn erfolgreich, false bei Fehler
  */
-export async function importJsonDataForVersion(version: string): Promise<boolean> {
+export async function importJsonDataForVersion(fileName: string, version: string): Promise<boolean> {
   try {
-    // Lade die neueste JSON-Datei
-    const jsonFileName = `ayto-complete-export-2025-09-10.json` // Aktuellste Datei
-    const response = await fetch(`/json/${jsonFileName}`)
+    // Lade die spezifische JSON-Datei
+    const response = await fetch(`/json/${fileName}`)
     
     if (!response.ok) {
-      throw new Error(`Fehler beim Laden der JSON-Datei: ${response.statusText}`)
+      throw new Error(`Fehler beim Laden der JSON-Datei ${fileName}: ${response.statusText}`)
     }
     
     const jsonData: JsonImportData = await response.json()
@@ -63,24 +63,25 @@ export async function importJsonDataForVersion(version: string): Promise<boolean
 
 /**
  * Erstellt eine neue Version mit JSON-Import
+ * @param fileName - Der Name der JSON-Datei
  * @param version - Die neue Versionsnummer
  * @returns Promise<boolean> - true wenn erfolgreich
  */
-export async function createVersionWithJsonImport(version: string): Promise<boolean> {
+export async function createVersionWithJsonImport(fileName: string, version: string): Promise<boolean> {
   try {
     // 1. JSON-Daten importieren
-    const importSuccess = await importJsonDataForVersion(version)
+    const importSuccess = await importJsonDataForVersion(fileName, version)
     
     if (!importSuccess) {
       throw new Error('JSON-Import fehlgeschlagen')
     }
     
     // 2. Version-Info aktualisieren (wird normalerweise vom Build-Script gemacht)
-    console.log(`✅ Version ${version} mit JSON-Import erfolgreich erstellt`)
+    console.log(`✅ Version ${version} mit JSON-Import aus ${fileName} erfolgreich erstellt`)
     return true
     
   } catch (error) {
-    console.error(`❌ Fehler beim Erstellen der Version ${version}:`, error)
+    console.error(`❌ Fehler beim Erstellen der Version ${version} mit ${fileName}:`, error)
     return false
   }
 }

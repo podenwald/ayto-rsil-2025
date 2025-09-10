@@ -104,7 +104,7 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
       // Simuliere Version aus Dateiname (z.B. "ayto-complete-export-2025-09-10.json" -> "0.2.1")
       const version = "0.2.1" // In einer echten Implementierung würde man das aus dem Dateinamen extrahieren
       
-      const success = await importJsonDataForVersion(version)
+      const success = await importJsonDataForVersion(selectedFile, version)
       
       if (success) {
         setSnackbar({
@@ -149,12 +149,12 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
     try {
       const version = "0.2.1" // In einer echten Implementierung würde man das dynamisch generieren
       
-      const success = await createVersionWithJsonImport(version)
+      const success = await createVersionWithJsonImport(selectedFile, version)
       
       if (success) {
         setSnackbar({
           open: true,
-          message: `Version ${version} mit JSON-Import erfolgreich erstellt!`,
+          message: `Version ${version} mit JSON-Import aus ${selectedFile} erfolgreich erstellt!`,
           severity: 'success'
         })
         loadDataCounts()
