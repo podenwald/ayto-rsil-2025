@@ -270,10 +270,34 @@ const ParticipantForm: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const oldName = initial?.name?.trim()
+      const newName = form.name.trim()
+
       if (form.id) {
         await db.participants.update(form.id, form)
       } else {
         await db.participants.add(form)
+      }
+
+      // Wenn der Name geändert wurde, referenzierte Einträge mitziehen
+      if (oldName && oldName !== newName) {
+        // Matchboxes: woman/man Felder aktualisieren
+        await db.matchboxes.where('woman').equals(oldName).modify({ woman: newName })
+        await db.matchboxes.where('man').equals(oldName).modify({ man: newName })
+
+        // Matching Nights: Paare innerhalb der Arrays aktualisieren
+        await db.matchingNights.toCollection().modify((mn: any) => {
+          if (!Array.isArray(mn.pairs)) return
+          let changed = false
+          mn.pairs = mn.pairs.map((p: any) => {
+            if (p?.woman === oldName) { changed = true; return { ...p, woman: newName } }
+            if (p?.man === oldName) { changed = true; return { ...p, man: newName } }
+            return p
+          })
+          if (changed) {
+            // no-op; Dexie persist happens via modify
+          }
+        })
       }
       onSaved()
     } catch (error) {
@@ -462,7 +486,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                     <Badge
                       badgeContent=""
-                      color={participant.active !== false ? "success" : "default"}
+                      color={participant.active !== false ? "success" : "secondary"}
                       variant="dot"
                     sx={{
                       position: 'absolute',
@@ -655,7 +679,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                   <Badge
                     badgeContent=""
-                    color={participant.active !== false ? "success" : "default"}
+                    color={participant.active !== false ? "success" : "secondary"}
                     variant="dot"
                     sx={{
                       position: 'absolute',
@@ -906,6 +930,11 @@ const MatchboxManagement: React.FC<{
           updatedAt: now,
           soldDate: matchboxForm.matchType === 'sold' ? (matchboxForm.soldDate || now) : undefined
         })
+        // Wenn Perfect Match, setze beide Teilnehmer auf inaktiv
+        if (matchboxForm.matchType === 'perfect') {
+          await db.participants.where('name').equals(matchboxForm.woman).modify({ active: false })
+          await db.participants.where('name').equals(matchboxForm.man).modify({ active: false })
+        }
         setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich aktualisiert!', severity: 'success' })
       } else {
         await db.matchboxes.add({
@@ -914,6 +943,11 @@ const MatchboxManagement: React.FC<{
           updatedAt: now,
           soldDate: matchboxForm.matchType === 'sold' ? now : undefined
         })
+        // Wenn Perfect Match, setze beide Teilnehmer auf inaktiv
+        if (matchboxForm.matchType === 'perfect') {
+          await db.participants.where('name').equals(matchboxForm.woman).modify({ active: false })
+          await db.participants.where('name').equals(matchboxForm.man).modify({ active: false })
+        }
         setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich erstellt!', severity: 'success' })
       }
 
