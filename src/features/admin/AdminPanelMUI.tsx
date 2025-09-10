@@ -67,8 +67,7 @@ import {
   Cached as CachedIcon,
   Inventory as InventoryIcon,
   Analytics as AnalyticsIcon,
-  Nightlife as NightlifeIcon,
-  Percent as PercentIcon
+  Nightlife as NightlifeIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -270,10 +269,34 @@ const ParticipantForm: React.FC<{
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const oldName = initial?.name?.trim()
+      const newName = form.name.trim()
+
       if (form.id) {
         await db.participants.update(form.id, form)
       } else {
         await db.participants.add(form)
+      }
+
+      // Wenn der Name geändert wurde, referenzierte Einträge mitziehen
+      if (oldName && oldName !== newName) {
+        // Matchboxes: woman/man Felder aktualisieren
+        await db.matchboxes.where('woman').equals(oldName).modify({ woman: newName })
+        await db.matchboxes.where('man').equals(oldName).modify({ man: newName })
+
+        // Matching Nights: Paare innerhalb der Arrays aktualisieren
+        await db.matchingNights.toCollection().modify((mn: any) => {
+          if (!Array.isArray(mn.pairs)) return
+          let changed = false
+          mn.pairs = mn.pairs.map((p: any) => {
+            if (p?.woman === oldName) { changed = true; return { ...p, woman: newName } }
+            if (p?.man === oldName) { changed = true; return { ...p, man: newName } }
+            return p
+          })
+          if (changed) {
+            // no-op; Dexie persist happens via modify
+          }
+        })
       }
       onSaved()
     } catch (error) {
@@ -318,8 +341,9 @@ const ParticipantForm: React.FC<{
               <TextField
                 fullWidth
                 label="Status"
-                value={form.status ?? ''}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                value={(form.active !== false) ? 'Aktiv' : 'Perfekt Match'}
+                InputProps={{ readOnly: true }}
+                helperText="Wird automatisch aus dem Aktiv-Status abgeleitet"
               />
               <TextField
                 fullWidth
@@ -462,7 +486,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                     <Badge
                       badgeContent=""
-                      color={participant.active !== false ? "success" : "default"}
+                      color="default"
                       variant="dot"
                     sx={{
                       position: 'absolute',
@@ -473,7 +497,8 @@ const ParticipantsList: React.FC<{
                         width: 12,
                         height: 12,
                         borderRadius: '50%',
-                        border: '2px solid white'
+                        border: '2px solid white',
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
                       }
                     }}
                   />
@@ -655,7 +680,7 @@ const ParticipantsList: React.FC<{
                   {/* Active status indicator */}
                   <Badge
                     badgeContent=""
-                    color={participant.active !== false ? "success" : "default"}
+                    color="default"
                     variant="dot"
                     sx={{
                       position: 'absolute',
@@ -666,7 +691,8 @@ const ParticipantsList: React.FC<{
                         width: 12,
                         height: 12,
                         borderRadius: '50%',
-                        border: '2px solid white'
+                        border: '2px solid white',
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
                       }
                     }}
                   />
@@ -906,6 +932,11 @@ const MatchboxManagement: React.FC<{
           updatedAt: now,
           soldDate: matchboxForm.matchType === 'sold' ? (matchboxForm.soldDate || now) : undefined
         })
+        // Wenn Perfect Match, setze beide Teilnehmer auf inaktiv
+        if (matchboxForm.matchType === 'perfect') {
+          await db.participants.where('name').equals(matchboxForm.woman).modify({ active: false })
+          await db.participants.where('name').equals(matchboxForm.man).modify({ active: false })
+        }
         setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich aktualisiert!', severity: 'success' })
       } else {
         await db.matchboxes.add({
@@ -914,6 +945,11 @@ const MatchboxManagement: React.FC<{
           updatedAt: now,
           soldDate: matchboxForm.matchType === 'sold' ? now : undefined
         })
+        // Wenn Perfect Match, setze beide Teilnehmer auf inaktiv
+        if (matchboxForm.matchType === 'perfect') {
+          await db.participants.where('name').equals(matchboxForm.woman).modify({ active: false })
+          await db.participants.where('name').equals(matchboxForm.man).modify({ active: false })
+        }
         setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich erstellt!', severity: 'success' })
       }
 
@@ -3400,25 +3436,25 @@ const AdminPanelMUI: React.FC = () => {
             </Box>
           </TabPanel>
 
-          {/* Matchbox Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={1}>
-            <Box sx={{ p: 3 }}>
-              <MatchboxManagement 
-                participants={participants}
-                matchboxes={matchboxes}
-                penalties={penalties}
-                onUpdate={loadAllData}
-              />
-            </Box>
-          </TabPanel>
-
           {/* Matching Nights Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={2}>
+          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={1}>
             <Box sx={{ p: 3 }}>
               <MatchingNightManagement 
                 participants={participants}
                 matchboxes={matchboxes}
                 matchingNights={matchingNights}
+                onUpdate={loadAllData}
+              />
+            </Box>
+          </TabPanel>
+
+          {/* Matchbox Tab */}
+          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={2}>
+            <Box sx={{ p: 3 }}>
+              <MatchboxManagement 
+                participants={participants}
+                matchboxes={matchboxes}
+                penalties={penalties}
                 onUpdate={loadAllData}
               />
             </Box>
