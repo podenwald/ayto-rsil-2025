@@ -11,8 +11,6 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
-  useTheme,
-  useMediaQuery,
   Card,
   Avatar,
   Chip,
@@ -25,7 +23,6 @@ import {
   Inventory as InventoryIcon,
   AdminPanelSettings as AdminIcon,
   Add as AddIcon,
-  Favorite as FavoriteIcon,
   LightMode as LightModeIcon,
   AutoAwesome as AutoAwesomeIcon,
   Savings as SavingsIcon,
@@ -58,8 +55,6 @@ const MenuLayout: React.FC<MenuLayoutProps> = ({
   perfectMatchesCount = 0,
   currentBalance = 0
 }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleDrawerToggle = () => {

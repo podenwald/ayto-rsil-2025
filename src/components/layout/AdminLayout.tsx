@@ -25,7 +25,6 @@ import {
   Settings as SettingsIcon,
   ImportExport as ImportExportIcon,
   Inventory as InventoryIcon,
-  Analytics as AnalyticsIcon,
   Schedule as ScheduleIcon
 } from '@mui/icons-material'
 
