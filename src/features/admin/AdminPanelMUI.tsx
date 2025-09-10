@@ -1564,7 +1564,7 @@ const MatchingNightManagement: React.FC<{
                                 label={`${matchingNight.totalLights} Lichter`}
                                 color="warning"
                                 size="small"
-                                icon={<LightbulbIcon />}
+                                icon={<LightModeIcon />}
                               />
                             )}
                           </Box>
@@ -1665,7 +1665,7 @@ const MatchingNightManagement: React.FC<{
               <Card sx={{ bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LightbulbIcon /> Lichter-Analyse
+                    <LightModeIcon /> Lichter-Analyse
                   </Typography>
                   <Box sx={{ 
                     display: 'grid',

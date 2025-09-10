@@ -83,12 +83,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'import-export',
       disabled: true
     },
-    {
-      text: 'Einstellungen',
-      icon: <SettingsIcon />,
-      value: 'settings',
-      disabled: true
-    }
+    // entfernt: doppelter 'Einstellungen'-Eintrag
   ]
 
   const drawer = (
