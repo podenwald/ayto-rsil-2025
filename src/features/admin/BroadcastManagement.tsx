@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Chip,
   Avatar,
@@ -14,10 +12,6 @@ import {
   DialogActions,
   Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Snackbar,
   Accordion,
@@ -31,14 +25,8 @@ import {
 } from '@mui/material'
 import {
   Schedule as ScheduleIcon,
-  Favorite as FavoriteIcon,
-  Cancel as CancelIcon,
-  TrendingUp as TrendingUpIcon,
   ExpandMore as ExpandMoreIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
-  PlayArrow as PlayArrowIcon,
   Nightlife as NightlifeIcon,
   Group as GroupIcon,
   Inventory as InventoryIcon
@@ -46,8 +34,7 @@ import {
 import { db, type MatchingNight, type Matchbox } from '../../lib/db'
 import { 
   createBroadcastSortKey,
-  formatBroadcastDateTime,
-  sortEventsByBroadcastDateTime
+  formatBroadcastDateTime
 } from '../../utils/broadcastUtils'
 
 // Interface für ein Broadcast Event
@@ -64,8 +51,8 @@ interface BroadcastEvent {
 
 // ** Broadcast Management Component
 const BroadcastManagement: React.FC = () => {
-  const [matchingNights, setMatchingNights] = useState<MatchingNight[]>([])
-  const [matchboxes, setMatchboxes] = useState<Matchbox[]>([])
+  const [, setMatchingNights] = useState<MatchingNight[]>([])
+  const [, setMatchboxes] = useState<Matchbox[]>([])
   const [broadcastEvents, setBroadcastEvents] = useState<BroadcastEvent[]>([])
   const [editingEvent, setEditingEvent] = useState<BroadcastEvent | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)

@@ -43,7 +43,6 @@ import {
   Man as ManIcon,
   Favorite as FavoriteIcon,
   Upload as UploadIcon,
-  Settings as SettingsIcon,
   Cancel as CancelIcon,
   Save as SaveIcon,
   Euro as EuroIcon,
@@ -66,7 +65,6 @@ import {
   Inventory as InventoryIcon,
   Analytics as AnalyticsIcon,
   Nightlife as NightlifeIcon,
-  Schedule as ScheduleIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import BroadcastManagement from './BroadcastManagement'
@@ -3325,13 +3323,6 @@ const AdminPanelMUI: React.FC = () => {
   }
 
 
-  const tabItems = [
-    { label: 'Teilnehmer', value: 'participants', icon: <PeopleIcon /> },
-    { label: 'Matching Nights', value: 'matching-nights', icon: <NightlifeIcon /> },
-    { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
-    { label: 'Ausstrahlung', value: 'broadcast', icon: <ScheduleIcon /> },
-    { label: 'Einstellungen', value: 'settings', icon: <SettingsIcon /> }
-  ]
 
   return (
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
