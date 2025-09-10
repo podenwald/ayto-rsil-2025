@@ -41,7 +41,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   People as PeopleIcon,
-  Analytics as AnalyticsIcon,
+  Woman as WomanIcon,
+  Man as ManIcon,
   Favorite as FavoriteIcon,
   Upload as UploadIcon,
   Settings as SettingsIcon,
@@ -50,9 +51,9 @@ import {
   Euro as EuroIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-  AccountBalance as AccountBalanceIcon,
+  Savings as SavingsIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  Lightbulb as LightbulbIcon,
+  LightMode as LightModeIcon,
   Groups as GroupsIcon,
   AutoAwesome as AutoAwesomeIcon,
   Download as DownloadIcon,
@@ -63,7 +64,11 @@ import {
   Restore as RestoreIcon,
   HelpOutline as HelpOutlineIcon,
   ExpandMore as ExpandMoreIcon,
-  Cached as CachedIcon
+  Cached as CachedIcon,
+  Inventory as InventoryIcon,
+  Analytics as AnalyticsIcon,
+  Nightlife as NightlifeIcon,
+  Percent as PercentIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -145,13 +150,13 @@ const StatisticsCards: React.FC<{
     {
       title: 'Frauen',
       value: womenCount,
-      icon: <PeopleIcon />,
+      icon: <WomanIcon />,
       color: 'pink'
     },
     {
       title: 'Männer',
       value: menCount,
-      icon: <PeopleIcon />,
+      icon: <ManIcon />,
       color: 'info'
     },
     {
@@ -163,13 +168,13 @@ const StatisticsCards: React.FC<{
     {
       title: 'Aktuelle Lichter',
       value: currentLights,
-      icon: <LightbulbIcon />,
+      icon: <LightModeIcon />,
       color: 'warning'
     },
     {
       title: 'Aktuelle Gewinnsumme',
       value: `€${currentBalance.toLocaleString('de-DE')}`,
-      icon: <TrendingUpIcon />,
+      icon: <SavingsIcon />,
       color: currentBalance > 0 ? 'success' : 'error'
     }
   ]
@@ -395,7 +400,7 @@ const ParticipantsList: React.FC<{
           <Box sx={{ mb: 6 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: 'pink.main' }}>
-                <PeopleIcon />
+                <WomanIcon />
               </Avatar>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Frauen ({participants.filter(p => p.gender === 'F').length})
@@ -589,7 +594,7 @@ const ParticipantsList: React.FC<{
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: 'info.main' }}>
-                <PeopleIcon />
+                <ManIcon />
               </Avatar>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Männer ({participants.filter(p => p.gender === 'M').length})
@@ -935,7 +940,7 @@ const MatchboxManagement: React.FC<{
     { title: 'Perfect Matches', value: perfectMatches, icon: <FavoriteIcon />, color: 'success' },
     { title: 'No Matches', value: noMatches, icon: <CancelIcon />, color: 'error' },
     { title: 'Verkaufte Matchboxes', value: soldMatchboxes, icon: <TrendingUpIcon />, color: 'info' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <AccountBalanceIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
+    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
   ]
 
   return (
@@ -1348,8 +1353,55 @@ const MatchingNightManagement: React.FC<{
 
   const saveMatchingNight = async () => {
     try {
-      if (matchingNightForm.pairs.length === 0) {
-        setSnackbar({ open: true, message: 'Bitte mindestens ein Paar hinzufügen!', severity: 'error' })
+      // Validierung: Maximum 10 Lichter erlaubt
+      if (matchingNightForm.totalLights > 10) {
+        setSnackbar({ open: true, message: 'Maximum 10 Lichter erlaubt!', severity: 'error' })
+        return
+      }
+
+      // Validierung: Alle 10 Paare müssen vollständig sein
+      const completePairs = matchingNightForm.pairs.filter(pair => pair && pair.woman && pair.man)
+      
+      if (completePairs.length !== 10) {
+        setSnackbar({ 
+          open: true, 
+          message: `Alle 10 Pärchen müssen vollständig sein! Aktuell: ${completePairs.length}/10 vollständig`, 
+          severity: 'error' 
+        })
+        return
+      }
+
+      // Validierung: Geschlechts-Konflikte prüfen
+      const genderConflicts = completePairs.filter(pair => {
+        const womanParticipant = participants.find(p => p.name === pair.woman)
+        const manParticipant = participants.find(p => p.name === pair.man)
+        return womanParticipant && manParticipant && womanParticipant.gender === manParticipant.gender
+      })
+
+      if (genderConflicts.length > 0) {
+        setSnackbar({ 
+          open: true, 
+          message: `Geschlechts-Konflikt gefunden! Jedes Paar muss aus einem Mann und einer Frau bestehen.`, 
+          severity: 'error' 
+        })
+        return
+      }
+      
+      // Validierung: Gesamtlichter dürfen nicht weniger als Perfect Match Lichter sein
+      const perfectMatchLights = completePairs.filter(pair => 
+        matchboxes.some(mb => 
+          mb.matchType === 'perfect' && 
+          mb.woman === pair.woman && 
+          mb.man === pair.man
+        )
+      ).length
+
+      if (matchingNightForm.totalLights < perfectMatchLights) {
+        setSnackbar({ 
+          open: true, 
+          message: `Gesamtlichter (${matchingNightForm.totalLights}) dürfen nicht weniger als sichere Lichter (${perfectMatchLights}) sein!`, 
+          severity: 'error' 
+        })
         return
       }
 
@@ -1410,9 +1462,9 @@ const MatchingNightManagement: React.FC<{
   }
 
   const matchingNightStats = [
-    { title: 'Gespeicherte Matching Nights', value: matchingNights.length, icon: <FavoriteIcon />, color: 'pink' },
+    { title: 'Gespeicherte Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
     { title: 'Perfect Matches verfügbar', value: perfectMatchPairs.length, icon: <AutoAwesomeIcon />, color: 'success' },
-    { title: 'Aktuelle Lichter', value: getCurrentLights(), icon: <LightbulbIcon />, color: 'warning' }
+    { title: 'Aktuelle Lichter', value: getCurrentLights(), icon: <LightModeIcon />, color: 'warning' }
   ]
 
   return (
@@ -1514,7 +1566,7 @@ const MatchingNightManagement: React.FC<{
                                 label={`${matchingNight.totalLights} Lichter`}
                                 color="warning"
                                 size="small"
-                                icon={<LightbulbIcon />}
+                                icon={<LightModeIcon />}
                               />
                             )}
                           </Box>
@@ -1615,7 +1667,7 @@ const MatchingNightManagement: React.FC<{
               <Card sx={{ bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LightbulbIcon /> Lichter-Analyse
+                    <LightModeIcon /> Lichter-Analyse
                   </Typography>
                   <Box sx={{ 
                     display: 'grid',
@@ -2520,23 +2572,23 @@ Alle Daten gehen unwiderruflich verloren!`)
 
   const databaseStats = [
     { title: 'Teilnehmer', value: participants.length, icon: <PeopleIcon />, color: 'primary' },
-    { title: 'Matching Nights', value: matchingNights.length, icon: <FavoriteIcon />, color: 'pink' },
-    { title: 'Matchboxes', value: matchboxes.length, icon: <AnalyticsIcon />, color: 'success' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <AccountBalanceIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
+    { title: 'Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
+    { title: 'Matchboxes', value: matchboxes.length, icon: <InventoryIcon />, color: 'success' },
+    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
   ]
 
   const exportItems = [
     { title: 'Teilnehmer', count: participants.length, onClick: exportParticipants, icon: <PeopleIcon />, disabled: participants.length === 0 },
-    { title: 'Matching Nights', count: matchingNights.length, onClick: exportMatchingNights, icon: <FavoriteIcon />, disabled: matchingNights.length === 0 },
-    { title: 'Matchboxes', count: matchboxes.length, onClick: exportMatchboxes, icon: <AnalyticsIcon />, disabled: matchboxes.length === 0 },
+    { title: 'Matching Nights', count: matchingNights.length, onClick: exportMatchingNights, icon: <NightlifeIcon />, disabled: matchingNights.length === 0 },
+    { title: 'Matchboxes', count: matchboxes.length, onClick: exportMatchboxes, icon: <InventoryIcon />, disabled: matchboxes.length === 0 },
     { title: 'Strafen/Transaktionen', count: penalties.length, onClick: exportPenalties, icon: <AccountBalanceWalletIcon />, disabled: penalties.length === 0 },
     { title: 'Komplettexport', count: totalEntries, onClick: exportAllData, icon: <BackupIcon />, disabled: totalEntries === 0, variant: 'contained' as const }
   ]
 
   const deleteItems = [
     { title: 'Teilnehmer', count: participants.length, onClick: deleteParticipants, icon: <PeopleIcon />, disabled: participants.length === 0 },
-    { title: 'Matching Nights', count: matchingNights.length, onClick: deleteMatchingNights, icon: <FavoriteIcon />, disabled: matchingNights.length === 0 },
-    { title: 'Matchboxes', count: matchboxes.length, onClick: deleteMatchboxes, icon: <AnalyticsIcon />, disabled: matchboxes.length === 0 }
+    { title: 'Matching Nights', count: matchingNights.length, onClick: deleteMatchingNights, icon: <NightlifeIcon />, disabled: matchingNights.length === 0 },
+    { title: 'Matchboxes', count: matchboxes.length, onClick: deleteMatchboxes, icon: <InventoryIcon />, disabled: matchboxes.length === 0 }
   ]
 
   return (
@@ -2571,7 +2623,7 @@ Alle Daten gehen unwiderruflich verloren!`)
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Budget Einstellungen"
-          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}><AccountBalanceIcon /></Avatar>}
+          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}><SavingsIcon /></Avatar>}
         />
         <CardContent>
           <Box sx={{ 
@@ -3121,7 +3173,7 @@ Alle Daten gehen unwiderruflich verloren!`)
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <AccountBalanceIcon color="primary" />
+          <SavingsIcon color="primary" />
           Startsumme ändern
         </DialogTitle>
         <DialogContent>
@@ -3258,8 +3310,8 @@ const AdminPanelMUI: React.FC = () => {
 
   const tabItems = [
     { label: 'Teilnehmer', value: 'participants', icon: <PeopleIcon /> },
-    { label: 'Matchbox', value: 'matchbox', icon: <AnalyticsIcon /> },
-    { label: 'Matching Nights', value: 'matching-nights', icon: <FavoriteIcon /> },
+    { label: 'Matching Nights', value: 'matching-nights', icon: <NightlifeIcon /> },
+    { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
     { label: 'Einstellungen', value: 'settings', icon: <SettingsIcon /> }
   ]
 

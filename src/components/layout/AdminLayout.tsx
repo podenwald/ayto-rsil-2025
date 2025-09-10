@@ -21,10 +21,11 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
-  Favorite as FavoriteIcon,
+  Nightlife as NightlifeIcon,
   Settings as SettingsIcon,
-  Analytics as AnalyticsIcon,
-  ImportExport as ImportExportIcon
+  ImportExport as ImportExportIcon,
+  Inventory as InventoryIcon,
+  Analytics as AnalyticsIcon
 } from '@mui/icons-material'
 
 const drawerWidth = 260
@@ -62,14 +63,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'participants'
     },
     {
-      text: 'Matchbox',
-      icon: <AnalyticsIcon />,
-      value: 'matchbox'
+      text: 'Matching Nights',
+      icon: <NightlifeIcon />,
+      value: 'matching-nights'
     },
     {
-      text: 'Matching Nights',
-      icon: <FavoriteIcon />,
-      value: 'matching-nights'
+      text: 'Matchbox',
+      icon: <InventoryIcon />,
+      value: 'matchbox'
     },
     {
       text: 'Einstellungen',
@@ -82,12 +83,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'import-export',
       disabled: true
     },
-    {
-      text: 'Einstellungen',
-      icon: <SettingsIcon />,
-      value: 'settings',
-      disabled: true
-    }
+    // entfernt: doppelter 'Einstellungen'-Eintrag
   ]
 
   const drawer = (

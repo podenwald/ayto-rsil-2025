@@ -35,20 +35,23 @@ import {
 } from '@mui/material'
 import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
 import {
-  People as PeopleIcon,
   Search as SearchIcon,
   Favorite as FavoriteIcon,
-  Analytics as AnalyticsIcon,
   AdminPanelSettings as AdminIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  AccountBalance as AccountBalanceIcon,
-  TrendingUp as TrendingUpIcon,
-  Female as FemaleIcon,
-  Male as MaleIcon,
+  Savings as SavingsIcon,
+  Percent as PercentIcon,
+  Woman as WomanIcon,
+  Man as ManIcon,
+  LightMode as LightModeIcon,
+  Nightlife as NightlifeIcon,
+  AutoAwesome as AutoAwesomeIcon,
   Add as AddIcon,
   Save as SaveIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Home as HomeFilledIcon,
+  Inventory as InventoryIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
@@ -496,7 +499,7 @@ const MatchingNightPairContainer: React.FC<{
                   borderColor: 'grey.400',
                   mb: 0.5
                 }}>
-                  <PeopleIcon sx={{ fontSize: '20px' }} />
+                  <WomanIcon sx={{ fontSize: '20px' }} />
                 </Avatar>
                 <Typography variant="caption" sx={{ textAlign: 'center', fontSize: '10px' }}>
                   Teilnehmer hier hinziehen
@@ -585,7 +588,7 @@ const MatchingNightPairContainer: React.FC<{
                   borderColor: 'grey.400',
                   mb: 0.5
                 }}>
-                  <PeopleIcon sx={{ fontSize: '20px' }} />
+                  <ManIcon sx={{ fontSize: '20px' }} />
                 </Avatar>
                 <Typography variant="caption" sx={{ textAlign: 'center', fontSize: '10px' }}>
                   Teilnehmer hier hinziehen
@@ -631,7 +634,7 @@ const MatchingNightCard: React.FC<{
                 <Chip 
                   label={`${matchingNight.totalLights} Lichter`}
                   color="warning"
-                  icon={<TrendingUpIcon />}
+                  icon={<LightModeIcon />}
                 />
               )}
               <IconButton onClick={onToggle}>
@@ -774,7 +777,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-                    <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                    <LightModeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -791,7 +794,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                    <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -808,7 +811,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'info.main', width: 32, height: 32 }}>
-                    <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+                    <SavingsIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -829,7 +832,7 @@ const StatisticsSidebar: React.FC<{
 
   return (
     <Box sx={{ 
-      width: 280,
+      width: 230,
       height: '100vh',
       position: 'fixed',
       top: 0,
@@ -858,7 +861,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              <NightlifeIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -875,7 +878,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-              <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+              <LightModeIcon sx={{ fontSize: '1rem' }} />
                     </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -892,7 +895,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -909,7 +912,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
-              <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+              <SavingsIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -992,9 +995,9 @@ const OverviewMUI: React.FC = () => {
 
 
   const tabItems = [
-    { label: 'Home', icon: <PeopleIcon /> },
-    { label: 'Matchbox', icon: <AnalyticsIcon /> },
-    { label: 'Wahrscheinlichkeiten', icon: <TrendingUpIcon />, disabled: true }
+    { label: 'Home', icon: <HomeFilledIcon /> },
+    { label: 'Matchbox', icon: <InventoryIcon /> },
+    { label: 'Wahrscheinlichkeiten', icon: <PercentIcon />, disabled: true }
   ]
 
   // Admin functionality states
@@ -1614,7 +1617,7 @@ const OverviewMUI: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
-      <Box sx={{ mr: isMobile ? 0 : '280px' }}>
+      <Box sx={{ mr: isMobile ? 0 : '230px' }}>
         {/* Header with Menu */}
       <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper', left: 0, right: 0, width: isMobile ? '100vw' : 'auto' }}>
           <Box sx={{ p: isMobile ? 2 : 3, pb: 0 }}>
@@ -1811,7 +1814,7 @@ const OverviewMUI: React.FC = () => {
                         </Box>
                       ) : (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <WomanIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
                           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                             Frau hinzufügen
                           </Typography>
@@ -1887,7 +1890,7 @@ const OverviewMUI: React.FC = () => {
                         </Box>
                       ) : (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <ManIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
                           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                             Mann hinzufügen
                           </Typography>
@@ -1973,7 +1976,7 @@ const OverviewMUI: React.FC = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
-                        <PeopleIcon />
+                        <WomanIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
                         Frauen ({filteredParticipants.filter(p => p.gender === 'F').length})
@@ -2010,7 +2013,7 @@ const OverviewMUI: React.FC = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                        <PeopleIcon />
+                        <ManIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                         Männer ({filteredParticipants.filter(p => p.gender === 'M').length})
@@ -2926,7 +2929,7 @@ const OverviewMUI: React.FC = () => {
                       border: '3px dashed',
                       borderColor: 'grey.400'
                     }}>
-                      <FemaleIcon sx={{ fontSize: '2rem' }} />
+                      <WomanIcon sx={{ fontSize: '2rem' }} />
                     </Avatar>
                     <Typography variant="h6" color="text.secondary">
                       Frau hier hinziehen
@@ -3017,7 +3020,7 @@ const OverviewMUI: React.FC = () => {
                       border: '3px dashed',
                       borderColor: 'grey.400'
                     }}>
-                      <MaleIcon sx={{ fontSize: '2rem' }} />
+                      <ManIcon sx={{ fontSize: '2rem' }} />
                     </Avatar>
                     <Typography variant="h6" color="text.secondary">
                       Mann hier hinziehen
