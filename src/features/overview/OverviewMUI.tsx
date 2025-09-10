@@ -35,7 +35,6 @@ import {
 } from '@mui/material'
 import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
 import {
-  People as PeopleIcon,
   Search as SearchIcon,
   Favorite as FavoriteIcon,
   AdminPanelSettings as AdminIcon,
@@ -500,7 +499,7 @@ const MatchingNightPairContainer: React.FC<{
                   borderColor: 'grey.400',
                   mb: 0.5
                 }}>
-                  <PeopleIcon sx={{ fontSize: '20px' }} />
+                  <WomanIcon sx={{ fontSize: '20px' }} />
                 </Avatar>
                 <Typography variant="caption" sx={{ textAlign: 'center', fontSize: '10px' }}>
                   Teilnehmer hier hinziehen
@@ -589,7 +588,7 @@ const MatchingNightPairContainer: React.FC<{
                   borderColor: 'grey.400',
                   mb: 0.5
                 }}>
-                  <PeopleIcon sx={{ fontSize: '20px' }} />
+                  <ManIcon sx={{ fontSize: '20px' }} />
                 </Avatar>
                 <Typography variant="caption" sx={{ textAlign: 'center', fontSize: '10px' }}>
                   Teilnehmer hier hinziehen
@@ -1977,7 +1976,7 @@ const OverviewMUI: React.FC = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
-                        <PeopleIcon />
+                        <WomanIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
                         Frauen ({filteredParticipants.filter(p => p.gender === 'F').length})
@@ -2014,7 +2013,7 @@ const OverviewMUI: React.FC = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                        <PeopleIcon />
+                        <ManIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                         Männer ({filteredParticipants.filter(p => p.gender === 'M').length})

@@ -41,6 +41,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   People as PeopleIcon,
+  Woman as WomanIcon,
+  Man as ManIcon,
   Favorite as FavoriteIcon,
   Upload as UploadIcon,
   Settings as SettingsIcon,
@@ -148,13 +150,13 @@ const StatisticsCards: React.FC<{
     {
       title: 'Frauen',
       value: womenCount,
-      icon: <PeopleIcon />,
+      icon: <WomanIcon />,
       color: 'pink'
     },
     {
       title: 'Männer',
       value: menCount,
-      icon: <PeopleIcon />,
+      icon: <ManIcon />,
       color: 'info'
     },
     {
@@ -398,7 +400,7 @@ const ParticipantsList: React.FC<{
           <Box sx={{ mb: 6 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: 'pink.main' }}>
-                <PeopleIcon />
+                <WomanIcon />
               </Avatar>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Frauen ({participants.filter(p => p.gender === 'F').length})
@@ -592,7 +594,7 @@ const ParticipantsList: React.FC<{
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
               <Avatar sx={{ bgcolor: 'info.main' }}>
-                <PeopleIcon />
+                <ManIcon />
               </Avatar>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Männer ({participants.filter(p => p.gender === 'M').length})
