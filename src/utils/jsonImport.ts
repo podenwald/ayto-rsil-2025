@@ -87,18 +87,53 @@ export async function createVersionWithJsonImport(fileName: string, version: str
 }
 
 /**
- * Lädt verfügbare JSON-Dateien
+ * Lädt verfügbare JSON-Dateien dynamisch
  * @returns Promise<string[]> - Liste der verfügbaren JSON-Dateien
  */
 export async function getAvailableJsonFiles(): Promise<string[]> {
   try {
-    // Für jetzt hardcoded, später könnte man das dynamisch machen
+    // Versuche eine bekannte JSON-Datei zu laden, um das Verzeichnis zu testen
+    const testResponse = await fetch('/json/ayto-complete-export-2025-09-10.json')
+    
+    if (!testResponse.ok) {
+      console.warn('JSON-Verzeichnis nicht erreichbar, verwende Fallback-Liste')
+      // Fallback auf hardcoded Liste
+      return [
+        'ayto-complete-export-2025-09-10.json',
+        'ayto-complete-export-2025-09-08.json'
+      ]
+    }
+
+    // Da wir das Verzeichnis nicht direkt auflisten können (CORS/Browser-Limitation),
+    // verwenden wir eine erweiterte Liste bekannter Dateien
+    const knownFiles = [
+      'ayto-complete-export-2025-09-10.json',
+      'ayto-complete-export-2025-09-08.json'
+    ]
+
+    // Teste welche Dateien tatsächlich verfügbar sind
+    const availableFiles: string[] = []
+    
+    for (const fileName of knownFiles) {
+      try {
+        const response = await fetch(`/json/${fileName}`)
+        if (response.ok) {
+          availableFiles.push(fileName)
+        }
+      } catch (error) {
+        // Datei nicht verfügbar, überspringen
+        console.debug(`Datei ${fileName} nicht verfügbar:`, error)
+      }
+    }
+
+    return availableFiles.length > 0 ? availableFiles : knownFiles
+
+  } catch (error) {
+    console.error('Fehler beim Laden der verfügbaren JSON-Dateien:', error)
+    // Fallback auf bekannte Dateien
     return [
       'ayto-complete-export-2025-09-10.json',
       'ayto-complete-export-2025-09-08.json'
     ]
-  } catch (error) {
-    console.error('Fehler beim Laden der verfügbaren JSON-Dateien:', error)
-    return []
   }
 }
