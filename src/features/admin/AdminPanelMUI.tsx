@@ -67,8 +67,7 @@ import {
   Cached as CachedIcon,
   Inventory as InventoryIcon,
   Analytics as AnalyticsIcon,
-  Nightlife as NightlifeIcon,
-  Percent as PercentIcon
+  Nightlife as NightlifeIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -342,8 +341,9 @@ const ParticipantForm: React.FC<{
               <TextField
                 fullWidth
                 label="Status"
-                value={form.status ?? ''}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                value={(form.active !== false) ? 'Aktiv' : 'Perfekt Match'}
+                InputProps={{ readOnly: true }}
+                helperText="Wird automatisch aus dem Aktiv-Status abgeleitet"
               />
               <TextField
                 fullWidth
