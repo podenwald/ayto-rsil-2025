@@ -17,8 +17,6 @@ import {
   Avatar,
   IconButton,
   Alert,
-  Tabs,
-  Tab,
   Badge,
   Tooltip,
   Stack,
@@ -75,28 +73,6 @@ import BroadcastManagement from './BroadcastManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
 import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
 
-// ** Custom Tab Panel Component
-interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`admin-tabpanel-${index}`}
-      aria-labelledby={`admin-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box>{children}</Box>}
-    </div>
-  )
-}
 
 // ** Statistics Cards Component
 const StatisticsCards: React.FC<{
@@ -3368,29 +3344,11 @@ const AdminPanelMUI: React.FC = () => {
           penalties={penalties}
         />
 
-        {/* Main Content Tabs */}
+        {/* Main Content */}
         <Card>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabItems.findIndex(item => item.value === activeTab)} 
-              onChange={(_, newValue) => setActiveTab(tabItems[newValue].value)}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              {tabItems.map((tab) => (
-                <Tab 
-                  key={tab.value}
-                  label={tab.label} 
-                  icon={tab.icon}
-                  iconPosition="start"
-                  sx={{ minHeight: 64 }}
-                />
-              ))}
-            </Tabs>
-          </Box>
 
-          {/* Participants Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={0}>
+          {/* Participants */}
+          {activeTab === 'participants' && (
             <Box sx={{ p: 3 }}>
               <ParticipantsList
                 participants={participants}
@@ -3440,10 +3398,10 @@ const AdminPanelMUI: React.FC = () => {
                 </Collapse>
               </Box>
             </Box>
-          </TabPanel>
+          )}
 
-          {/* Matching Nights Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={1}>
+          {/* Matching Nights */}
+          {activeTab === 'matching-nights' && (
             <Box sx={{ p: 3 }}>
               <MatchingNightManagement 
                 participants={participants}
@@ -3452,10 +3410,10 @@ const AdminPanelMUI: React.FC = () => {
                 onUpdate={loadAllData}
               />
             </Box>
-          </TabPanel>
+          )}
 
-          {/* Matchbox Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={2}>
+          {/* Matchbox */}
+          {activeTab === 'matchbox' && (
             <Box sx={{ p: 3 }}>
               <MatchboxManagement 
                 participants={participants}
@@ -3464,17 +3422,17 @@ const AdminPanelMUI: React.FC = () => {
                 onUpdate={loadAllData}
               />
             </Box>
-          </TabPanel>
+          )}
 
-          {/* Broadcast Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={3}>
+          {/* Broadcast */}
+          {activeTab === 'broadcast' && (
             <Box sx={{ p: 3 }}>
               <BroadcastManagement />
             </Box>
-          </TabPanel>
+          )}
 
-          {/* Settings Tab */}
-          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={4}>
+          {/* Settings */}
+          {activeTab === 'settings' && (
             <Box sx={{ p: 3 }}>
               <SettingsManagement 
                 participants={participants}
@@ -3484,7 +3442,7 @@ const AdminPanelMUI: React.FC = () => {
                 onUpdate={loadAllData}
               />
             </Box>
-          </TabPanel>
+          )}
         </Card>
       </Box>
     </AdminLayout>
