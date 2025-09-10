@@ -67,10 +67,13 @@ import {
   Cached as CachedIcon,
   Inventory as InventoryIcon,
   Analytics as AnalyticsIcon,
-  Nightlife as NightlifeIcon
+  Nightlife as NightlifeIcon,
+  Schedule as ScheduleIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
+import BroadcastManagement from './BroadcastManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
+import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
 
 // ** Custom Tab Panel Component
 interface TabPanelProps {
@@ -1301,16 +1304,18 @@ const MatchingNightManagement: React.FC<{
         .map(mb => ({ woman: mb.woman, man: mb.man }))
     }
     
-    const currentDate = new Date(currentMatchingNightDate)
-    return matchboxes
-      .filter(mb => {
-        if (mb.matchType !== 'perfect') return false
-        
-        // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
-        const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
-        return matchboxDate.getTime() < currentDate.getTime()
-      })
-      .map(mb => ({ woman: mb.woman, man: mb.man }))
+    // Erstelle ein temporäres Matching Night Objekt für die zentrale Logik
+    const tempMatchingNight: MatchingNight = {
+      id: 0,
+      name: 'temp',
+      date: currentMatchingNightDate,
+      pairs: [],
+      createdAt: new Date(),
+      ausstrahlungsdatum: currentMatchingNightDate,
+      ausstrahlungszeit: '20:15' // Standard AYTO Zeit
+    }
+    
+    return getValidPerfectMatchesForMatchingNight(matchboxes, tempMatchingNight)
   }
   
   const perfectMatchPairs = getValidPerfectMatches(matchingNightForm.ausstrahlungsdatum)
@@ -3348,6 +3353,7 @@ const AdminPanelMUI: React.FC = () => {
     { label: 'Teilnehmer', value: 'participants', icon: <PeopleIcon /> },
     { label: 'Matching Nights', value: 'matching-nights', icon: <NightlifeIcon /> },
     { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
+    { label: 'Ausstrahlung', value: 'broadcast', icon: <ScheduleIcon /> },
     { label: 'Einstellungen', value: 'settings', icon: <SettingsIcon /> }
   ]
 
@@ -3460,8 +3466,15 @@ const AdminPanelMUI: React.FC = () => {
             </Box>
           </TabPanel>
 
-          {/* Settings Tab */}
+          {/* Broadcast Tab */}
           <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={3}>
+            <Box sx={{ p: 3 }}>
+              <BroadcastManagement />
+            </Box>
+          </TabPanel>
+
+          {/* Settings Tab */}
+          <TabPanel value={tabItems.findIndex(item => item.value === activeTab)} index={4}>
             <Box sx={{ p: 3 }}>
               <SettingsManagement 
                 participants={participants}

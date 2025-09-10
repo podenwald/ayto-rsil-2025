@@ -633,9 +633,28 @@ function MatchingNightManagement() {
   }
 
   // Perfect Match Logik - nur Matchboxes die VOR der aktuellen Matching Night ausgestrahlt wurden
-  const getValidPerfectMatches = () => {
+  const getValidPerfectMatches = (currentMatchingNightDate?: string) => {
+    if (!currentMatchingNightDate) {
+      // Wenn keine Matching Night ausgewählt ist, alle Perfect Matches anzeigen
+      return matchboxes
+        .filter(mb => mb.matchType === 'perfect')
+        .map(mb => ({ woman: mb.woman, man: mb.man }))
+    }
+    
+    const currentDate = new Date(currentMatchingNightDate)
     return matchboxes
-      .filter(mb => mb.matchType === 'perfect')
+      .filter(mb => {
+        if (mb.matchType !== 'perfect') return false
+        
+        // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
+        if (mb.ausstrahlungsdatum && mb.ausstrahlungszeit) {
+          const matchboxDateTime = new Date(`${mb.ausstrahlungsdatum}T${mb.ausstrahlungszeit}`)
+          return matchboxDateTime.getTime() < currentDate.getTime()
+        }
+        
+        const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
+        return matchboxDate.getTime() < currentDate.getTime()
+      })
       .map(mb => ({ woman: mb.woman, man: mb.man }))
   }
   

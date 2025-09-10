@@ -168,13 +168,18 @@ export default function Overview() {
         if (!mb || mb.matchType !== 'perfect') return false
         
         // Matchbox muss VOR der Matching Night ausgestrahlt worden sein
+        if (mb.ausstrahlungsdatum && mb.ausstrahlungszeit) {
+          const matchboxDateTime = new Date(`${mb.ausstrahlungsdatum}T${mb.ausstrahlungszeit}`)
+          return matchboxDateTime.getTime() < currentDate.getTime()
+        }
+        
         const matchboxDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
         return matchboxDate.getTime() < currentDate.getTime()
       })
       .map(mb => ({ woman: mb.woman, man: mb.man }))
   }
   
-  const perfectMatchPairs = getValidPerfectMatches()
+  const perfectMatchPairs = getValidPerfectMatches() // No current date passed, so all perfect matches are shown
 
   // Get already used participants for current matching night (including perfect matches)
   const usedWomen = [

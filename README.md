@@ -73,7 +73,7 @@ Die App implementiert ein erweiterte Geräteerkennung für optimale Benutzererfa
 - **Ansicht**: Mobile UI mit allen mobilen Features
 - **Rotation-Lock**: Portrait-Modus wird blockiert mit Hinweis-Overlay (nur Hochformat)
 - **Features**: 
-  - Eingeklappte Statistik-Sidebar (max. 1/3 Bildschirmhöhe)
+  - Eingeklappte Menü-Sidebar (max. 1/3 Bildschirmhöhe)
   - Menü-Icon oben rechts zum Aufklappen
   - Vollbreite Content-Bereiche
   - Manuelle Teilnehmer-Auswahl (kein Drag & Drop)

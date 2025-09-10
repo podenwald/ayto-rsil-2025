@@ -10,10 +10,6 @@ import {
   TextField,
   Avatar,
   Chip,
-  Tabs,
-  Tab,
-  Paper,
-  InputAdornment,
   IconButton,
   Alert,
   Collapse,
@@ -34,27 +30,23 @@ import {
   TableCell
 } from '@mui/material'
 import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
+import MenuLayout from '@/components/layout/MenuLayout'
 import {
-  Search as SearchIcon,
   Favorite as FavoriteIcon,
-  AdminPanelSettings as AdminIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Savings as SavingsIcon,
-  Percent as PercentIcon,
   Woman as WomanIcon,
   Man as ManIcon,
   LightMode as LightModeIcon,
-  Nightlife as NightlifeIcon,
-  AutoAwesome as AutoAwesomeIcon,
-  Add as AddIcon,
   Save as SaveIcon,
-  Menu as MenuIcon,
-  Home as HomeFilledIcon,
-  Inventory as InventoryIcon
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
+import { 
+  isPairConfirmedAsPerfectMatch,
+  getValidPerfectMatchesBeforeDateTime,
+  getMatchboxBroadcastDateTime
+} from '@/utils/broadcastUtils'
 
 // ** Tab Panel Component
 interface TabPanelProps {
@@ -655,18 +647,7 @@ const MatchingNightCard: React.FC<{
             {matchingNight.pairs.map((pair, index) => {
               // Check if this pair has been confirmed as a perfect match in matchboxes
               // BUT only if the matchbox was aired BEFORE this matching night
-              const isConfirmedPerfectMatch = matchboxes.some(mb => {
-                if (mb.woman !== pair.woman || mb.man !== pair.man || mb.matchType !== 'perfect') {
-                  return false
-                }
-                
-                // Get airing dates for comparison
-                const matchboxAiringDate = mb.ausstrahlungsdatum ? new Date(mb.ausstrahlungsdatum) : new Date(mb.createdAt)
-                const matchingNightAiringDate = matchingNight.ausstrahlungsdatum ? new Date(matchingNight.ausstrahlungsdatum) : new Date(matchingNight.createdAt)
-                
-                // Matchbox must be aired BEFORE the matching night
-                return matchboxAiringDate.getTime() < matchingNightAiringDate.getTime()
-              })
+              const isConfirmedPerfectMatch = isPairConfirmedAsPerfectMatch(pair, matchingNight, matchboxes)
               
               return (
                 <CoupleAvatars
@@ -687,24 +668,11 @@ const MatchingNightCard: React.FC<{
 }
 
 
-// ** Statistics Sidebar Component
-const StatisticsSidebar: React.FC<{
-  matchboxes: Matchbox[]
-  matchingNights: MatchingNight[]
-  penalties: Penalty[]
-  onCreateMatchbox: () => void
-  onCreateMatchingNight: () => void
-  isOpenMobile?: boolean
-  onToggleMobile?: () => void
-}> = ({ matchboxes, matchingNights, penalties, onCreateMatchbox, onCreateMatchingNight, isOpenMobile, onToggleMobile }) => {
-  const deviceInfo = useDeviceDetection()
-  const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
-  const [internalOpen, setInternalOpen] = React.useState(false)
-  const mobileOpen = typeof isOpenMobile === 'boolean' ? isOpenMobile : internalOpen
-  const toggleMobile = onToggleMobile ? onToggleMobile : () => setInternalOpen(v => !v)
+// Helper function to calculate statistics
+const calculateStatistics = (matchboxes: Matchbox[], matchingNights: MatchingNight[], penalties: Penalty[]) => {
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect')
   
-  // Calculate penalties and credits like in AdminPanelMUI
+  // Calculate penalties and credits
   const totalPenalties = penalties
     .filter(penalty => penalty.amount < 0)
     .reduce((sum, penalty) => sum + Math.abs(penalty.amount), 0)
@@ -712,7 +680,7 @@ const StatisticsSidebar: React.FC<{
     .filter(penalty => penalty.amount > 0)
     .reduce((sum, penalty) => sum + penalty.amount, 0)
   
-  // Get starting budget (same logic as AdminPanelMUI)
+  // Get starting budget
   const getStartingBudget = () => {
     const savedBudget = localStorage.getItem('ayto-starting-budget')
     return savedBudget ? parseInt(savedBudget, 10) : 200000
@@ -722,7 +690,7 @@ const StatisticsSidebar: React.FC<{
   const totalRevenue = soldMatchboxes.reduce((sum, mb) => sum + (mb.price || 0), 0)
   const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
 
-  // Get latest matching night lights (sort by ausstrahlungsdatum, fallback to createdAt)
+  // Get latest matching night lights
   const latestMatchingNight = matchingNights
     .sort((a, b) => {
       const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
@@ -731,219 +699,12 @@ const StatisticsSidebar: React.FC<{
     })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
 
-  if (isMobile) {
-    return (
-      <Box sx={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        bgcolor: 'background.paper',
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        zIndex: 1000,
-      }}>
-        <Box onClick={toggleMobile} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Statistiken</Typography>
-          {mobileOpen ? <ExpandMoreIcon /> : <ExpandLessIcon />}
-        </Box>
-        {mobileOpen && (
-          <Box sx={{ maxHeight: '33vh', overflowY: 'auto', p: 2 }}>
-            <Button variant="contained" color="secondary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
-              Neue Matching Night
-            </Button>
-            <Button variant="contained" color="primary" fullWidth startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
-              Matchbox erstellen
-            </Button>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Matching Nights Count */}
-              <Card>
-                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                      Matching Nights
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                      {matchingNights.length}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              {/* Current Lights */}
-              <Card>
-                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-                  <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-                    <LightModeIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                      Lichter aktuell
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                      {currentLights}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-              
-              {/* Perfect matches */}
-              <Card>
-                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-                  <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-                    <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                      Perfect Matches
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                      {perfectMatches.length}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              {/* Budget */}
-              <Card>
-                <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-                  <Avatar sx={{ bgcolor: 'info.main', width: 32, height: 32 }}>
-                    <SavingsIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                      Budget
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'info.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                      {currentBalance.toLocaleString('de-DE')} €
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
-          </Box>
-        )}
-      </Box>
-    )
+  return {
+    matchingNightsCount: matchingNights.length,
+    currentLights,
+    perfectMatchesCount: perfectMatches.length,
+    currentBalance
   }
-
-  return (
-    <Box sx={{ 
-      width: 230,
-      height: '100vh',
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      bgcolor: 'background.paper',
-      borderLeft: '1px solid',
-      borderColor: 'divider',
-      overflowY: 'auto',
-      p: 3,
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
-        Statistiken
-      </Typography>
-      <Button variant="contained" color="secondary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchingNight}>
-        Neue Matching Night
-      </Button>
-      <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ mb: 2 }} onClick={onCreateMatchbox}>
-        Matchbox erstellen
-      </Button>
-      
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-        {/* Matching Nights Count */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-              <NightlifeIcon sx={{ fontSize: '1rem' }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Matching Nights
-            </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {matchingNights.length}
-            </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Current Lights */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-              <LightModeIcon sx={{ fontSize: '1rem' }} />
-                    </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Lichter aktuell
-                </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'warning.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {currentLights}
-              </Typography>
-          </Box>
-          </CardContent>
-        </Card>
-
-        {/* Perfect Matches */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-              <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
-                  </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Perfect Matches
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'success.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                {perfectMatches.length}
-              </Typography>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Current Balance */}
-        <Card>
-          <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
-            <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
-              <SavingsIcon sx={{ fontSize: '1rem' }} />
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
-                Kontostand
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: currentBalance >= 0 ? 'success.main' : 'error.main', fontSize: '1rem', lineHeight: 1.2 }}>
-                €{currentBalance.toLocaleString('de-DE')}
-              </Typography>
-          </Box>
-          </CardContent>
-        </Card>
-      </Box>
-      
-      {/* Admin Button at bottom */}
-      <Box sx={{ mt: 'auto', pt: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<AdminIcon />}
-          onClick={() => window.location.href = '/admin'}
-      fullWidth
-          sx={{ 
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Admin Panel
-        </Button>
-      </Box>
-    </Box>
-  )
 }
 
 
@@ -953,7 +714,6 @@ const OverviewMUI: React.FC = () => {
   const [matchingNights, setMatchingNights] = useState<MatchingNight[]>([])
   const [matchboxes, setMatchboxes] = useState<Matchbox[]>([])
   const [penalties, setPenalties] = useState<Penalty[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState(0)
   const [expandedMatchingNights, setExpandedMatchingNights] = useState<Set<number>>(new Set())
 
@@ -978,11 +738,6 @@ const OverviewMUI: React.FC = () => {
     }
   }
 
-  const filteredParticipants = participants.filter(participant =>
-    participant.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    participant.knownFrom?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const toggleMatchingNight = (id: number) => {
     const newExpanded = new Set(expandedMatchingNights)
     if (newExpanded.has(id)) {
@@ -994,11 +749,16 @@ const OverviewMUI: React.FC = () => {
   }
 
 
-  const tabItems = [
-    { label: 'Home', icon: <HomeFilledIcon /> },
-    { label: 'Matchbox', icon: <InventoryIcon /> },
-    { label: 'Wahrscheinlichkeiten', icon: <PercentIcon />, disabled: true }
-  ]
+
+  // Handler functions for MenuLayout
+  const handleCreateMatchbox = () => {
+    setMatchboxDialog(true)
+  }
+
+  const handleCreateMatchingNight = () => {
+    resetMatchingNightFormWithPerfectMatches()
+    setMatchingNightDialog(true)
+  }
 
   // Admin functionality states
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -1034,10 +794,9 @@ const OverviewMUI: React.FC = () => {
   }
 
   // Get Perfect Match pairs that should be auto-placed
+  // Only includes Perfect Matches that were aired BEFORE the current matching night
   const getAutoPlaceablePerfectMatches = () => {
-    return matchboxes
-      .filter(mb => mb.matchType === 'perfect')
-      .map(mb => ({ woman: mb.woman, man: mb.man }))
+    return getValidPerfectMatchesBeforeDateTime(matchboxes, new Date())
       .slice(0, 10) // Max 10 Perfect Matches (one per container)
   }
 
@@ -1271,12 +1030,17 @@ const OverviewMUI: React.FC = () => {
       }
       
       // Check if total lights is at least as many as Perfect Match lights
+      // Only count Perfect Matches that were aired BEFORE this matching night
+      const currentMatchingNightDate = new Date()
       const perfectMatchLights = completePairs.filter(pair => 
-        matchboxes.some(mb => 
-          mb.matchType === 'perfect' && 
-          mb.woman === pair.woman && 
-          mb.man === pair.man
-        )
+        matchboxes.some(mb => {
+          if (mb.matchType !== 'perfect' || mb.woman !== pair.woman || mb.man !== pair.man) {
+            return false
+          }
+          
+          // Use centralized broadcast utility
+          return getMatchboxBroadcastDateTime(mb).getTime() < currentMatchingNightDate.getTime()
+        })
       ).length
 
       if (matchingNightForm.totalLights < perfectMatchLights) {
@@ -1604,7 +1368,6 @@ const OverviewMUI: React.FC = () => {
   // Erweiterte Geräteerkennung
   const deviceInfo = useDeviceDetection()
   const isMobile = deviceInfo.isSmartphone // Nur Smartphones gelten als "mobile"
-  const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
   
   // Geräte-spezifische Rotation-Locks aktivieren
   useEffect(() => {
@@ -1614,60 +1377,29 @@ const OverviewMUI: React.FC = () => {
       lockSmartphoneOrientation()
     }
   }, [deviceInfo.isTablet, deviceInfo.isSmartphone])
-  return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
-      {/* Main Content Area */}
-      <Box sx={{ mr: isMobile ? 0 : '230px' }}>
-        {/* Header with Menu */}
-      <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper', left: 0, right: 0, width: isMobile ? '100vw' : 'auto' }}>
-          <Box sx={{ p: isMobile ? 2 : 3, pb: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                AYTO - Reality Stars in Love 2025
-              </Typography>
-              <Chip label="Beta" color="primary" />
-              </Box>
-              {isMobile && (
-                <IconButton aria-label="Statistik öffnen" onClick={() => setIsStatsOpenMobile(prev => !prev)}>
-                  <MenuIcon />
-                </IconButton>
-              )}
-          </Box>
-          
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-            Aktuelle Staffel
-          </Typography>
-        </Box>
+  // Calculate statistics for the menu
+  const statistics = calculateStatistics(matchboxes, matchingNights, penalties)
 
-          {/* Menu Tabs integrated into header */}
-          <Tabs 
-            value={activeTab} 
-            onChange={(_, newValue) => {
-              // Wechsel zum deaktivierten Tab (Index 2) verhindern
-              if (newValue === 2) return
-              setActiveTab(newValue)
-            }}
-            variant="fullWidth"
-            sx={{ borderBottom: 1, borderColor: 'divider' }}
-          >
-            {tabItems.map((tab, index) => (
-              <Tab 
-                key={index}
-                label={tab.label} 
-                icon={tab.icon}
-                iconPosition="start"
-                disabled={Boolean(tab.disabled)}
-                sx={{ minHeight: 64, fontSize: '1rem', fontWeight: 'bold' }}
-              />
-            ))}
-          </Tabs>
-        </Paper>
+  return (
+    <MenuLayout
+      activeTab={activeTab === 0 ? 'overview' : activeTab === 1 ? 'matching-nights' : activeTab === 2 ? 'matchbox' : 'probabilities'}
+      onTabChange={(tab) => {
+        if (tab === 'overview') setActiveTab(0)
+        else if (tab === 'matching-nights') setActiveTab(1)
+        else if (tab === 'matchbox') setActiveTab(2)
+        else if (tab === 'probabilities') setActiveTab(3)
+      }}
+      onCreateMatchbox={handleCreateMatchbox}
+      onCreateMatchingNight={handleCreateMatchingNight}
+      matchingNightsCount={statistics.matchingNightsCount}
+      currentLights={statistics.currentLights}
+      perfectMatchesCount={statistics.perfectMatchesCount}
+      currentBalance={statistics.currentBalance}
+    >
 
         {/* Main Content */}
         <Box sx={{ maxWidth: isMobile ? '100%' : '1200px', mx: isMobile ? 0 : 'auto', p: isMobile ? 2 : 3 }}>
           <Card sx={{ mb: 4 }}>
-
           {/* Overview Tab */}
           <TabPanel value={activeTab} index={0}>
             {/* Floating Matchbox Creator - nur auf Desktop */}
@@ -1946,40 +1678,24 @@ const OverviewMUI: React.FC = () => {
             </Box>
             )}
 
-            {/* Search */}
-            <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'center' }}>
-              <TextField
-                fullWidth
-                placeholder="Namen oder Show suchen..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ maxWidth: 600 }}
-              />
-            </Box>
+            
 
             {/* Participants by Gender */}
-            {filteredParticipants.length === 0 ? (
+            {participants.length === 0 ? (
               <Alert severity="info">
-                {searchQuery ? 'Keine Teilnehmer gefunden' : 'Noch keine Teilnehmer vorhanden'}
+                {'Noch keine Teilnehmer vorhanden'}
               </Alert>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {/* Women Section */}
-                {filteredParticipants.filter(p => p.gender === 'F').length > 0 && (
+                {participants.filter(p => p.gender === 'F').length > 0 && (
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
                         <WomanIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>
-                        Frauen ({filteredParticipants.filter(p => p.gender === 'F').length})
+                        Frauen ({participants.filter(p => p.gender === 'F').length})
                       </Typography>
                     </Box>
                     <Box sx={{ 
@@ -1988,7 +1704,7 @@ const OverviewMUI: React.FC = () => {
                       gap: 3,
                       justifyContent: 'flex-start'
                     }}>
-                      {filteredParticipants
+                      {participants
                         .filter(p => p.gender === 'F')
                         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'))
                         .map((participant) => {
@@ -2009,14 +1725,14 @@ const OverviewMUI: React.FC = () => {
                 )}
 
                 {/* Men Section */}
-                {filteredParticipants.filter(p => p.gender === 'M').length > 0 && (
+                {participants.filter(p => p.gender === 'M').length > 0 && (
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
                         <ManIcon />
                       </Avatar>
                       <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        Männer ({filteredParticipants.filter(p => p.gender === 'M').length})
+                        Männer ({participants.filter(p => p.gender === 'M').length})
                       </Typography>
                     </Box>
                     <Box sx={{ 
@@ -2025,7 +1741,7 @@ const OverviewMUI: React.FC = () => {
                       gap: 3,
                       justifyContent: 'flex-start'
                     }}>
-                      {filteredParticipants
+                      {participants
                         .filter(p => p.gender === 'M')
                         .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'))
                         .map((participant) => {
@@ -2047,42 +1763,34 @@ const OverviewMUI: React.FC = () => {
               </Box>
             )}
 
-            {/* Matching Nights Section */}
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
+            
+          </TabPanel>
+
+          {/* Matching Nights Tab */}
+          <TabPanel value={activeTab} index={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Matching Nights
               </Typography>
-              
-              {matchingNights.length === 0 ? (
-                <Alert severity="info">
-                  Noch keine Matching Nights vorhanden
-                </Alert>
-              ) : (
-                <Box>
-                  {matchingNights
-                    .sort((a, b) => {
-                      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-                      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
-                      return dateB - dateA
-                    })
-                    .map((matchingNight) => (
+            </Box>
+            
+            {/* Matching Nights List */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {matchingNights.map((matchingNight) => (
                       <MatchingNightCard
                         key={matchingNight.id}
                         matchingNight={matchingNight}
-                        expanded={expandedMatchingNights.has(matchingNight.id!)}
-                        onToggle={() => toggleMatchingNight(matchingNight.id!)}
                         participants={participants}
                         matchboxes={matchboxes}
+                  expanded={expandedMatchingNights.has(matchingNight.id || 0)}
+                  onToggle={() => toggleMatchingNight(matchingNight.id || 0)}
                       />
-                    ))
-                  }
-                </Box>
-              )}
+              ))}
             </Box>
           </TabPanel>
 
           {/* Matchbox Tab */}
-          <TabPanel value={activeTab} index={1}>
+          <TabPanel value={activeTab} index={2}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Matchboxes ({matchboxes.length})
@@ -2132,7 +1840,7 @@ const OverviewMUI: React.FC = () => {
           </TabPanel>
 
           {/* Probability Analysis Tab */}
-          <TabPanel value={activeTab} index={2}>
+          <TabPanel value={activeTab} index={3}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                 Wahrscheinlichkeits-Analyse
@@ -2358,22 +2066,7 @@ const OverviewMUI: React.FC = () => {
 
           </TabPanel>
         </Card>
-        </Box>
-      </Box>
 
-      {/* Statistics Sidebar */}
-      <StatisticsSidebar 
-        matchboxes={matchboxes}
-        matchingNights={matchingNights}
-        penalties={penalties}
-        onCreateMatchbox={() => setMatchboxDialog(true)}
-        onCreateMatchingNight={() => {
-          resetMatchingNightFormWithPerfectMatches()
-          setMatchingNightDialog(true)
-        }}
-        isOpenMobile={isStatsOpenMobile}
-        onToggleMobile={() => setIsStatsOpenMobile(v => !v)}
-      />
 
 
       {/* Matching Night Dialog */}
@@ -3118,8 +2811,8 @@ const OverviewMUI: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
     </Box>
+    </MenuLayout>
   )
 }
 

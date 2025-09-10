@@ -15,36 +15,51 @@ import {
   useMediaQuery,
   Card,
   Avatar,
-  Chip
+  Chip,
+  Button
 } from '@mui/material'
 import {
   Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
+  Home as HomeIcon,
   Nightlife as NightlifeIcon,
-  Settings as SettingsIcon,
-  ImportExport as ImportExportIcon,
   Inventory as InventoryIcon,
-  Analytics as AnalyticsIcon,
-  Schedule as ScheduleIcon
+  AdminPanelSettings as AdminIcon,
+  Add as AddIcon,
+  Favorite as FavoriteIcon,
+  LightMode as LightModeIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  Savings as SavingsIcon,
+  Percent as PercentIcon
 } from '@mui/icons-material'
 
 const drawerWidth = 260
 
-interface AdminLayoutProps {
+interface MenuLayoutProps {
   children: React.ReactNode
   activeTab?: string
   onTabChange?: (tab: string) => void
+  onCreateMatchbox?: () => void
+  onCreateMatchingNight?: () => void
+  // Statistics data
+  matchingNightsCount?: number
+  currentLights?: number
+  perfectMatchesCount?: number
+  currentBalance?: number
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ 
+const MenuLayout: React.FC<MenuLayoutProps> = ({ 
   children, 
-  activeTab = 'participants',
-  onTabChange 
+  activeTab = 'overview',
+  onTabChange,
+  onCreateMatchbox,
+  onCreateMatchingNight,
+  matchingNightsCount = 0,
+  currentLights = 0,
+  perfectMatchesCount = 0,
+  currentBalance = 0
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
-  console.log('Mobile:', isMobile) // Keep for responsive debugging
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleDrawerToggle = () => {
@@ -53,15 +68,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   const menuItems = [
     {
-      text: 'Dashboard',
-      icon: <DashboardIcon />,
-      value: 'dashboard',
-      disabled: true
-    },
-    {
-      text: 'Teilnehmer',
-      icon: <PeopleIcon />,
-      value: 'participants'
+      text: 'Übersicht',
+      icon: <HomeIcon />,
+      value: 'overview'
     },
     {
       text: 'Matching Nights',
@@ -74,22 +83,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'matchbox'
     },
     {
-      text: 'Ausstrahlung',
-      icon: <ScheduleIcon />,
-      value: 'broadcast'
+      text: 'Wahrscheinlichkeit',
+      icon: <PercentIcon />,
+      value: 'probabilities'
     },
     {
-      text: 'Einstellungen',
-      icon: <SettingsIcon />,
-      value: 'settings'
-    },
-    {
-      text: 'Import/Export',
-      icon: <ImportExportIcon />,
-      value: 'import-export',
-      disabled: true
-    },
-    // entfernt: doppelter 'Einstellungen'-Eintrag
+      text: 'Admin Panel',
+      icon: <AdminIcon />,
+      value: 'admin',
+      action: () => window.location.href = '/admin'
+    }
   ]
 
   const drawer = (
@@ -110,13 +113,36 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           </Avatar>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-              AYTO Admin
+              AYTO
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Reality Show IL 2025
+              Reality Stars in Love 2025
             </Typography>
           </Box>
         </Box>
+      </Box>
+
+      {/* Action Buttons */}
+      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Button 
+          variant="contained" 
+          color="secondary" 
+          fullWidth 
+          startIcon={<AddIcon />} 
+          sx={{ mb: 1.5 }} 
+          onClick={onCreateMatchingNight}
+        >
+          Neue Matching Night
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          fullWidth 
+          startIcon={<AddIcon />} 
+          onClick={onCreateMatchbox}
+        >
+          Matchbox erstellen
+        </Button>
       </Box>
 
       {/* Navigation */}
@@ -137,22 +163,29 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           {menuItems.map((item) => (
             <ListItem key={item.value} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
-                onClick={() => onTabChange?.(item.value)}
-                disabled={item.disabled}
+                onClick={() => {
+                  if (item.action) {
+                    item.action()
+                  } else {
+                    onTabChange?.(item.value)
+                  }
+                }}
                 sx={{
                   borderRadius: 1.5,
                   px: 2,
                   py: 1.5,
                   backgroundColor: activeTab === item.value ? 'primary.main' : 'transparent',
-                  color: activeTab === item.value ? 'primary.contrastText' : 'text.primary',
+                  color: activeTab === item.value ? 'white !important' : 'text.primary',
                   '&:hover': {
                     backgroundColor: activeTab === item.value 
                       ? 'primary.dark' 
                       : 'action.hover'
                   },
-                  '&.Mui-disabled': {
-                    opacity: 0.5,
-                    color: 'text.disabled'
+                  '& .MuiListItemIcon-root': {
+                    color: activeTab === item.value ? 'white !important' : 'inherit'
+                  },
+                  '& .MuiListItemText-primary': {
+                    color: activeTab === item.value ? 'white !important' : 'inherit'
                   }
                 }}
               >
@@ -171,41 +204,97 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                     fontWeight: activeTab === item.value ? 600 : 500
                   }}
                 />
-                {item.disabled && (
-                  <Chip 
-                    label="Soon" 
-                    size="small" 
-                    sx={{ 
-                      height: 20, 
-                      fontSize: '0.6875rem',
-                      bgcolor: 'action.selected',
-                      color: 'text.secondary'
-                    }} 
-                  />
-                )}
               </ListItemButton>
             </ListItem>
           ))}
         </List>
       </Box>
 
-      {/* User Info */}
-      <Box sx={{ p: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Card sx={{ p: 2, bgcolor: 'grey.50' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-              A
-            </Avatar>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Admin User
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                admin@ayto.com
-              </Typography>
+      {/* Statistics */}
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography 
+          variant="overline" 
+          sx={{ 
+            color: 'text.secondary',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+            mb: 1,
+            display: 'block'
+          }}
+        >
+          Statistiken
+        </Typography>
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {/* Matching Nights */}
+          <Card sx={{ p: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28 }}>
+                <NightlifeIcon sx={{ fontSize: '0.875rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6875rem' }}>
+                  Matching Nights
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                  {matchingNightsCount}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        </Card>
+          </Card>
+
+          {/* Current Lights */}
+          <Card sx={{ p: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'warning.main', width: 28, height: 28 }}>
+                <LightModeIcon sx={{ fontSize: '0.875rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6875rem' }}>
+                  Lichter aktuell
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'warning.main' }}>
+                  {currentLights}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+
+          {/* Perfect Matches */}
+          <Card sx={{ p: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: 'success.main', width: 28, height: 28 }}>
+                <AutoAwesomeIcon sx={{ fontSize: '0.875rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6875rem' }}>
+                  Perfect Matches
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
+                  {perfectMatchesCount}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+
+          {/* Current Balance */}
+          <Card sx={{ p: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 28, height: 28 }}>
+                <SavingsIcon sx={{ fontSize: '0.875rem' }} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.6875rem' }}>
+                  Kontostand
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: currentBalance >= 0 ? 'success.main' : 'error.main' }}>
+                  €{currentBalance.toLocaleString('de-DE')}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Box>
       </Box>
     </Box>
   )
@@ -236,7 +325,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            AYTO Reality Show IL 2025 - Admin Panel
+            AYTO - Reality Stars in Love 2025
           </Typography>
           <Chip 
             label="Beta" 
@@ -311,4 +400,4 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   )
 }
 
-export default AdminLayout
+export default MenuLayout
