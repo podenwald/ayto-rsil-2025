@@ -63,14 +63,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'participants'
     },
     {
-      text: 'Matchbox',
-      icon: <InventoryIcon />,
-      value: 'matchbox'
-    },
-    {
       text: 'Matching Nights',
       icon: <NightlifeIcon />,
       value: 'matching-nights'
+    },
+    {
+      text: 'Matchbox',
+      icon: <InventoryIcon />,
+      value: 'matchbox'
     },
     {
       text: 'Einstellungen',

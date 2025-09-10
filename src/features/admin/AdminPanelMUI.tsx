@@ -174,7 +174,7 @@ const StatisticsCards: React.FC<{
     {
       title: 'Aktuelle Gewinnsumme',
       value: `€${currentBalance.toLocaleString('de-DE')}`,
-      icon: <PercentIcon />,
+      icon: <SavingsIcon />,
       color: currentBalance > 0 ? 'success' : 'error'
     }
   ]
@@ -2574,7 +2574,7 @@ Alle Daten gehen unwiderruflich verloren!`)
     { title: 'Teilnehmer', value: participants.length, icon: <PeopleIcon />, color: 'primary' },
     { title: 'Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
     { title: 'Matchboxes', value: matchboxes.length, icon: <InventoryIcon />, color: 'success' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <AccountBalanceIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
+    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
   ]
 
   const exportItems = [
@@ -2623,7 +2623,7 @@ Alle Daten gehen unwiderruflich verloren!`)
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Budget Einstellungen"
-          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}><AccountBalanceIcon /></Avatar>}
+          avatar={<Avatar sx={{ bgcolor: 'warning.main' }}><SavingsIcon /></Avatar>}
         />
         <CardContent>
           <Box sx={{ 
@@ -3173,7 +3173,7 @@ Alle Daten gehen unwiderruflich verloren!`)
         fullWidth
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <AccountBalanceIcon color="primary" />
+          <SavingsIcon color="primary" />
           Startsumme ändern
         </DialogTitle>
         <DialogContent>
@@ -3310,8 +3310,8 @@ const AdminPanelMUI: React.FC = () => {
 
   const tabItems = [
     { label: 'Teilnehmer', value: 'participants', icon: <PeopleIcon /> },
-    { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
     { label: 'Matching Nights', value: 'matching-nights', icon: <NightlifeIcon /> },
+    { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
     { label: 'Einstellungen', value: 'settings', icon: <SettingsIcon /> }
   ]
 
