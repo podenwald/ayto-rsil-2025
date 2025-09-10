@@ -38,17 +38,21 @@ import {
   People as PeopleIcon,
   Search as SearchIcon,
   Favorite as FavoriteIcon,
-  Analytics as AnalyticsIcon,
   AdminPanelSettings as AdminIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
-  AccountBalance as AccountBalanceIcon,
-  TrendingUp as TrendingUpIcon,
-  Female as FemaleIcon,
-  Male as MaleIcon,
+  Savings as SavingsIcon,
+  Percent as PercentIcon,
+  Woman as WomanIcon,
+  Man as ManIcon,
+  LightMode as LightModeIcon,
+  Nightlife as NightlifeIcon,
+  AutoAwesome as AutoAwesomeIcon,
   Add as AddIcon,
   Save as SaveIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  Home as HomeFilledIcon,
+  Inventory as InventoryIcon
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
@@ -631,7 +635,7 @@ const MatchingNightCard: React.FC<{
                 <Chip 
                   label={`${matchingNight.totalLights} Lichter`}
                   color="warning"
-                  icon={<TrendingUpIcon />}
+                  icon={<LightModeIcon />}
                 />
               )}
               <IconButton onClick={onToggle}>
@@ -774,7 +778,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-                    <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+                    <LightModeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -791,7 +795,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-                    <FavoriteIcon sx={{ fontSize: '1rem' }} />
+                    <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -808,7 +812,7 @@ const StatisticsSidebar: React.FC<{
               <Card>
                 <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
                   <Avatar sx={{ bgcolor: 'info.main', width: 32, height: 32 }}>
-                    <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+                    <SavingsIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -858,7 +862,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              <NightlifeIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -875,7 +879,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>
-              <TrendingUpIcon sx={{ fontSize: '1rem' }} />
+              <LightModeIcon sx={{ fontSize: '1rem' }} />
                     </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -892,7 +896,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>
-              <FavoriteIcon sx={{ fontSize: '1rem' }} />
+              <AutoAwesomeIcon sx={{ fontSize: '1rem' }} />
                   </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -909,7 +913,7 @@ const StatisticsSidebar: React.FC<{
         <Card>
           <CardContent sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, minHeight: 'auto' }}>
             <Avatar sx={{ bgcolor: currentBalance >= 0 ? 'success.main' : 'error.main', width: 32, height: 32 }}>
-              <AccountBalanceIcon sx={{ fontSize: '1rem' }} />
+              <SavingsIcon sx={{ fontSize: '1rem' }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem', lineHeight: 1.2 }}>
@@ -992,9 +996,9 @@ const OverviewMUI: React.FC = () => {
 
 
   const tabItems = [
-    { label: 'Home', icon: <PeopleIcon /> },
-    { label: 'Matchbox', icon: <AnalyticsIcon /> },
-    { label: 'Wahrscheinlichkeiten', icon: <TrendingUpIcon />, disabled: true }
+    { label: 'Home', icon: <HomeFilledIcon /> },
+    { label: 'Matchbox', icon: <InventoryIcon /> },
+    { label: 'Wahrscheinlichkeiten', icon: <PercentIcon />, disabled: true }
   ]
 
   // Admin functionality states
@@ -1811,7 +1815,7 @@ const OverviewMUI: React.FC = () => {
                         </Box>
                       ) : (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <FemaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <WomanIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
                           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                             Frau hinzufügen
                           </Typography>
@@ -1887,7 +1891,7 @@ const OverviewMUI: React.FC = () => {
                         </Box>
                       ) : (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <MaleIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                          <ManIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
                           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
                             Mann hinzufügen
                           </Typography>
@@ -2926,7 +2930,7 @@ const OverviewMUI: React.FC = () => {
                       border: '3px dashed',
                       borderColor: 'grey.400'
                     }}>
-                      <FemaleIcon sx={{ fontSize: '2rem' }} />
+                      <WomanIcon sx={{ fontSize: '2rem' }} />
                     </Avatar>
                     <Typography variant="h6" color="text.secondary">
                       Frau hier hinziehen
@@ -3017,7 +3021,7 @@ const OverviewMUI: React.FC = () => {
                       border: '3px dashed',
                       borderColor: 'grey.400'
                     }}>
-                      <MaleIcon sx={{ fontSize: '2rem' }} />
+                      <ManIcon sx={{ fontSize: '2rem' }} />
                     </Avatar>
                     <Typography variant="h6" color="text.secondary">
                       Mann hier hinziehen

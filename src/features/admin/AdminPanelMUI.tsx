@@ -41,7 +41,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   People as PeopleIcon,
-  Analytics as AnalyticsIcon,
   Favorite as FavoriteIcon,
   Upload as UploadIcon,
   Settings as SettingsIcon,
@@ -50,9 +49,9 @@ import {
   Euro as EuroIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-  AccountBalance as AccountBalanceIcon,
+  Savings as SavingsIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
-  Lightbulb as LightbulbIcon,
+  LightMode as LightModeIcon,
   Groups as GroupsIcon,
   AutoAwesome as AutoAwesomeIcon,
   Download as DownloadIcon,
@@ -63,7 +62,11 @@ import {
   Restore as RestoreIcon,
   HelpOutline as HelpOutlineIcon,
   ExpandMore as ExpandMoreIcon,
-  Cached as CachedIcon
+  Cached as CachedIcon,
+  Inventory as InventoryIcon,
+  Analytics as AnalyticsIcon,
+  Nightlife as NightlifeIcon,
+  Percent as PercentIcon
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -163,13 +166,13 @@ const StatisticsCards: React.FC<{
     {
       title: 'Aktuelle Lichter',
       value: currentLights,
-      icon: <LightbulbIcon />,
+      icon: <LightModeIcon />,
       color: 'warning'
     },
     {
       title: 'Aktuelle Gewinnsumme',
       value: `€${currentBalance.toLocaleString('de-DE')}`,
-      icon: <TrendingUpIcon />,
+      icon: <PercentIcon />,
       color: currentBalance > 0 ? 'success' : 'error'
     }
   ]
@@ -935,7 +938,7 @@ const MatchboxManagement: React.FC<{
     { title: 'Perfect Matches', value: perfectMatches, icon: <FavoriteIcon />, color: 'success' },
     { title: 'No Matches', value: noMatches, icon: <CancelIcon />, color: 'error' },
     { title: 'Verkaufte Matchboxes', value: soldMatchboxes, icon: <TrendingUpIcon />, color: 'info' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <AccountBalanceIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
+    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
   ]
 
   return (
@@ -1457,9 +1460,9 @@ const MatchingNightManagement: React.FC<{
   }
 
   const matchingNightStats = [
-    { title: 'Gespeicherte Matching Nights', value: matchingNights.length, icon: <FavoriteIcon />, color: 'pink' },
+    { title: 'Gespeicherte Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
     { title: 'Perfect Matches verfügbar', value: perfectMatchPairs.length, icon: <AutoAwesomeIcon />, color: 'success' },
-    { title: 'Aktuelle Lichter', value: getCurrentLights(), icon: <LightbulbIcon />, color: 'warning' }
+    { title: 'Aktuelle Lichter', value: getCurrentLights(), icon: <LightModeIcon />, color: 'warning' }
   ]
 
   return (
@@ -2567,23 +2570,23 @@ Alle Daten gehen unwiderruflich verloren!`)
 
   const databaseStats = [
     { title: 'Teilnehmer', value: participants.length, icon: <PeopleIcon />, color: 'primary' },
-    { title: 'Matching Nights', value: matchingNights.length, icon: <FavoriteIcon />, color: 'pink' },
-    { title: 'Matchboxes', value: matchboxes.length, icon: <AnalyticsIcon />, color: 'success' },
+    { title: 'Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
+    { title: 'Matchboxes', value: matchboxes.length, icon: <InventoryIcon />, color: 'success' },
     { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <AccountBalanceIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
   ]
 
   const exportItems = [
     { title: 'Teilnehmer', count: participants.length, onClick: exportParticipants, icon: <PeopleIcon />, disabled: participants.length === 0 },
-    { title: 'Matching Nights', count: matchingNights.length, onClick: exportMatchingNights, icon: <FavoriteIcon />, disabled: matchingNights.length === 0 },
-    { title: 'Matchboxes', count: matchboxes.length, onClick: exportMatchboxes, icon: <AnalyticsIcon />, disabled: matchboxes.length === 0 },
+    { title: 'Matching Nights', count: matchingNights.length, onClick: exportMatchingNights, icon: <NightlifeIcon />, disabled: matchingNights.length === 0 },
+    { title: 'Matchboxes', count: matchboxes.length, onClick: exportMatchboxes, icon: <InventoryIcon />, disabled: matchboxes.length === 0 },
     { title: 'Strafen/Transaktionen', count: penalties.length, onClick: exportPenalties, icon: <AccountBalanceWalletIcon />, disabled: penalties.length === 0 },
     { title: 'Komplettexport', count: totalEntries, onClick: exportAllData, icon: <BackupIcon />, disabled: totalEntries === 0, variant: 'contained' as const }
   ]
 
   const deleteItems = [
     { title: 'Teilnehmer', count: participants.length, onClick: deleteParticipants, icon: <PeopleIcon />, disabled: participants.length === 0 },
-    { title: 'Matching Nights', count: matchingNights.length, onClick: deleteMatchingNights, icon: <FavoriteIcon />, disabled: matchingNights.length === 0 },
-    { title: 'Matchboxes', count: matchboxes.length, onClick: deleteMatchboxes, icon: <AnalyticsIcon />, disabled: matchboxes.length === 0 }
+    { title: 'Matching Nights', count: matchingNights.length, onClick: deleteMatchingNights, icon: <NightlifeIcon />, disabled: matchingNights.length === 0 },
+    { title: 'Matchboxes', count: matchboxes.length, onClick: deleteMatchboxes, icon: <InventoryIcon />, disabled: matchboxes.length === 0 }
   ]
 
   return (
@@ -3305,8 +3308,8 @@ const AdminPanelMUI: React.FC = () => {
 
   const tabItems = [
     { label: 'Teilnehmer', value: 'participants', icon: <PeopleIcon /> },
-    { label: 'Matchbox', value: 'matchbox', icon: <AnalyticsIcon /> },
-    { label: 'Matching Nights', value: 'matching-nights', icon: <FavoriteIcon /> },
+    { label: 'Matchbox', value: 'matchbox', icon: <InventoryIcon /> },
+    { label: 'Matching Nights', value: 'matching-nights', icon: <NightlifeIcon /> },
     { label: 'Einstellungen', value: 'settings', icon: <SettingsIcon /> }
   ]
 
