@@ -83,10 +83,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'settings'
     },
     {
-      text: 'Import/Export',
+      text: 'JSON Import',
       icon: <ImportExportIcon />,
-      value: 'import-export',
-      disabled: true
+      value: 'json-import'
     },
     // entfernt: doppelter 'Einstellungen'-Eintrag
   ]
