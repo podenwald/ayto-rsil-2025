@@ -829,7 +829,7 @@ const StatisticsSidebar: React.FC<{
 
   return (
     <Box sx={{ 
-      width: 280,
+      width: 230,
       height: '100vh',
       position: 'fixed',
       top: 0,
@@ -1614,7 +1614,7 @@ const OverviewMUI: React.FC = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
       {/* Main Content Area */}
-      <Box sx={{ mr: isMobile ? 0 : '280px' }}>
+      <Box sx={{ mr: isMobile ? 0 : '230px' }}>
         {/* Header with Menu */}
       <Paper sx={{ position: 'sticky', top: 0, zIndex: 1000, bgcolor: 'background.paper', left: 0, right: 0, width: isMobile ? '100vw' : 'auto' }}>
           <Box sx={{ p: isMobile ? 2 : 3, pb: 0 }}>
