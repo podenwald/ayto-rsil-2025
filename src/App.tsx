@@ -3,12 +3,33 @@ import OverviewMUI from "@/features/overview/OverviewMUI"
 import AdminPanelMUI from "@/features/admin/AdminPanelMUI"
 import ThemeProvider from "@/theme/ThemeProvider"
 import LegalFooter from "@/components/LegalFooter"
+import VersionCheckDialog from "@/components/VersionCheckDialog"
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from "@/lib/db"
+import { initializeVersionCheck } from "@/utils/versionCheck"
 
 export default function App() {
   const [route, setRoute] = useState<'root' | 'admin'>('root')
   const [isInitializing, setIsInitializing] = useState(true)
   const [initError, setInitError] = useState<string | null>(null)
+  const [versionCheck, setVersionCheck] = useState<{
+    shouldShowDialog: boolean
+    lastVersion: string | null
+    currentVersion: string
+  }>({
+    shouldShowDialog: false,
+    lastVersion: null,
+    currentVersion: ''
+  })
+
+  // Versions-Check beim App-Start
+  useEffect(() => {
+    const versionResult = initializeVersionCheck()
+    setVersionCheck({
+      shouldShowDialog: versionResult.shouldShowDialog,
+      lastVersion: versionResult.lastVersion,
+      currentVersion: versionResult.currentVersion
+    })
+  }, [])
 
   // Legacy-Query-Weiterleitungen und pfadbasiertes Routing
   useEffect(() => {
@@ -107,6 +128,16 @@ export default function App() {
     bootstrap()
   }, [])
 
+  // Handler für Versions-Check-Dialog
+  const handleVersionDialogClose = () => {
+    setVersionCheck(prev => ({ ...prev, shouldShowDialog: false }))
+  }
+
+  const handleCacheCleared = () => {
+    // Seite neu laden nach Cache-Clear
+    window.location.reload()
+  }
+
   if (isInitializing) {
     return (
       <div style={{ padding: 16 }}>
@@ -129,6 +160,13 @@ export default function App() {
         <div>
           <AdminPanelMUI />
           <LegalFooter />
+          <VersionCheckDialog
+            isOpen={versionCheck.shouldShowDialog}
+            lastVersion={versionCheck.lastVersion}
+            currentVersion={versionCheck.currentVersion}
+            onClose={handleVersionDialogClose}
+            onCacheCleared={handleCacheCleared}
+          />
         </div>
       </ThemeProvider>
     )
@@ -139,6 +177,13 @@ export default function App() {
     <div>
       <OverviewMUI />
       <LegalFooter />
+      <VersionCheckDialog
+        isOpen={versionCheck.shouldShowDialog}
+        lastVersion={versionCheck.lastVersion}
+        currentVersion={versionCheck.currentVersion}
+        onClose={handleVersionDialogClose}
+        onCacheCleared={handleCacheCleared}
+      />
     </div>
   )
 }

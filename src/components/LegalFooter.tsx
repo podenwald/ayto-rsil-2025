@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { getDisplayVersion, VERSION_INFO } from '@/utils/version'
 
 export default function LegalFooter() {
   const [showImpressum, setShowImpressum] = useState(false)
   const [showPrivacy, setShowPrivacy] = useState(false)
+  const [showVersionDetails, setShowVersionDetails] = useState(false)
 
   return (
     <>
@@ -18,6 +20,25 @@ export default function LegalFooter() {
         flexWrap: 'wrap'
       }}>
         <span>© {new Date().getFullYear()} AYTO RSIL 2025</span>
+        <span style={{ opacity: 0.5 }}>·</span>
+        <button 
+          onClick={() => setShowVersionDetails(true)} 
+          style={{ 
+            fontSize: '11px', 
+            color: '#6b7280', 
+            backgroundColor: '#f3f4f6', 
+            padding: '2px 6px', 
+            borderRadius: '4px',
+            fontFamily: 'monospace',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#e5e7eb'}
+          onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#f3f4f6'}
+        >
+          {getDisplayVersion()}
+        </button>
         <span style={{ opacity: 0.5 }}>·</span>
         <button onClick={() => setShowImpressum(true)} style={{ color: '#2563eb', textDecoration: 'underline', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>Impressum</button>
         <span style={{ opacity: 0.5 }}>·</span>
@@ -64,6 +85,38 @@ export default function LegalFooter() {
               <p style={{ margin: '8px 0' }}><strong>5. Social Media</strong><br/>Wir nutzen ggf. Social-Media-Kanäle (z. B. Instagram, LinkedIn, TikTok). Bei Besuch unserer Profile gelten die Datenschutzbestimmungen der jeweiligen Plattformen.</p>
               <p style={{ margin: '8px 0' }}><strong>6. Ihre Rechte</strong><br/>Sie haben das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung Ihrer Daten. Wenden Sie sich dazu an die im Impressum angegebene E-Mail-Adresse.</p>
               <p style={{ margin: '8px 0' }}><strong>7. Stand</strong><br/>Diese Datenschutzerklärung hat den Stand: 08.09.2025</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showVersionDetails && (
+        <div role="dialog" aria-modal="true" onClick={() => setShowVersionDetails(false)} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'white', maxWidth: 480, width: '90%', padding: 20, borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18 }}>Versionsinformationen</h3>
+              <button onClick={() => setShowVersionDetails(false)} aria-label="Schließen" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ fontFamily: 'monospace', fontSize: 14, lineHeight: 1.6 }}>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Version:</strong> {getDisplayVersion()}
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Git Tag:</strong> {VERSION_INFO.gitTag || 'Kein Tag'}
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Commit:</strong> {VERSION_INFO.gitCommit.substring(0, 7)}
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Build Date:</strong> {new Date(VERSION_INFO.buildDate).toLocaleString('de-DE')}
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Environment:</strong> {VERSION_INFO.isProduction ? 'Production' : 'Development'}
+              </div>
             </div>
           </div>
         </div>
