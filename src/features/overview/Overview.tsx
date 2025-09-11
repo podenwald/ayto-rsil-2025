@@ -1182,10 +1182,10 @@ export default function Overview() {
                 <div className="bg-white/20 px-8 py-6 rounded-2xl backdrop-blur-sm text-center">
                   <div className="text-sm opacity-90 mb-2">Aktueller Kontostand</div>
                   <div className={`text-4xl font-bold ${currentBalance >= 0 ? 'text-green-200' : 'text-red-200'}`}>
-                    €{currentBalance.toLocaleString('de-DE')}
+                    {currentBalance.toLocaleString('de-DE')} €
                   </div>
                   <div className="text-xs opacity-70 mt-2">
-                    Startkapital: €{STARTING_BUDGET.toLocaleString('de-DE')}
+                    Startkapital: {STARTING_BUDGET.toLocaleString('de-DE')} €
                   </div>
                 </div>
               </div>

@@ -92,47 +92,28 @@ export async function createVersionWithJsonImport(fileName: string, version: str
  */
 export async function getAvailableJsonFiles(): Promise<string[]> {
   try {
-    // Versuche eine bekannte JSON-Datei zu laden, um das Verzeichnis zu testen
-    const testResponse = await fetch('/json/ayto-complete-export-2025-09-10.json')
-    
-    if (!testResponse.ok) {
-      console.warn('JSON-Verzeichnis nicht erreichbar, verwende Fallback-Liste')
-      // Fallback auf hardcoded Liste
-      return [
-        'ayto-complete-export-2025-09-10.json',
-        'ayto-complete-export-2025-09-08.json'
-      ]
-    }
-
-    // Da wir das Verzeichnis nicht direkt auflisten können (CORS/Browser-Limitation),
-    // verwenden wir eine erweiterte Liste bekannter Dateien
-    const knownFiles = [
-      'ayto-complete-export-2025-09-10.json',
-      'ayto-complete-export-2025-09-08.json'
-    ]
-
-    // Teste welche Dateien tatsächlich verfügbar sind
-    const availableFiles: string[] = []
-    
-    for (const fileName of knownFiles) {
-      try {
-        const response = await fetch(`/json/${fileName}`)
-        if (response.ok) {
-          availableFiles.push(fileName)
-        }
-      } catch (error) {
-        // Datei nicht verfügbar, überspringen
-        console.debug(`Datei ${fileName} nicht verfügbar:`, error)
+    // Optionales Manifest unter /public/json/index.json verwenden
+    const manifestResponse = await fetch('/json/index.json', { cache: 'no-store' })
+    if (manifestResponse.ok) {
+      const files: unknown = await manifestResponse.json()
+      if (Array.isArray(files)) {
+        // Nur tatsächlich erreichbare Dateien zurückgeben
+        const checks = await Promise.all(files.map(async (name) => {
+          try {
+            const res = await fetch(`/json/${name}`, { method: 'HEAD' })
+            return res.ok ? name : null
+          } catch {
+            return null
+          }
+        }))
+        return checks.filter((n): n is string => Boolean(n))
       }
     }
 
-    return availableFiles.length > 0 ? availableFiles : knownFiles
-
+    // Kein Manifest vorhanden oder ungültig → keine Liste anzeigen, um Phantom-Dateien zu vermeiden
+    return []
   } catch (error) {
     console.error('Fehler beim Laden der verfügbaren JSON-Dateien:', error)
-    // Fallback auf bekannte Dateien
-    return [
-      'ayto-complete-export-2025-09-10.json'
-    ]
+    return []
   }
 }
