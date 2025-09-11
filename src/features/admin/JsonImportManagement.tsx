@@ -25,7 +25,7 @@ import {
   Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material'
-import { importJsonDataForVersion, createVersionWithJsonImport, getAvailableJsonFiles } from '../../utils/jsonImport'
+import { importJsonDataForVersion, getAvailableJsonFiles } from '../../utils/jsonImport'
 import { db } from '../../lib/db'
 
 interface JsonImportManagementProps {

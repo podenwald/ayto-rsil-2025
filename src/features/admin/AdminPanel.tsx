@@ -1791,9 +1791,7 @@ export default function AdminPanel() {
   const [editing, setEditing] = useState<Participant|undefined>(undefined)
   const [limit, setLimit] = useState(12)
 
-  const activeCount = items.filter(p=>p.active!==false).length
-  const womenCount = items.filter(p=>p.gender==='F').length
-  const menCount = items.filter(p=>p.gender==='M').length
+  // Counts removed (no longer displayed in UI)
 
   async function remove(id:number){
     if (!confirm('Wirklich löschen?')) return

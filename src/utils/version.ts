@@ -12,7 +12,7 @@ export const VERSION_INFO: VersionInfo = {
   "version": "0.2.1",
   "gitTag": "v0.2.1",
   "gitCommit": "80d6bf91a6924702644eacde1deff00dec36989e",
-  "buildDate": "2025-09-11T13:09:33.717Z",
+  "buildDate": "2025-09-11T13:10:37.391Z",
   "isProduction": false
 }
 
