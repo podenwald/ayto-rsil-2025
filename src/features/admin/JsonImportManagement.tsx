@@ -133,50 +133,7 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
     }
   }
 
-  const handleCreateVersionWithImport = async () => {
-    if (!selectedFile) {
-      setSnackbar({
-        open: true,
-        message: 'Bitte wähle eine JSON-Datei aus',
-        severity: 'error'
-      })
-      return
-    }
-
-    setIsImporting(true)
-    setImportDialogOpen(false)
-
-    try {
-      const version = "0.2.1" // In einer echten Implementierung würde man das dynamisch generieren
-      
-      const success = await createVersionWithJsonImport(selectedFile, version)
-      
-      if (success) {
-        setSnackbar({
-          open: true,
-          message: `Version ${version} mit JSON-Import aus ${selectedFile} erfolgreich erstellt!`,
-          severity: 'success'
-        })
-        loadDataCounts()
-        onDataUpdate?.()
-      } else {
-        setSnackbar({
-          open: true,
-          message: 'Fehler beim Erstellen der Version mit JSON-Import',
-          severity: 'error'
-        })
-      }
-    } catch (error) {
-      console.error('Version-Erstellung-Fehler:', error)
-      setSnackbar({
-        open: true,
-        message: `Fehler beim Erstellen der Version: ${error}`,
-        severity: 'error'
-      })
-    } finally {
-      setIsImporting(false)
-    }
-  }
+  // Entfernt: Erstellung einer Version mit JSON-Import
 
   return (
     <Box>
@@ -242,7 +199,6 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
                   <ListItem>
                     <ListItemText 
                       primary={file}
-                      secondary={`JSON-Datei ${index + 1}`}
                     />
                     <ListItemSecondaryAction>
                       <Button
@@ -272,15 +228,6 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
           disabled={isImporting || availableFiles.length === 0}
         >
           {isImporting ? 'Importiere...' : 'JSON-Daten importieren'}
-        </Button>
-        
-        <Button
-          variant="outlined"
-          startIcon={isImporting ? <CircularProgress size={20} /> : <UploadIcon />}
-          onClick={handleCreateVersionWithImport}
-          disabled={isImporting || availableFiles.length === 0}
-        >
-          {isImporting ? 'Erstelle Version...' : 'Version mit JSON-Import erstellen'}
         </Button>
       </Box>
 

@@ -87,16 +87,31 @@ export async function createVersionWithJsonImport(fileName: string, version: str
 }
 
 /**
- * Lädt verfügbare JSON-Dateien
+ * Lädt verfügbare JSON-Dateien dynamisch
  * @returns Promise<string[]> - Liste der verfügbaren JSON-Dateien
  */
 export async function getAvailableJsonFiles(): Promise<string[]> {
   try {
-    // Für jetzt hardcoded, später könnte man das dynamisch machen
-    return [
-      'ayto-complete-export-2025-09-10.json',
-      'ayto-complete-export-2025-09-08.json'
-    ]
+    // Optionales Manifest unter /public/json/index.json verwenden
+    const manifestResponse = await fetch('/json/index.json', { cache: 'no-store' })
+    if (manifestResponse.ok) {
+      const files: unknown = await manifestResponse.json()
+      if (Array.isArray(files)) {
+        // Nur tatsächlich erreichbare Dateien zurückgeben
+        const checks = await Promise.all(files.map(async (name) => {
+          try {
+            const res = await fetch(`/json/${name}`, { method: 'HEAD' })
+            return res.ok ? name : null
+          } catch {
+            return null
+          }
+        }))
+        return checks.filter((n): n is string => Boolean(n))
+      }
+    }
+
+    // Kein Manifest vorhanden oder ungültig → keine Liste anzeigen, um Phantom-Dateien zu vermeiden
+    return []
   } catch (error) {
     console.error('Fehler beim Laden der verfügbaren JSON-Dateien:', error)
     return []

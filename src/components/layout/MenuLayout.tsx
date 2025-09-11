@@ -13,7 +13,6 @@ import {
   IconButton,
   Card,
   Avatar,
-  Chip,
   Button
 } from '@mui/material'
 import {
@@ -284,7 +283,7 @@ const MenuLayout: React.FC<MenuLayoutProps> = ({
                   Kontostand
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: currentBalance >= 0 ? 'success.main' : 'error.main' }}>
-                  €{currentBalance.toLocaleString('de-DE')}
+                  {currentBalance.toLocaleString('de-DE')} €
                 </Typography>
               </Box>
             </Box>
@@ -322,12 +321,6 @@ const MenuLayout: React.FC<MenuLayoutProps> = ({
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
             AYTO - Reality Stars in Love 2025
           </Typography>
-          <Chip 
-            label="Beta" 
-            size="small" 
-            color="primary" 
-            sx={{ fontWeight: 600 }}
-          />
         </Toolbar>
       </AppBar>
 

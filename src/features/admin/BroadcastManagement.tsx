@@ -123,7 +123,7 @@ const BroadcastManagement: React.FC = () => {
           break
         case 'sold':
           title = `MatchBox Verkauf: ${matchboxName}`
-          description = `Verkauft für €${mb.price} an ${mb.buyer}`
+          description = `Verkauft für ${mb.price} € an ${mb.buyer}`
           break
       }
       
@@ -244,7 +244,7 @@ const BroadcastManagement: React.FC = () => {
               const { date: formattedDate } = formatBroadcastDateTime(date, '00:00')
               
               return (
-                <Accordion key={date} defaultExpanded>
+                <Accordion key={date}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                       <Typography variant="h6">{formattedDate}</Typography>
@@ -270,6 +270,7 @@ const BroadcastManagement: React.FC = () => {
                                 </Avatar>
                               </ListItemAvatar>
                               <ListItemText
+                                disableTypography
                                 primary={
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -304,7 +305,7 @@ const BroadcastManagement: React.FC = () => {
                                     )}
                                     {event.type === 'matchbox' && (event.data as Matchbox).matchType === 'sold' && (
                                       <Chip 
-                                        label={`€${(event.data as Matchbox).price}`}
+                                        label={`${(event.data as Matchbox).price} €`}
                                         size="small"
                                         color="warning"
                                         sx={{ mt: 1 }}
