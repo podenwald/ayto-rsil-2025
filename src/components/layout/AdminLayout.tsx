@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Drawer,
@@ -25,8 +25,12 @@ import {
   Settings as SettingsIcon,
   ImportExport as ImportExportIcon,
   Inventory as InventoryIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
+  Favorite as FavoriteIcon,
+  LightMode as LightModeIcon
 } from '@mui/icons-material'
+import { db } from '@/lib/db'
+import { liveQuery } from 'dexie'
 
 const drawerWidth = 260
 
@@ -45,6 +49,96 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
   console.log('Mobile:', isMobile) // Keep for responsive debugging
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Stats für Menüleiste
+  const [stats, setStats] = useState({
+    activeParticipants: 0,
+    perfectMatches: 0,
+    currentLights: 0,
+    currentBalance: 0,
+    matchingNightsCount: 0,
+    matchboxesCount: 0
+  })
+
+  const loadStats = async () => {
+    try {
+      const [participants, matchboxes, matchingNights, penalties] = await Promise.all([
+        db.participants.toArray(),
+        db.matchboxes.toArray(),
+        db.matchingNights.toArray(),
+        db.penalties.toArray()
+      ])
+
+      const activeParticipants = participants.filter(p => p.active !== false).length
+      const matchingNightsCount = matchingNights.length
+      const matchboxesCount = matchboxes.length
+      const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
+      const lastMN = matchingNights
+        .sort((a, b) => new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime())[0]
+      const currentLights = lastMN?.totalLights || 0
+
+      const sold = matchboxes.filter(mb => mb.matchType === 'sold' && typeof mb.price === 'number')
+      const totalRevenue = sold.reduce((sum, mb) => sum + (mb.price || 0), 0)
+      const totalPenalties = penalties.reduce((sum, p) => (p.amount < 0 ? sum + Math.abs(p.amount) : sum), 0)
+      const totalCredits = penalties.reduce((sum, p) => (p.amount > 0 ? sum + p.amount : sum), 0)
+      const savedBudget = typeof window !== 'undefined' ? localStorage.getItem('ayto-starting-budget') : null
+      const startingBudget = savedBudget ? parseInt(savedBudget, 10) : 200000
+      const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
+
+      setStats({ activeParticipants, perfectMatches, currentLights, currentBalance, matchingNightsCount, matchboxesCount })
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    loadStats()
+    // Live-Updates bei DB-Änderungen
+    const subscription = liveQuery(async () => {
+      const [participants, matchboxes, matchingNights, penalties] = await Promise.all([
+        db.participants.toArray(),
+        db.matchboxes.toArray(),
+        db.matchingNights.toArray(),
+        db.penalties.toArray()
+      ])
+      return { participants, matchboxes, matchingNights, penalties }
+    }).subscribe(({ participants, matchboxes, matchingNights, penalties }) => {
+      try {
+        const activeParticipants = participants.filter(p => p.active !== false).length
+        const matchingNightsCount = matchingNights.length
+        const matchboxesCount = matchboxes.length
+        const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
+        const lastMN = matchingNights
+          .sort((a, b) => new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime())[0]
+        const currentLights = lastMN?.totalLights || 0
+
+        const sold = matchboxes.filter(mb => mb.matchType === 'sold' && typeof mb.price === 'number')
+        const totalRevenue = sold.reduce((sum, mb) => sum + (mb.price || 0), 0)
+        const totalPenalties = penalties.reduce((sum, p) => (p.amount < 0 ? sum + Math.abs(p.amount) : sum), 0)
+        const totalCredits = penalties.reduce((sum, p) => (p.amount > 0 ? sum + p.amount : sum), 0)
+        const savedBudget = typeof window !== 'undefined' ? localStorage.getItem('ayto-starting-budget') : null
+        const startingBudget = savedBudget ? parseInt(savedBudget, 10) : 200000
+        const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
+
+        setStats({ activeParticipants, perfectMatches, currentLights, currentBalance, matchingNightsCount, matchboxesCount })
+      } catch {
+        // ignore
+      }
+    })
+
+    // Budget-Änderungen via storage-Event
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'ayto-starting-budget') {
+        loadStats()
+      }
+    }
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [])
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
@@ -78,12 +172,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       value: 'broadcast'
     },
     {
-      text: 'Einstellungen',
+      text: 'Budget & Stafen',
       icon: <SettingsIcon />,
       value: 'settings'
     },
     {
-      text: 'JSON Import',
+      text: 'Datenhaltung',
       icon: <ImportExportIcon />,
       value: 'json-import'
     },
@@ -166,7 +260,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                   primary={item.text} 
                   primaryTypographyProps={{
                     fontSize: '0.875rem',
-                    fontWeight: activeTab === item.value ? 600 : 500
+                    fontWeight: activeTab === item.value ? 600 : 500,
+                    color: activeTab === item.value ? 'common.white' : 'text.primary'
                   }}
                 />
                 {item.disabled && (
@@ -236,12 +331,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
             AYTO Reality Show IL 2025 - Admin Panel
           </Typography>
-          <Chip 
-            label="Beta" 
-            size="small" 
-            color="primary" 
-            sx={{ fontWeight: 600 }}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <Chip label={`Aktiv: ${stats.activeParticipants}`} size="small" color="primary" sx={{ fontWeight: 600 }} />
+            <Chip icon={<NightlifeIcon fontSize="small" />} label={`${stats.matchingNightsCount}`} size="small" color="info" sx={{ fontWeight: 600 }} />
+            <Chip icon={<InventoryIcon fontSize="small" />} label={`${stats.matchboxesCount}`} size="small" color="secondary" sx={{ fontWeight: 600 }} />
+            <Chip icon={<FavoriteIcon fontSize="small" />} label={`${stats.perfectMatches}`} size="small" color="success" sx={{ fontWeight: 600 }} />
+            <Chip icon={<LightModeIcon fontSize="small" />} label={`${stats.currentLights}`} size="small" color="warning" sx={{ fontWeight: 600 }} />
+            <Chip label={`${stats.currentBalance.toLocaleString('de-DE')} €`} size="small" color={stats.currentBalance >= 0 ? 'success' : 'error'} sx={{ fontWeight: 700 }} />
+          </Box>
         </Toolbar>
       </AppBar>
 

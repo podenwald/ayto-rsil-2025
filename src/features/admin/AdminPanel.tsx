@@ -11,6 +11,7 @@ import { db, type Participant, type Matchbox, type MatchingNight } from '@/lib/d
 import { ImportExport } from './ImportExport'
 import SafeSelect from '@/components/SafeSelect'
 import { Edit, Trash2, Users, HelpCircle, Upload, Download, BarChart3, Heart, Database, AlertTriangle, Settings } from 'lucide-react'
+import { isFileNewerThanLast, saveLastImportedJsonFile } from '@/utils/jsonVersion'
 
 function useParticipants() {
   const [items, setItems] = useState<Participant[]>([])
@@ -272,7 +273,7 @@ function MatchboxManagement() {
             className="bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-2xl p-4 text-center transition-all hover:shadow-md"
           >
             <div className={`text-2xl font-bold ${currentBalance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-              €{currentBalance.toLocaleString('de-DE')}
+              {currentBalance.toLocaleString('de-DE')} €
             </div>
             <div className="text-sm text-gray-600">Kontostand</div>
           </button>
@@ -344,7 +345,7 @@ function MatchboxManagement() {
                         <div>
                           <span className="font-semibold">{matchbox.woman} + {matchbox.man}</span>
                           <p className="text-sm text-gray-600">
-                            Käufer: {matchbox.buyer} • €{matchbox.price?.toLocaleString('de-DE')}
+                            Käufer: {matchbox.buyer} • {matchbox.price?.toLocaleString('de-DE')} €
                           </p>
                           <p className="text-xs text-gray-500">
                             Verkauft: {matchbox.soldDate ? new Date(matchbox.soldDate).toLocaleDateString('de-DE') : 'Unbekannt'}
@@ -361,22 +362,22 @@ function MatchboxManagement() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="text-xl font-bold text-green-700">€{STARTING_BUDGET.toLocaleString('de-DE')}</div>
+                    <div className="text-xl font-bold text-green-700">{STARTING_BUDGET.toLocaleString('de-DE')} €</div>
                     <div className="text-sm text-green-600">Startkapital</div>
                   </div>
                   <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="text-xl font-bold text-red-700">-€{totalRevenue.toLocaleString('de-DE')}</div>
+                    <div className="text-xl font-bold text-red-700">-{totalRevenue.toLocaleString('de-DE')} €</div>
                     <div className="text-sm text-red-600">Ausgaben</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className={`text-xl font-bold ${currentBalance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                      €{currentBalance.toLocaleString('de-DE')}
+                      {currentBalance.toLocaleString('de-DE')} €
                     </div>
                     <div className="text-sm text-gray-600">Aktueller Stand</div>
                   </div>
                 </div>
                 <div className="text-sm text-gray-600">
-                  <p><strong>Berechnung:</strong> Startkapital (€{STARTING_BUDGET.toLocaleString('de-DE')}) - Verkaufte Matchboxes (€{totalRevenue.toLocaleString('de-DE')}) = €{currentBalance.toLocaleString('de-DE')}</p>
+                  <p><strong>Berechnung:</strong> Startkapital ({STARTING_BUDGET.toLocaleString('de-DE')} €) - Verkaufte Matchboxes ({totalRevenue.toLocaleString('de-DE')} €) = {currentBalance.toLocaleString('de-DE')} €</p>
                 </div>
               </div>
             )}
@@ -1219,6 +1220,17 @@ function ImportExportManagement() {
     try {
       setIsLoading(true)
       const text = await file.text()
+      // Dateinamen-/Datumsprüfung
+      const check = isFileNewerThanLast(file.name)
+      if (check.isNewer === false) {
+        const proceed = confirm(
+          `Die ausgewählte Datei scheint nicht neuer zu sein als die zuletzt verwendete.\n\n`+
+          `Zuletzt importiert: ${check.lastFileName ?? 'unbekannt'}\n`+
+          `Aktuelle Datei: ${file.name}\n\n`+
+          `Trotzdem importieren?`
+        )
+        if (!proceed) return
+      }
       const arr = JSON.parse(text)
       
       // Daten normalisieren und Gender-Mapping durchführen
@@ -1256,6 +1268,8 @@ function ImportExportManagement() {
       })
       
       await loadAllData()
+      // Nach Erfolg: Dateiname speichern
+      saveLastImportedJsonFile(file.name)
       alert(`✅ Import erfolgreich abgeschlossen!\n\n${normalizedParticipants.length} Teilnehmer wurden importiert.`)
     } catch (error) {
       console.error('Fehler beim Import:', error)
@@ -1834,27 +1848,9 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen w-full" style={{backgroundColor: '#f9fafb'}}>
       <div className="mx-auto max-w-6xl px-4 py-6">
-        {/* Header with counters - Apple style */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold mb-4" style={{color: '#111827'}}>Admin Panel</h1>
-          <div className="flex items-center gap-8">
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium" style={{color: '#6b7280'}}>Aktiv</span>
-              <span className="text-2xl font-bold" style={{color: '#111827'}}>{activeCount}</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium" style={{color: '#6b7280'}}>Frauen</span>
-              <span className="text-2xl font-bold" style={{color: '#111827'}}>{womenCount}</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium" style={{color: '#6b7280'}}>Männer</span>
-              <span className="text-2xl font-bold" style={{color: '#111827'}}>{menCount}</span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-sm font-medium" style={{color: '#6b7280'}}>Gesamt</span>
-              <span className="text-2xl font-bold" style={{color: '#111827'}}>{items.length}</span>
-            </div>
-          </div>
         </div>
 
         <Tabs defaultValue="participants" className="space-y-6">

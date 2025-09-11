@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { db } from '@/lib/db'
+import { isFileNewerThanLast, saveLastImportedJsonFile } from '@/utils/jsonVersion'
 
 export function ImportExport(){
   async function doExport(){
@@ -13,6 +14,17 @@ export function ImportExport(){
     
     try {
       const text = await file.text();
+      // Dateinamen-/Datumsprüfung
+      const check = isFileNewerThanLast(file.name)
+      if (check.isNewer === false) {
+        const proceed = confirm(
+          `Die ausgewählte Datei scheint nicht neuer zu sein als die zuletzt verwendete.\n\n`+
+          `Zuletzt importiert: ${check.lastFileName ?? 'unbekannt'}\n`+
+          `Aktuelle Datei: ${file.name}\n\n`+
+          `Trotzdem importieren?`
+        )
+        if (!proceed) return
+      }
       const arr = JSON.parse(text);
       
       // Daten normalisieren und Gender-Mapping durchführen
@@ -48,6 +60,8 @@ export function ImportExport(){
         await db.participants.bulkAdd(normalizedParticipants);
       });
       
+      // Nach Erfolg: Dateiname speichern
+      saveLastImportedJsonFile(file.name)
       alert(`Import erfolgreich abgeschlossen!\n\n${normalizedParticipants.length} Teilnehmer wurden importiert.`);
       location.reload();
     } catch (error) {

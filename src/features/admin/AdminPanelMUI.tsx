@@ -48,6 +48,8 @@ import {
   Euro as EuroIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
+  HeartBroken as HeartBrokenIcon,
+  AttachMoney as AttachMoneyIcon,
   Savings as SavingsIcon,
   AccountBalanceWallet as AccountBalanceWalletIcon,
   LightMode as LightModeIcon,
@@ -79,155 +81,8 @@ const StatisticsCards: React.FC<{
   matchboxes: Matchbox[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
-}> = ({ participants, matchboxes, matchingNights, penalties }) => {
-  const activeCount = participants.filter(p => p.active !== false).length
-  const womenCount = participants.filter(p => p.gender === 'F').length
-  const menCount = participants.filter(p => p.gender === 'M').length
-  const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
-  const totalRevenue = matchboxes
-    .filter(mb => mb.matchType === 'sold' && mb.price && typeof mb.price === 'number')
-    .reduce((sum, mb) => sum + (mb.price || 0), 0)
-  
-  // Separate penalties (negative amounts) and credits (positive amounts)  
-  const totalPenalties = penalties.reduce((sum, penalty) => {
-    return penalty.amount < 0 ? sum + Math.abs(penalty.amount) : sum
-  }, 0)
-  const totalCredits = penalties.reduce((sum, penalty) => {
-    return penalty.amount > 0 ? sum + penalty.amount : sum
-  }, 0)
-  
-  // Calculate current lights from the latest matching night
-  const getCurrentLights = () => {
-    if (matchingNights.length === 0) return 0
-    const sortedNights = matchingNights.sort((a: any, b: any) => {
-      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
-      return dateB - dateA
-    })
-    return sortedNights[0]?.totalLights || 0
-  }
-  const currentLights = getCurrentLights()
-  
-  // Calculate total current balance (consistent with settings calculation)
-  const getStartingBudget = () => {
-    const savedBudget = localStorage.getItem('ayto-starting-budget')
-    return savedBudget ? parseInt(savedBudget, 10) : 200000
-  }
-  const STARTING_BUDGET = getStartingBudget()
-  const currentBalance = STARTING_BUDGET - totalRevenue - totalPenalties + totalCredits
-
-  const stats = [
-    {
-      title: 'Aktive Teilnehmer',
-      value: activeCount,
-      total: participants.length,
-      icon: <PeopleIcon />,
-      color: 'primary'
-    },
-    {
-      title: 'Frauen',
-      value: womenCount,
-      icon: <WomanIcon />,
-      color: 'pink'
-    },
-    {
-      title: 'Männer',
-      value: menCount,
-      icon: <ManIcon />,
-      color: 'info'
-    },
-    {
-      title: 'Perfect Matches',
-      value: perfectMatches,
-      icon: <FavoriteIcon />,
-      color: 'success'
-    },
-    {
-      title: 'Aktuelle Lichter',
-      value: currentLights,
-      icon: <LightModeIcon />,
-      color: 'warning'
-    },
-    {
-      title: 'Aktuelle Gewinnsumme',
-      value: `€${currentBalance.toLocaleString('de-DE')}`,
-      icon: <SavingsIcon />,
-      color: currentBalance > 0 ? 'success' : 'error'
-    }
-  ]
-
-  return (
-    <Box sx={{ mb: 4 }}>
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: {
-          xs: 'repeat(1, 1fr)',
-          sm: 'repeat(2, 1fr)',
-          md: 'repeat(3, 1fr)',
-          lg: 'repeat(6, 1fr)'
-        },
-        gap: 3
-      }}>
-        {stats.map((stat, index) => (
-          <Card 
-            key={index}
-            sx={{ 
-              height: '100%',
-              background: `linear-gradient(135deg, ${
-                stat.color === 'primary' ? '#9155FD 0%, #804BDF 100%' :
-                stat.color === 'secondary' ? '#8A8D93 0%, #777B82 100%' :
-                stat.color === 'pink' ? '#E91E63 0%, #AD1457 100%' :
-                stat.color === 'info' ? '#16B1FF 0%, #0288D1 100%' :
-                stat.color === 'success' ? '#56CA00 0%, #4DA90E 100%' :
-                stat.color === 'warning' ? '#FFB400 0%, #E69E00 100%' :
-                '#9155FD 0%, #804BDF 100%'
-              })`,
-              color: 'white',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', height: '100%' }}>
-                <Box sx={{ mb: 2 }}>
-                  {stat.icon}
-                </Box>
-                <Box>
-                  <Typography variant="h4" sx={{ 
-                    fontWeight: 700, 
-                    mb: 1,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                    color: 'white'
-                  }}>
-                    {stat.value}
-                    {stat.total && (
-                      <Typography component="span" variant="body2" sx={{ 
-                        opacity: 0.9, 
-                        ml: 1,
-                        textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                        color: 'white'
-                      }}>
-                        / {stat.total}
-                      </Typography>
-                    )}
-                  </Typography>
-                  <Typography variant="body2" sx={{ 
-                    opacity: 0.95,
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                    color: 'white',
-                    fontWeight: 500
-                  }}>
-                    {stat.title}
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    </Box>
-  )
+}> = () => {
+  return null
 }
 
 // ** Participant Form Component
@@ -803,9 +658,8 @@ const ParticipantsList: React.FC<{
 const MatchboxManagement: React.FC<{
   participants: Participant[]
   matchboxes: Matchbox[]
-  penalties: Penalty[]
   onUpdate: () => void
-}> = ({ participants, matchboxes, penalties, onUpdate }) => {
+}> = ({ participants, matchboxes, onUpdate }) => {
   const [editingMatchbox, setEditingMatchbox] = useState<Matchbox | undefined>(undefined)
   const [matchboxForm, setMatchboxForm] = useState<Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt'>>({
     woman: '',
@@ -837,24 +691,9 @@ const MatchboxManagement: React.FC<{
 
   const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
   const noMatches = matchboxes.filter(mb => mb.matchType === 'no-match').length
-  const soldMatchboxes = matchboxes.filter(mb => mb.matchType === 'sold').length
   const totalRevenue = matchboxes
     .filter(mb => mb.matchType === 'sold' && mb.price && typeof mb.price === 'number')
     .reduce((sum, mb) => sum + (mb.price || 0), 0)
-  // Get starting budget from localStorage or use default
-  const getStartingBudget = () => {
-    const savedBudget = localStorage.getItem('ayto-starting-budget')
-    return savedBudget ? parseInt(savedBudget, 10) : 200000
-  }
-  const STARTING_BUDGET = getStartingBudget()
-  // Calculate consistent balance including penalties and credits
-  const totalPenaltiesLocal = penalties.reduce((sum, penalty) => {
-    return penalty.amount < 0 ? sum + Math.abs(penalty.amount) : sum
-  }, 0)
-  const totalCreditsLocal = penalties.reduce((sum, penalty) => {
-    return penalty.amount > 0 ? sum + penalty.amount : sum
-  }, 0)
-  const currentBalance = STARTING_BUDGET - totalRevenue - totalPenaltiesLocal + totalCreditsLocal
 
   const resetForm = () => {
     setMatchboxForm({
@@ -950,51 +789,22 @@ const MatchboxManagement: React.FC<{
     }
   }
 
-  const matchboxStats = [
-    { title: 'Perfect Matches', value: perfectMatches, icon: <FavoriteIcon />, color: 'success' },
-    { title: 'No Matches', value: noMatches, icon: <CancelIcon />, color: 'error' },
-    { title: 'Verkaufte Matchboxes', value: soldMatchboxes, icon: <TrendingUpIcon />, color: 'info' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
-  ]
 
   return (
     <Box>
-      {/* Statistics */}
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-        gap: 3,
-        mb: 4
-      }}>
-        {matchboxStats.map((stat, index) => (
-          <Card key={index} sx={{ textAlign: 'center' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: `${stat.color}.main`, mr: 2 }}>
-                  {stat.icon}
-                </Avatar>
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: `${stat.color}.main` }}>
-                {stat.value}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {stat.title}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
 
-      {/* Action Button */}
-      <Box sx={{ mb: 3 }}>
+      {/* Action Button with Labels */}
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Button 
           variant="contained" 
           startIcon={<AddIcon />}
           onClick={() => setShowDialog(true)}
-          sx={{ mr: 2 }}
         >
           Neue Matchbox erstellen
         </Button>
+        <Chip icon={<FavoriteIcon />} label={`${perfectMatches}`} color="success" size="small" />
+        <Chip icon={<HeartBrokenIcon />} label={`${noMatches}`} color="error" size="small" />
+        <Chip icon={<AttachMoneyIcon />} label={`${totalRevenue.toLocaleString('de-DE')} €`} sx={{ bgcolor: '#9c27b0', color: 'white', '& .MuiChip-icon': { color: 'white' } }} size="small" />
         {editingMatchbox && (
           <Button variant="outlined" onClick={resetForm}>
             Bearbeitung abbrechen
@@ -1358,14 +1168,6 @@ const MatchingNightManagement: React.FC<{
     })
   }
 
-  const initializeWithPerfectMatches = () => {
-    if (perfectMatchPairs.length > 0 && matchingNightForm.pairs.length === 0) {
-      setMatchingNightForm({
-        ...matchingNightForm,
-        pairs: [...perfectMatchPairs]
-      })
-    }
-  }
 
   const saveMatchingNight = async () => {
     try {
@@ -1466,50 +1268,9 @@ const MatchingNightManagement: React.FC<{
     }
   }
 
-  // Calculate current lights from the latest matching night
-  const getCurrentLights = () => {
-    if (matchingNights.length === 0) return 0
-    const sortedNights = matchingNights.sort((a: MatchingNight, b: MatchingNight) => {
-      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
-      return dateB - dateA
-    })
-    return sortedNights[0]?.totalLights || 0
-  }
-
-  const matchingNightStats = [
-    { title: 'Gespeicherte Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
-    { title: 'Perfect Matches verfügbar', value: perfectMatchPairs.length, icon: <AutoAwesomeIcon />, color: 'success' },
-    { title: 'Aktuelle Lichter', value: getCurrentLights(), icon: <LightModeIcon />, color: 'warning' }
-  ]
 
   return (
     <Box>
-      {/* Statistics */}
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-        gap: 3,
-        mb: 4
-      }}>
-        {matchingNightStats.map((stat, index) => (
-          <Card key={index} sx={{ textAlign: 'center' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: `${stat.color}.main`, mr: 2 }}>
-                  {stat.icon}
-                </Avatar>
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: `${stat.color}.main` }}>
-                {stat.value}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {stat.title}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
 
       {/* Action Buttons */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -1520,16 +1281,6 @@ const MatchingNightManagement: React.FC<{
         >
           Neue Matching Night erstellen
         </Button>
-        {perfectMatchPairs.length > 0 && (
-          <Button 
-            variant="outlined" 
-            startIcon={<AutoAwesomeIcon />}
-            onClick={initializeWithPerfectMatches}
-            disabled={showDialog}
-          >
-            Perfect Matches hinzufügen
-          </Button>
-        )}
         {editingMatchingNight && (
           <Button variant="outlined" onClick={resetForm}>
             Bearbeitung abbrechen
@@ -1886,7 +1637,8 @@ const SettingsManagement: React.FC<{
   matchingNights: MatchingNight[]
   penalties: Penalty[]
   onUpdate: () => void
-}> = ({ participants, matchboxes, matchingNights, penalties, onUpdate }) => {
+  renderContext?: 'settings' | 'json-import'
+}> = ({ participants, matchboxes, matchingNights, penalties, onUpdate, renderContext = 'settings' }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
@@ -1940,7 +1692,7 @@ const SettingsManagement: React.FC<{
     setBudgetSettings(prev => ({ ...prev, startingBudget: budget, showDialog: false }))
     localStorage.setItem('ayto-starting-budget', budget.toString())
     setNewBudget('')
-    setSnackbar({ open: true, message: `✅ Startsumme wurde auf €${budget.toLocaleString('de-DE')} gesetzt!`, severity: 'success' })
+    setSnackbar({ open: true, message: `✅ Startsumme wurde auf ${budget.toLocaleString('de-DE')} € gesetzt!`, severity: 'success' })
   }
 
   const openBudgetDialog = () => {
@@ -2586,12 +2338,6 @@ Alle Daten gehen unwiderruflich verloren!`)
   }, 0)
   const currentBalance = budgetSettings.startingBudget - totalRevenue - totalPenalties + totalCredits
 
-  const databaseStats = [
-    { title: 'Teilnehmer', value: participants.length, icon: <PeopleIcon />, color: 'primary' },
-    { title: 'Matching Nights', value: matchingNights.length, icon: <NightlifeIcon />, color: 'pink' },
-    { title: 'Matchboxes', value: matchboxes.length, icon: <InventoryIcon />, color: 'success' },
-    { title: 'Aktueller Kontostand', value: `€${currentBalance.toLocaleString('de-DE')}`, icon: <SavingsIcon />, color: currentBalance >= 0 ? 'success' : 'error' }
-  ]
 
   const exportItems = [
     { title: 'Teilnehmer', count: participants.length, onClick: exportParticipants, icon: <PeopleIcon />, disabled: participants.length === 0 },
@@ -2609,33 +2355,9 @@ Alle Daten gehen unwiderruflich verloren!`)
 
   return (
     <Box>
-      {/* Database Statistics */}
-      <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-        gap: 3,
-        mb: 4
-      }}>
-        {databaseStats.map((stat, index) => (
-          <Card key={index} sx={{ textAlign: 'center' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: `${stat.color}.main`, mr: 2 }}>
-                  {stat.icon}
-                </Avatar>
-              </Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: `${stat.color}.main` }}>
-                {stat.value}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {stat.title}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
 
-      {/* Budget Settings Section */}
+      {/* Budget Settings Section (hidden in Datenhaltung) */}
+      {renderContext !== 'json-import' && (
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Budget Einstellungen"
@@ -2654,7 +2376,7 @@ Alle Daten gehen unwiderruflich verloren!`)
               </Typography>
               <Card variant="outlined" sx={{ textAlign: 'center', p: 3, bgcolor: 'success.50' }}>
                 <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                  €{budgetSettings.startingBudget.toLocaleString('de-DE')}
+                  {budgetSettings.startingBudget.toLocaleString('de-DE')} €
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Verfügbares Startkapital
@@ -2669,7 +2391,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2">Startsumme:</Typography>
                   <Chip 
-                    label={`€${budgetSettings.startingBudget.toLocaleString('de-DE')}`} 
+                    label={`${budgetSettings.startingBudget.toLocaleString('de-DE')} €`} 
                     color="primary" 
                     variant="outlined"
                   />
@@ -2677,7 +2399,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2">Verkaufte Matchboxes:</Typography>
                   <Chip 
-                    label={`-€${totalRevenue.toLocaleString('de-DE')}`} 
+                    label={`-${totalRevenue.toLocaleString('de-DE')} €`} 
                     color="info" 
                     variant="outlined"
                   />
@@ -2685,7 +2407,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2">Strafen:</Typography>
                   <Chip 
-                    label={`-€${totalPenalties.toLocaleString('de-DE')}`} 
+                    label={`-${totalPenalties.toLocaleString('de-DE')} €`} 
                     color="error" 
                     variant="outlined"
                   />
@@ -2693,7 +2415,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body2">Gutschriften:</Typography>
                   <Chip 
-                    label={`+€${totalCredits.toLocaleString('de-DE')}`} 
+                    label={`+${totalCredits.toLocaleString('de-DE')} €`} 
                     color="success" 
                     variant="outlined"
                   />
@@ -2702,7 +2424,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>Aktueller Kontostand:</Typography>
                   <Chip 
-                    label={`€${currentBalance.toLocaleString('de-DE')}`} 
+                    label={`${currentBalance.toLocaleString('de-DE')} €`} 
                     color={currentBalance >= 0 ? 'success' : 'error'}
                     sx={{ fontWeight: 700 }}
                   />
@@ -2727,8 +2449,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Alert>
         </CardContent>
       </Card>
+      )}
 
-      {/* Penalties Management Section */}
+      {/* Penalties Management Section (hidden in Datenhaltung) */}
+      {renderContext !== 'json-import' && (
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Strafen-Verwaltung"
@@ -2776,7 +2500,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                               size="small"
                             />
                             <Chip 
-                              label={`${penalty.amount >= 0 ? '+' : ''}€${penalty.amount.toLocaleString('de-DE')}`}
+                              label={`${penalty.amount >= 0 ? '+' : ''}${penalty.amount.toLocaleString('de-DE')} €`}
                               color={penalty.amount >= 0 ? "success" : "error"}
                               size="small"
                               icon={penalty.amount >= 0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
@@ -2824,8 +2548,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Alert>
         </CardContent>
       </Card>
+      )}
 
       {/* Import & Test Data Section */}
+      {renderContext === 'json-import' && (
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Import & Testdaten"
@@ -2839,7 +2565,7 @@ Alle Daten gehen unwiderruflich verloren!`)
               startIcon={<UploadIcon />}
               disabled={isLoading}
             >
-              Teilnehmer JSON importieren
+              Teilnehmer Backup importieren
               <input
                 type="file"
                 hidden
@@ -2878,8 +2604,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Alert>
         </CardContent>
       </Card>
+      )}
 
       {/* Export Section */}
+      {renderContext === 'json-import' && (
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Daten exportieren"
@@ -2924,8 +2652,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Alert>
         </CardContent>
       </Card>
+      )}
 
       {/* Selective Delete Section */}
+      {renderContext === 'json-import' && (
       <Card sx={{ mb: 4 }}>
         <CardHeader 
           title="Selektive Löschungen"
@@ -2965,8 +2695,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Box>
         </CardContent>
       </Card>
+      )}
 
       {/* Danger Zone */}
+      {renderContext === 'json-import' && (
       <Card sx={{ border: '2px solid', borderColor: 'error.main', mb: 4 }}>
         <CardHeader 
           title="⚠️ Gefahrenzone"
@@ -2994,8 +2726,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Button>
         </CardContent>
       </Card>
+      )}
 
       {/* Cache Management */}
+      {renderContext === 'json-import' && (
       <Card sx={{ border: '2px solid', borderColor: 'warning.main', mb: 4 }}>
         <CardHeader 
           title="🗑️ Browser-Reset"
@@ -3023,8 +2757,10 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Button>
         </CardContent>
       </Card>
+      )}
 
       {/* Help Section */}
+      {renderContext === 'json-import' && (
       <Card variant="outlined">
         <CardHeader 
           title="Wichtige Hinweise"
@@ -3047,6 +2783,7 @@ Alle Daten gehen unwiderruflich verloren!`)
           </Alert>
         </CardContent>
       </Card>
+      )}
 
       {/* Confirmation Dialog */}
       <Dialog
@@ -3209,9 +2946,9 @@ Alle Daten gehen unwiderruflich verloren!`)
           />
           <Alert severity="info">
             <Typography variant="body2">
-              <strong>Aktuelle Startsumme:</strong> €{budgetSettings.startingBudget.toLocaleString('de-DE')}<br />
-              <strong>Verkaufte Matchboxes:</strong> €{totalRevenue.toLocaleString('de-DE')}<br />
-              <strong>Aktueller Kontostand:</strong> €{currentBalance.toLocaleString('de-DE')}
+              <strong>Aktuelle Startsumme:</strong> {budgetSettings.startingBudget.toLocaleString('de-DE')} €<br />
+              <strong>Verkaufte Matchboxes:</strong> {totalRevenue.toLocaleString('de-DE')} €<br />
+              <strong>Aktueller Kontostand:</strong> {currentBalance.toLocaleString('de-DE')} €
             </Typography>
           </Alert>
         </DialogContent>
@@ -3410,7 +3147,6 @@ const AdminPanelMUI: React.FC = () => {
               <MatchboxManagement 
                 participants={participants}
                 matchboxes={matchboxes}
-                penalties={penalties}
                 onUpdate={loadAllData}
               />
             </Box>
@@ -3423,7 +3159,7 @@ const AdminPanelMUI: React.FC = () => {
             </Box>
           )}
 
-          {/* Settings */}
+          {/* Settings (ohne Datenhaltungs-Sektionen) */}
           {activeTab === 'settings' && (
             <Box sx={{ p: 3 }}>
               <SettingsManagement 
@@ -3432,14 +3168,26 @@ const AdminPanelMUI: React.FC = () => {
                 matchingNights={matchingNights}
                 penalties={penalties}
                 onUpdate={loadAllData}
+                renderContext="settings"
               />
             </Box>
           )}
 
-          {/* JSON Import */}
+          {/* Datenhaltung (vormals JSON Import) */}
           {activeTab === 'json-import' && (
             <Box sx={{ p: 3 }}>
-              <JsonImportManagement onDataUpdate={loadAllData} />
+              {/* JSON-Daten Import an erster Stelle */}
+              <Box sx={{ mb: 4 }}>
+                <JsonImportManagement onDataUpdate={loadAllData} />
+              </Box>
+              <SettingsManagement 
+                participants={participants}
+                matchboxes={matchboxes}
+                matchingNights={matchingNights}
+                penalties={penalties}
+                onUpdate={loadAllData}
+                renderContext="json-import"
+              />
             </Box>
           )}
         </Card>

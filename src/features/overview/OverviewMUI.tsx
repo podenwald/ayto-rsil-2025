@@ -1816,7 +1816,7 @@ const OverviewMUI: React.FC = () => {
                   })
                   .map((matchbox) => {
                     const additionalInfo = [
-                      matchbox.matchType === 'sold' && matchbox.price ? `€${matchbox.price.toLocaleString('de-DE')}` : null,
+                      matchbox.matchType === 'sold' && matchbox.price ? `${matchbox.price.toLocaleString('de-DE')} €` : null,
                       matchbox.matchType === 'sold' && matchbox.buyer ? `Käufer: ${matchbox.buyer}` : null,
                       matchbox.ausstrahlungsdatum ? 
                         `Ausstrahlung: ${new Date(matchbox.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
