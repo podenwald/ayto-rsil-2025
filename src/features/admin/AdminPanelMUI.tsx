@@ -1657,7 +1657,6 @@ const SettingsManagement: React.FC<{
     message: '',
     onConfirm: () => {}
   })
-  const [isSeedResetting, setIsSeedResetting] = useState(false)
   const [budgetSettings, setBudgetSettings] = useState({
     startingBudget: 200000,
     showDialog: false
@@ -1865,34 +1864,6 @@ const SettingsManagement: React.FC<{
       console.error('Fehler beim Export der Strafen:', error)
       setSnackbar({ open: true, message: `❌ Fehler beim Export: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
     }
-  }
-
-  // ** Seed Reset (DB leeren und neu starten) **
-  function triggerSeedReset() {
-    setConfirmDialog({
-      open: true,
-      title: 'Seed zurücksetzen (DB leeren)',
-      message: 'Dies löscht alle Daten in der lokalen Datenbank. Beim nächsten Laden wird der Seed erneut eingespielt. Fortfahren?',
-      severity: 'warning',
-      onConfirm: async () => {
-        try {
-          setIsSeedResetting(true)
-          await Promise.all([
-            db.participants.clear(),
-            db.matchboxes.clear(),
-            db.matchingNights.clear(),
-            db.penalties.clear()
-          ])
-          setSnackbar({ open: true, message: 'Datenbank geleert. Seite wird neu geladen…', severity: 'success' })
-          window.location.reload()
-        } catch (error) {
-          console.error('Seed-Reset fehlgeschlagen:', error)
-          setSnackbar({ open: true, message: 'Fehler beim Seed-Reset', severity: 'error' })
-        } finally {
-          setIsSeedResetting(false)
-        }
-      }
-    })
   }
 
   const exportAllData = async () => {
@@ -3208,16 +3179,6 @@ const AdminPanelMUI: React.FC = () => {
               {/* JSON-Daten Import an erster Stelle */}
               <Box sx={{ mb: 4 }}>
                 <JsonImportManagement onDataUpdate={loadAllData} />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={triggerSeedReset}
-                  disabled={isSeedResetting}
-                >
-                  {isSeedResetting ? 'Zurücksetzen…' : 'Seed zurücksetzen (DB leeren)'}
-                </Button>
               </Box>
               <SettingsManagement 
                 participants={participants}
