@@ -5,6 +5,13 @@ const { writeFileSync } = require('fs');
 const { resolve } = require('path');
 
 try {
+  // Zuerst DB-Export für Deployment durchführen
+  console.log('🔄 Führe Datenbank-Export für Deployment durch...');
+  try {
+    execSync('node scripts/export-current-db.cjs', { stdio: 'inherit' });
+  } catch (exportError) {
+    console.warn('⚠️ DB-Export fehlgeschlagen, fahre mit Build fort:', exportError.message);
+  }
   // Get current git tag
   let gitTag = null;
   try {

@@ -73,7 +73,7 @@ import BroadcastManagement from './BroadcastManagement'
 import JsonImportManagement from './JsonImportManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
 import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
-import { exportCurrentDatabaseState } from '@/utils/jsonImport'
+// import { exportCurrentDatabaseState } from '@/utils/jsonImport' // Nicht mehr benötigt, da eigene Implementierung
 
 
 // ** Statistics Cards Component
@@ -1904,21 +1904,53 @@ const SettingsManagement: React.FC<{
   const exportForDeploy = async () => {
     try {
       setIsLoading(true)
-      const result = await exportCurrentDatabaseState()
       
-      if (result.success) {
-        setSnackbar({ 
-          open: true, 
-          message: `✅ Datenbankstand für Deploy exportiert!\n\nDatei: ${result.fileName}\n\nDiese Datei kann jetzt im public/json/ Verzeichnis gespeichert und deployed werden.`, 
-          severity: 'success' 
-        })
-      } else {
-        setSnackbar({ 
-          open: true, 
-          message: `❌ Fehler beim Export für Deploy: ${result.error}`, 
-          severity: 'error' 
-        })
+      // Alle aktuellen Daten laden
+      const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+        db.participants.toArray(),
+        db.matchingNights.toArray(),
+        db.matchboxes.toArray(),
+        db.penalties.toArray()
+      ])
+      
+      // Komplette Datenstruktur erstellen
+      const allData = {
+        participants: participantsData,
+        matchingNights: matchingNightsData,
+        matchboxes: matchboxesData,
+        penalties: penaltiesData,
+        exportedAt: new Date().toISOString(),
+        version: "0.3.1",
+        deploymentReady: true
       }
+      
+      // Dateiname mit aktuellem Datum erstellen
+      const today = new Date().toISOString().split('T')[0]
+      const fileName = `ayto-complete-export-${today}.json`
+      
+      // JSON-String erstellen
+      const jsonString = JSON.stringify(allData, null, 2)
+      
+      // Blob erstellen und Download auslösen
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+      
+      // Index.json aktualisieren (simuliert)
+      await updateIndexJsonForDeploy(fileName)
+      
+      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
+      
+      setSnackbar({ 
+        open: true, 
+        message: `✅ Datenbankstand für Deployment exportiert!\n\n📁 Datei: ${fileName}\n📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen\n📈 Gesamt: ${totalItems} Einträge\n\n💡 Diese Datei muss in public/json/ gespeichert und deployed werden.`, 
+        severity: 'success' 
+      })
+      
     } catch (error) {
       console.error('Fehler beim Export für Deploy:', error)
       setSnackbar({ 
@@ -1928,6 +1960,35 @@ const SettingsManagement: React.FC<{
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Hilfsfunktion zum Aktualisieren der index.json für Deployment
+  const updateIndexJsonForDeploy = async (fileName: string) => {
+    try {
+      // Lade aktuelle index.json
+      const response = await fetch('/json/index.json')
+      let currentFiles: string[] = []
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          currentFiles = data
+        }
+      }
+      
+      // Neue Datei hinzufügen, falls nicht bereits vorhanden
+      if (!currentFiles.includes(fileName)) {
+        currentFiles.unshift(fileName) // An den Anfang der Liste setzen
+        
+        // Nur die neuesten 10 Dateien behalten
+        currentFiles = currentFiles.slice(0, 10)
+        
+        console.log(`📝 Index.json würde aktualisiert werden mit:`, currentFiles)
+        console.log(`ℹ️ Für das Deployment muss diese Datei manuell in public/json/index.json gespeichert werden`)
+      }
+    } catch (error) {
+      console.warn('⚠️ Konnte index.json nicht aktualisieren:', error)
     }
   }
 
