@@ -13,11 +13,18 @@ async function exportCurrentDatabase() {
   try {
     console.log('🚀 Starte Export der aktuellen Datenbank...');
     
-    // Prüfen ob dist Verzeichnis existiert (App wurde bereits gebaut)
-    const distDir = resolve(__dirname, '../dist');
-    if (!existsSync(distDir)) {
-      console.log('📦 App wurde noch nicht gebaut, führe Build durch...');
-      execSync('npm run build', { stdio: 'inherit' });
+    // In CI/CD-Umgebungen (wie Netlify) wird das Build bereits durch das prebuild-Script ausgeführt
+    // Daher überspringen wir den Build-Schritt hier
+    const isCI = process.env.CI || process.env.NETLIFY || process.env.VERCEL || process.env.GITHUB_ACTIONS;
+    if (isCI) {
+      console.log('🔄 CI/CD-Umgebung erkannt, überspringe Build-Schritt...');
+    } else {
+      // Prüfen ob dist Verzeichnis existiert (App wurde bereits gebaut)
+      const distDir = resolve(__dirname, '../dist');
+      if (!existsSync(distDir)) {
+        console.log('📦 App wurde noch nicht gebaut, führe Build durch...');
+        execSync('npm run build', { stdio: 'inherit' });
+      }
     }
     
     // Prüfen ob public/json Verzeichnis existiert
