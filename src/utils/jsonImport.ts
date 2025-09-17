@@ -92,21 +92,30 @@ export async function createVersionWithJsonImport(fileName: string, version: str
  */
 export async function getAvailableJsonFiles(): Promise<string[]> {
   try {
-    // Optionales Manifest unter /public/json/index.json verwenden
+    // Optionales Manifest unter /public/json/index.json verwenden (nur akzeptieren, wenn JSON)
     const manifestResponse = await fetch('/json/index.json', { cache: 'no-store' })
     if (manifestResponse.ok) {
-      const files: unknown = await manifestResponse.json()
+      const manifestType = manifestResponse.headers.get('content-type') || ''
+      if (!manifestType.includes('application/json')) {
+        console.warn('Manifest /json/index.json hat unerwarteten Content-Type:', manifestType)
+      } else {
+        const files: unknown = await manifestResponse.json()
       if (Array.isArray(files)) {
-        // Nur tatsächlich erreichbare Dateien zurückgeben
+        // Nur tatsächlich erreichbare JSON-Dateien zurückgeben (Content-Type prüfen)
         const checks = await Promise.all(files.map(async (name) => {
           try {
-            const res = await fetch(`/json/${name}`, { method: 'HEAD' })
-            return res.ok ? name : null
+            if (typeof name !== 'string') return null
+            const url = `/json/${name}`
+            const res = await fetch(url, { cache: 'no-store' })
+            if (!res.ok) return null
+            const type = res.headers.get('content-type') || ''
+            return type.includes('application/json') ? name : null
           } catch {
             return null
           }
         }))
         return checks.filter((n): n is string => Boolean(n))
+      }
       }
     }
 

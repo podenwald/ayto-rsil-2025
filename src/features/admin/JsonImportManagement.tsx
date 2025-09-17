@@ -27,6 +27,15 @@ import {
 } from '@mui/icons-material'
 import { importJsonDataForVersion, getAvailableJsonFiles } from '../../utils/jsonImport'
 import { db } from '../../lib/db'
+// Seed-Reset: leert DB und triggert erneuten Bootstrap durch Reload
+async function performSeedReset(): Promise<void> {
+  await db.transaction('rw', [db.participants, db.matchboxes, db.matchingNights, db.penalties], async () => {
+    await db.participants.clear()
+    await db.matchboxes.clear()
+    await db.matchingNights.clear()
+    await db.penalties.clear()
+  })
+}
 
 interface JsonImportManagementProps {
   onDataUpdate?: () => void
@@ -37,6 +46,8 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
   const [selectedFile, setSelectedFile] = useState<string>('')
   const [isImporting, setIsImporting] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [seedResetLoading, setSeedResetLoading] = useState(false)
+  const [seedResetDialogOpen, setSeedResetDialogOpen] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
     open: false,
     message: '',
@@ -229,6 +240,14 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
         >
           {isImporting ? 'Importiere...' : 'JSON-Daten importieren'}
         </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => setSeedResetDialogOpen(true)}
+          disabled={seedResetLoading}
+        >
+          {seedResetLoading ? 'Zurücksetzen…' : 'Seed zurücksetzen (DB leeren)'}
+        </Button>
       </Box>
 
       {/* Import-Bestätigungs-Dialog */}
@@ -248,6 +267,39 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
           </Button>
           <Button onClick={handleImport} variant="contained" color="error">
             Importieren
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Seed-Reset-Bestätigungs-Dialog */}
+      <Dialog open={seedResetDialogOpen} onClose={() => setSeedResetDialogOpen(false)}>
+        <DialogTitle>Seed zurücksetzen</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning">
+            Dies löscht alle Daten in der lokalen Datenbank. Beim nächsten Laden wird der Seed erneut eingespielt.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSeedResetDialogOpen(false)}>Abbrechen</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              try {
+                setSeedResetLoading(true)
+                await performSeedReset()
+                setSeedResetDialogOpen(false)
+                setSnackbar({ open: true, message: 'Datenbank geleert. Seite wird neu geladen…', severity: 'success' })
+                window.location.reload()
+              } catch (e) {
+                console.error(e)
+                setSnackbar({ open: true, message: 'Fehler beim Zurücksetzen der Datenbank', severity: 'error' })
+              } finally {
+                setSeedResetLoading(false)
+              }
+            }}
+          >
+            Bestätigen
           </Button>
         </DialogActions>
       </Dialog>
