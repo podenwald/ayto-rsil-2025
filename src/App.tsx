@@ -5,6 +5,7 @@ import ThemeProvider from "@/theme/ThemeProvider"
 import LegalFooter from "@/components/LegalFooter"
 import VersionCheckDialog from "@/components/VersionCheckDialog"
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from "@/lib/db"
+import { extractDateFromFilename } from "@/utils/jsonVersion"
 import { initializeVersionCheck } from "@/utils/versionCheck"
 
 export default function App() {
@@ -61,7 +62,7 @@ export default function App() {
     }
   }, [])
 
-  // Bootstrap: Seed-Load aus public/ayto-complete-noPicture.json beim ersten Start
+  // Bootstrap: Seed-Load aus /public/json (Manifest-gesteuert) beim ersten Start
   useEffect(() => {
     const bootstrap = async () => {
       try {
@@ -77,8 +78,39 @@ export default function App() {
           return
         }
 
-        const resp = await fetch('/ayto-complete-noPicture.json', { cache: 'no-store' })
+        // Ermittele Seed-Quelle: Versuche Manifest /json/index.json, sonst Fallback auf bekannte Datei
+        const resolveSeedUrl = async (): Promise<string> => {
+          try {
+            const manifestResp = await fetch('/json/index.json', { cache: 'no-store' })
+            if (manifestResp.ok) {
+              const files = await manifestResp.json()
+              if (Array.isArray(files) && files.length > 0) {
+                const sorted = files
+                  .filter((f: unknown) => typeof f === 'string' && (f as string).endsWith('.json'))
+                  .map((f: string) => ({
+                    name: f,
+                    date: extractDateFromFilename(f) ?? new Date(0)
+                  }))
+                  .sort((a, b) => b.date.getTime() - a.date.getTime())
+                if (sorted.length > 0) return `/json/${sorted[0].name}`
+              }
+            }
+          } catch {
+            // Ignorieren und Fallback nutzen
+          }
+          // Fallback: jüngste bekannte Datei im Repo
+          return '/json/ayto-complete-export-2025-09-11.json'
+        }
+
+        const seedUrl = await resolveSeedUrl()
+        const resp = await fetch(seedUrl, { cache: 'no-store' })
         if (!resp.ok) throw new Error(`Seed-JSON nicht ladbar (${resp.status})`)
+        const contentType = resp.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          // Wahrscheinlich HTML (z.B. 404 mit index.html)
+          const text = await resp.text()
+          throw new Error(`Unerwarteter Inhaltstyp für ${seedUrl}: ${contentType || 'unbekannt'}; Beginn: ${text.slice(0, 80)}`)
+        }
         const json = await resp.json() as {
           participants: Participant[]
           matchingNights: (Omit<MatchingNight, 'createdAt'> & { createdAt: string })[]
