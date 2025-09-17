@@ -1,1 +1,9 @@
+#/json und PWA-Assets dürfen nicht auf SPA umgeschrieben werden
+/json/*                 /json/:splat            200
+/pwa-192x192.png        /pwa-192x192.png        200
+/pwa-512x512.png        /pwa-512x512.png        200
+#/ manifest und assets generell durchlassen (optional defensiv)
+/manifest.webmanifest   /manifest.webmanifest   200
+/assets/*               /assets/:splat          200
+
 /*    /index.html   200
