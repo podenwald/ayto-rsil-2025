@@ -87,6 +87,95 @@ export async function createVersionWithJsonImport(fileName: string, version: str
 }
 
 /**
+ * Exportiert den aktuellen Datenbankstand und macht ihn für alle verfügbar
+ * @returns Promise<{success: boolean, fileName?: string, error?: string}>
+ */
+export async function exportCurrentDatabaseState(): Promise<{success: boolean, fileName?: string, error?: string}> {
+  try {
+    // Alle Daten aus der Datenbank laden
+    const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+      db.participants.toArray(),
+      db.matchingNights.toArray(),
+      db.matchboxes.toArray(),
+      db.penalties.toArray()
+    ])
+    
+    // Komplette Datenstruktur erstellen
+    const allData: JsonImportData = {
+      participants: participantsData,
+      matchingNights: matchingNightsData,
+      matchboxes: matchboxesData,
+      penalties: penaltiesData
+    }
+    
+    // Dateiname mit aktuellem Datum erstellen
+    const today = new Date().toISOString().split('T')[0]
+    const fileName = `ayto-complete-export-${today}.json`
+    
+    // JSON-String erstellen
+    const jsonString = JSON.stringify(allData, null, 2)
+    
+    // Blob erstellen und Download auslösen
+    const blob = new Blob([jsonString], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    URL.revokeObjectURL(url)
+    
+    // Index.json aktualisieren (simuliert - in echter App würde das über Server passieren)
+    await updateIndexJson(fileName)
+    
+    const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
+    console.log(`✅ Datenbankstand exportiert: ${fileName}`)
+    console.log(`📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen`)
+    console.log(`📈 Gesamt: ${totalItems} Einträge`)
+    
+    return { success: true, fileName }
+    
+  } catch (error) {
+    console.error('❌ Fehler beim Exportieren des Datenbankstands:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unbekannter Fehler' 
+    }
+  }
+}
+
+/**
+ * Aktualisiert die index.json mit der neuesten Export-Datei
+ * @param fileName - Name der neuen Export-Datei
+ */
+async function updateIndexJson(fileName: string): Promise<void> {
+  try {
+    // Lade aktuelle index.json
+    const response = await fetch('/json/index.json')
+    let currentFiles: string[] = []
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        currentFiles = data
+      }
+    }
+    
+    // Neue Datei hinzufügen, falls nicht bereits vorhanden
+    if (!currentFiles.includes(fileName)) {
+      currentFiles.unshift(fileName) // An den Anfang der Liste setzen
+      
+      // Nur die neuesten 5 Dateien behalten
+      currentFiles = currentFiles.slice(0, 5)
+      
+      console.log(`📝 Index.json würde aktualisiert werden mit:`, currentFiles)
+      console.log(`ℹ️ In einer echten App würde hier die index.json auf dem Server aktualisiert werden`)
+    }
+  } catch (error) {
+    console.warn('⚠️ Konnte index.json nicht aktualisieren:', error)
+  }
+}
+
+/**
  * Lädt verfügbare JSON-Dateien dynamisch
  * @returns Promise<string[]> - Liste der verfügbaren JSON-Dateien
  */

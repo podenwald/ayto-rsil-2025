@@ -73,6 +73,7 @@ import BroadcastManagement from './BroadcastManagement'
 import JsonImportManagement from './JsonImportManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
 import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
+import { exportCurrentDatabaseState } from '@/utils/jsonImport'
 
 
 // ** Statistics Cards Component
@@ -1900,6 +1901,36 @@ const SettingsManagement: React.FC<{
     }
   }
 
+  const exportForDeploy = async () => {
+    try {
+      setIsLoading(true)
+      const result = await exportCurrentDatabaseState()
+      
+      if (result.success) {
+        setSnackbar({ 
+          open: true, 
+          message: `✅ Datenbankstand für Deploy exportiert!\n\nDatei: ${result.fileName}\n\nDiese Datei kann jetzt im public/json/ Verzeichnis gespeichert und deployed werden.`, 
+          severity: 'success' 
+        })
+      } else {
+        setSnackbar({ 
+          open: true, 
+          message: `❌ Fehler beim Export für Deploy: ${result.error}`, 
+          severity: 'error' 
+        })
+      }
+    } catch (error) {
+      console.error('Fehler beim Export für Deploy:', error)
+      setSnackbar({ 
+        open: true, 
+        message: `❌ Fehler beim Export für Deploy: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, 
+        severity: 'error' 
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // ** Delete Functions **
   const deleteParticipants = async () => {
     setConfirmDialog({
@@ -2344,7 +2375,8 @@ Alle Daten gehen unwiderruflich verloren!`)
     { title: 'Matching Nights', count: matchingNights.length, onClick: exportMatchingNights, icon: <NightlifeIcon />, disabled: matchingNights.length === 0 },
     { title: 'Matchboxes', count: matchboxes.length, onClick: exportMatchboxes, icon: <InventoryIcon />, disabled: matchboxes.length === 0 },
     { title: 'Strafen/Transaktionen', count: penalties.length, onClick: exportPenalties, icon: <AccountBalanceWalletIcon />, disabled: penalties.length === 0 },
-    { title: 'Komplettexport', count: totalEntries, onClick: exportAllData, icon: <BackupIcon />, disabled: totalEntries === 0, variant: 'contained' as const }
+    { title: 'Komplettexport', count: totalEntries, onClick: exportAllData, icon: <BackupIcon />, disabled: totalEntries === 0, variant: 'contained' as const },
+    { title: 'Für Deploy exportieren', count: totalEntries, onClick: exportForDeploy, icon: <CloudUploadIcon />, disabled: totalEntries === 0, variant: 'contained' as const, color: 'secondary' as const }
   ]
 
   const deleteItems = [
