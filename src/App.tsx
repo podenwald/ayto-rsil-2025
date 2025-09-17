@@ -99,12 +99,61 @@ export default function App() {
             // Ignorieren und Fallback nutzen
           }
           // Fallback: jüngste bekannte Datei im Repo
-          return '/json/ayto-complete-export-2025-09-11.json'
+          return '/json/ayto-complete-export-2025-09-10.json'
         }
 
         const seedUrl = await resolveSeedUrl()
         const resp = await fetch(seedUrl, { cache: 'no-store' })
-        if (!resp.ok) throw new Error(`Seed-JSON nicht ladbar (${resp.status})`)
+        if (!resp.ok) {
+          // Versuche Fallback auf ayto-complete-noPicture.json
+          const fallbackUrl = '/ayto-complete-noPicture.json'
+          const fallbackResp = await fetch(fallbackUrl, { cache: 'no-store' })
+          if (fallbackResp.ok) {
+            const fallbackType = fallbackResp.headers.get('content-type') || ''
+            if (fallbackType.includes('application/json')) {
+              const fallbackJson = await fallbackResp.json()
+              // Verwende Fallback-Daten
+              const json = fallbackJson as {
+                participants: Participant[]
+                matchingNights: (Omit<MatchingNight, 'createdAt'> & { createdAt: string })[]
+                matchboxes: (Omit<Matchbox, 'createdAt' | 'updatedAt' | 'soldDate'> & { createdAt: string, updatedAt: string, soldDate?: string })[]
+                penalties: (Omit<Penalty, 'createdAt'> & { createdAt: string })[]
+              }
+              // Konvertiere Datumsfelder zu Date
+              const matchingNights: MatchingNight[] = json.matchingNights.map(mn => ({
+                ...mn,
+                createdAt: new Date(mn.createdAt)
+              }))
+              const matchboxes: Matchbox[] = json.matchboxes.map(mb => ({
+                ...mb,
+                createdAt: new Date(mb.createdAt),
+                updatedAt: new Date(mb.updatedAt),
+                soldDate: mb.soldDate ? new Date(mb.soldDate) : undefined
+              }))
+              const penalties: Penalty[] = json.penalties.map(p => ({
+                ...p,
+                createdAt: new Date(p.createdAt)
+              }))
+              // Atomar neu befüllen
+              await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
+                await Promise.all([
+                  db.participants.clear(),
+                  db.matchingNights.clear(),
+                  db.matchboxes.clear(),
+                  db.penalties.clear()
+                ])
+                await Promise.all([
+                  db.participants.bulkAdd(json.participants),
+                  db.matchingNights.bulkAdd(matchingNights),
+                  db.matchboxes.bulkAdd(matchboxes),
+                  db.penalties.bulkAdd(penalties)
+                ])
+              })
+              return
+            }
+          }
+          throw new Error(`Seed-JSON nicht ladbar (${resp.status}): ${seedUrl}`)
+        }
         const contentType = resp.headers.get('content-type') || ''
         if (!contentType.includes('application/json')) {
           // Wahrscheinlich HTML (z.B. 404 mit index.html)
