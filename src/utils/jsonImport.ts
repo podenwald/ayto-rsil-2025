@@ -16,8 +16,8 @@ export interface JsonImportData {
  */
 export async function importJsonDataForVersion(fileName: string, version: string): Promise<boolean> {
   try {
-    // Lade die spezifische JSON-Datei
-    const response = await fetch(`/json/${fileName}`)
+    // Lade die spezifische JSON-Datei (ohne Cache) und mit Cache-Busting
+    const response = await fetch(`/json/${fileName}?t=${Date.now()}`, { cache: 'no-store' })
     
     if (!response.ok) {
       throw new Error(`Fehler beim Laden der JSON-Datei ${fileName}: ${response.statusText}`)

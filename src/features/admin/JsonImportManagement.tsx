@@ -26,6 +26,7 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material'
 import { importJsonDataForVersion, getAvailableJsonFiles } from '../../utils/jsonImport'
+import { VERSION_INFO } from '@/utils/version'
 import { db } from '../../lib/db'
 // Seed-Reset: leert DB und triggert erneuten Bootstrap durch Reload
 async function performSeedReset(): Promise<void> {
@@ -112,9 +113,8 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
     setImportDialogOpen(false)
 
     try {
-      // Simuliere Version aus Dateiname (z.B. "ayto-complete-export-2025-09-10.json" -> "0.2.1")
-      const version = "0.2.1" // In einer echten Implementierung würde man das aus dem Dateinamen extrahieren
-      
+      // Nutze die aktuelle App-Version für das Logging im Import
+      const version = VERSION_INFO.version
       const success = await importJsonDataForVersion(selectedFile, version)
       
       if (success) {
