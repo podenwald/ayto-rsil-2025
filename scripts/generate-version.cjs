@@ -5,7 +5,7 @@ const { writeFileSync } = require('fs');
 const { resolve } = require('path');
 
 try {
-  // Zuerst DB-Export für Deployment durchführen
+  // Zuerst DB-Export für Deployment durchführen (immer ausführen)
   console.log('🔄 Führe Datenbank-Export für Deployment durch...');
   try {
     execSync('node scripts/export-current-db.cjs', { stdio: 'inherit' });
