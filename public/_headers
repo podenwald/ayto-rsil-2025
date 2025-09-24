@@ -1,0 +1,22 @@
+/*
+  X-Content-Type-Options: nosniff
+
+/json/*
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Content-Type: application/json; charset=utf-8
+
+/json/index.json
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Content-Type: application/json; charset=utf-8
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=3600
+
+/pwa-*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/sw.js
+  Cache-Control: no-store
+
+
