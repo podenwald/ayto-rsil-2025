@@ -15,6 +15,7 @@ try {
   // Get current git tag
   let gitTag = null;
   try {
+    // First try to get exact tag match
     gitTag = execSync('git describe --tags --exact-match HEAD', { encoding: 'utf8' }).trim();
   } catch {
     // No exact tag match, try to get the latest tag
@@ -26,7 +27,19 @@ try {
         gitTag = match[1];
       }
     } catch {
-      // No tags available
+      // No tags available, try to get all tags and find the latest
+      try {
+        const allTags = execSync('git tag --sort=-version:refname', { encoding: 'utf8' }).trim();
+        if (allTags) {
+          const tags = allTags.split('\n').filter(tag => tag.trim());
+          if (tags.length > 0) {
+            gitTag = tags[0]; // Get the latest tag
+          }
+        }
+      } catch {
+        // Still no tags available
+        console.log('⚠️ No git tags found');
+      }
     }
   }
 
@@ -39,8 +52,17 @@ try {
   // Determine if this is a production build
   const isProduction = process.env.NODE_ENV === 'production';
 
+  // Get package.json version
+  let packageVersion = '0.0.0';
+  try {
+    const packageJson = require('../package.json');
+    packageVersion = packageJson.version;
+  } catch {
+    // Fallback if package.json can't be read
+  }
+
   const versionInfo = {
-    version: process.env.npm_package_version || '0.0.0',
+    version: packageVersion,
     gitTag,
     gitCommit,
     buildDate,
@@ -63,7 +85,8 @@ export function getDisplayVersion(): string {
   if (VERSION_INFO.gitTag) {
     return VERSION_INFO.gitTag
   }
-  return 'Beta'
+  // Fallback to package.json version if no git tag
+  return VERSION_INFO.version || 'Beta'
 }
 
 export function getFullVersionInfo(): string {
