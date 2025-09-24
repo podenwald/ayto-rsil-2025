@@ -22,7 +22,7 @@ function useParticipants() {
 
 function ParticipantForm({ initial, onSaved }:{ initial?: Participant, onSaved: ()=>void }) {
   const [form, setForm] = useState<Participant>(initial ?? {
-    name: '', knownFrom: '', age: undefined, status: '', photoUrl: '', bio: '', gender: 'F', socialMediaAccount: ''
+    name: '', knownFrom: '', age: undefined, status: 'Aktiv', photoUrl: '', bio: '', gender: 'F', socialMediaAccount: ''
   })
 
   useEffect(()=>{ if(initial) setForm(initial) }, [initial])
@@ -50,7 +50,7 @@ function ParticipantForm({ initial, onSaved }:{ initial?: Participant, onSaved: 
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">Status</label>
-        <Input value={form.status ?? ''} onChange={e=>setForm({...form, status: e.target.value})} className="h-10"/>
+        <Input value={form.status ?? ''} onChange={e=>setForm({...form, status: e.target.value as Participant['status']})} className="h-10"/>
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium text-gray-700">Foto URL</label>

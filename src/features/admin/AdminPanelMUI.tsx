@@ -93,7 +93,7 @@ const ParticipantForm: React.FC<{
   onCancel?: () => void
 }> = ({ initial, onSaved, onCancel }) => {
   const [form, setForm] = useState<Participant>(initial ?? {
-    name: '', knownFrom: '', age: undefined, status: '', photoUrl: '', bio: '', gender: 'F', socialMediaAccount: ''
+    name: '', knownFrom: '', age: undefined, status: 'Aktiv', photoUrl: '', bio: '', gender: 'F', socialMediaAccount: ''
   })
 
   useEffect(() => {
