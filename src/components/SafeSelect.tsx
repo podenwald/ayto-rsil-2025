@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ErrorBoundary from './ErrorBoundary';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface SafeSelectItem {
   id: string | number;

@@ -1,20 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Download, X, Heart, Users, Calendar, BarChart3, CheckCircle, XCircle, Search, Edit, Trash2, User } from "lucide-react";
+import React, { useEffect, useMemo, useState, useCallback } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import { Download, X, Heart, Users, Calendar, BarChart3, Search } from "lucide-react"
+import { ParticipantCard } from "@/components/ayto/ParticipantCard"
+import { ProbabilityGrid } from "@/components/ayto/ProbabilityGrid"
+import { useAytoState } from "@/hooks/useAytoState"
 
 /**
  * AYTO RSIL 2025 – Mobile MVP (React PWA shell)
  * ------------------------------------------------
- * Ziel: Während der Show per Smartphone mitfiebern, Truth-Box & Matching-Night
- * dokumentieren und daraus zunächst einfache (heuristische) Wahrscheinlichkeiten
- * je Paar ableiten. Der exakte Solver (Backtracking/SAT) wird als TODO markiert
- * und später per WebWorker ausgelagert.
+ * Refactored nach Single Responsibility Principle:
+ * - Business Logic in useAytoState Hook ausgelagert
+ * - UI-Komponenten in separate Dateien ausgelagert
+ * - Nur noch UI-Koordination und Layout
  *
  * Apple Design Guidelines:
  * - 44pt x 44pt minimum touch targets
@@ -24,272 +27,80 @@ import { Download, X, Heart, Users, Calendar, BarChart3, CheckCircle, XCircle, S
  * - Vibrant, friendly colors
  */
 
-// --- Types ---------------------------------------------------------------
-
-type Gender = "F" | "M";
-
-interface Person { 
-  id: string; 
-  name: string; 
-  gender: Gender;
-  age?: number;
-  show?: string;
-  status?: "Aktiv" | "Inaktiv";
-  imageUrl?: string;
-}
-
-interface Pair { a: string; b: string } // ids
-
-interface TruthBoothEntry { pair: Pair; isMatch: boolean }
-
-interface Ceremony {
-  id: string;
-  pairs: Pair[]; // vollständige Sitzordnung
-  beams: number; // Anzahl Lichter
-}
-
-interface StateModel {
-  men: Person[];
-  women: Person[];
-  forbidden: Record<string, Record<string, boolean>>; // forbidden[manId][womanId] = true
-  confirmed: Record<string, string>; // manId -> womanId (confirmed PM)
-  truthBooths: TruthBoothEntry[];
-  ceremonies: Ceremony[];
-}
-
-// --- Helpers -------------------------------------------------------------
-
-function uid() { return crypto.randomUUID(); }
-
-function emptyMatrix(men: Person[], women: Person[]) {
-  const f: Record<string, Record<string, boolean>> = {};
-  for (const m of men) { f[m.id] = {}; for (const w of women) f[m.id][w.id] = false; }
-  return f;
-}
-
-// naive heuristics: verteilt Rest-Wahrscheinlichkeit gleichmäßig auf alle (nicht verbotenen, nicht kollidierenden) Kanten
-function computeHeuristicProbabilities(state: StateModel) {
-  const { men, women, forbidden, confirmed } = state;
-  const probs: Record<string, Record<string, number>> = {};
-  const takenWomen = new Set(Object.values(confirmed));
-  for (const m of men) {
-    probs[m.id] = {};
-    if (confirmed[m.id]) {
-      for (const w of women) probs[m.id][w.id] = (w.id === confirmed[m.id]) ? 1 : 0;
-      continue;
-    }
-    let candidates = women.filter(w => !forbidden[m.id][w.id] && !takenWomen.has(w.id));
-    const p = candidates.length ? 1 / candidates.length : 0;
-    for (const w of women) probs[m.id][w.id] = candidates.some(c => c.id===w.id) ? p : 0;
-  }
-  return probs;
-}
-
-// Apply TruthBooth knowledge to matrices
-function applyTruthBooths(base: StateModel): StateModel {
-  const next: StateModel = JSON.parse(JSON.stringify(base));
-  for (const tb of base.truthBooths) {
-    const { a, b } = tb.pair; // a=man, b=woman
-    if (tb.isMatch) {
-      next.confirmed[a] = b;
-      // sperre Zeile/Spalte
-      for (const w of base.women) if (w.id !== b) next.forbidden[a][w.id] = true;
-      for (const m of base.men) if (m.id !== a) next.forbidden[m.id][b] = true;
-    } else {
-      next.forbidden[a][b] = true;
-    }
-  }
-  return next;
-}
-
-// --- Component -----------------------------------------------------------
-
 export default function AYTO_Mobile_MVP() {
-  const [title] = useState("AYTO RSIL 2025 – Live Tracker");
+  const [title] = useState("AYTO RSIL 2025 – Live Tracker")
   const [summary] = useState(
     "Manuelle Eingabe von Matchbox & Matching Nights. Heuristische Wahrscheinlichkeiten je Paar. (Exakter Solver folgt.)"
-  );
-  const [darkMode, setDarkMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  )
+  const [darkMode, setDarkMode] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // AYTO State Management
+  const { model, probabilities, addTruthBooth, removeTruthBooth, addCeremony, exportJSON } = useAytoState()
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) root.classList.add("dark"); else root.classList.remove("dark");
-  }, [darkMode]);
-
-  // Default: 11 Paare (22 Singles) - jetzt leer, wird aus Admin Panel geladen
-  const [men] = useState<Person[]>([]);
-  const [women] = useState<Person[]>([]);
-
-  const [model, setModel] = useState<StateModel>({
-    men, women,
-    forbidden: emptyMatrix(men, women),
-    confirmed: {},
-    truthBooths: [],
-    ceremonies: [],
-  });
-
-  function addTruthBooth(mId: string, wId: string, isMatch: boolean) {
-    const tb: TruthBoothEntry = { pair: { a: mId, b: wId }, isMatch };
-    const withTB: StateModel = { ...model, truthBooths: [...model.truthBooths, tb] };
-    setModel(applyTruthBooths(withTB));
-  }
-
-  function removeTruthBooth(i: number) {
-    const base: StateModel = { ...model, truthBooths: model.truthBooths.filter((_, idx) => idx!==i) };
-    // re-derive matrix fresh
-    const clean = { ...base, forbidden: emptyMatrix(base.men, base.women), confirmed: {} } as StateModel;
-    setModel(applyTruthBooths(clean));
-  }
-
-  function addCeremony(pairs: Pair[], beams: number) {
-    const c: Ceremony = { id: uid(), pairs, beams };
-    setModel({ ...model, ceremonies: [...model.ceremonies, c] });
-  }
-
-  function exportJSON() {
-    const blob = new Blob([JSON.stringify(model, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `ayto-rsil-2025.json`; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  const probs = useMemo(() => computeHeuristicProbabilities(model), [model]);
+    const root = document.documentElement
+    if (darkMode) root.classList.add("dark")
+    else root.classList.remove("dark")
+  }, [darkMode])
 
   // Filter participants based on search query
   const filteredParticipants = useMemo(() => {
-    const allParticipants = [...model.men, ...model.women];
-    if (!searchQuery) return allParticipants;
+    const allParticipants = [...model.men, ...model.women]
+    if (!searchQuery) return allParticipants
     
     return allParticipants.filter(person => 
       person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       person.show?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [model.men, model.women, searchQuery]);
-
-  // --- UI helpers --------------------------------------------------------
-
-  function ProbabilityGrid() {
-    return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 text-left font-semibold text-gray-700">\</th>
-              {model.women.map(w => (
-                <th key={w.id} className="p-4 text-center font-semibold text-gray-700 min-w-[80px]">
-                  {w.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {model.men.map(m => (
-              <tr key={m.id} className="border-t border-gray-100">
-                <td className="p-4 font-semibold text-gray-700 bg-gray-50">{m.name}</td>
-                {model.women.map(w => {
-                  const p = probs[m.id]?.[w.id] ?? 0;
-                  const f = model.forbidden[m.id][w.id];
-                  const c = model.confirmed[m.id] === w.id;
-                  return (
-                    <td key={w.id} className={`p-4 text-center border-l border-gray-100 transition-colors ${
-                      c ? "bg-green-100 text-green-800 font-semibold" : 
-                      f ? "bg-red-100 text-red-800 font-semibold" : 
-                      "bg-white hover:bg-gray-50"
-                    }`}>
-                      <div className="text-lg font-bold">{(p*100).toFixed(0)}%</div>
-                      {c && <CheckCircle className="h-5 w-5 mx-auto mt-1 text-green-600" />}
-                      {f && <XCircle className="h-5 w-5 mx-auto mt-1 text-red-600" />}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
+    )
+  }, [model.men, model.women, searchQuery])
 
   // Quick ceremony input: pairs by index like "1-3,2-5,..." and beam count
-  const [ceremonyInput, setCeremonyInput] = useState("");
-  const [beamsInput, setBeamsInput] = useState("");
-  function parseAndAddCeremony() {
+  const [ceremonyInput, setCeremonyInput] = useState("")
+  const [beamsInput, setBeamsInput] = useState("")
+  
+  const parseAndAddCeremony = useCallback(() => {
     try {
-      const pairs: Pair[] = [];
-      const chunks = ceremonyInput.split(',').map(s => s.trim()).filter(Boolean);
+      const pairs: Array<{a: number, b: number}> = []
+      const chunks = ceremonyInput.split(',').map(s => s.trim()).filter(Boolean)
       chunks.forEach(ch => {
-        const [mi, wi] = ch.split('-').map(x => parseInt(x.trim(), 10));
-        const m = model.men[mi-1]; const w = model.women[wi-1];
-        if (!m || !w) throw new Error("Index out of range");
-        pairs.push({ a: m.id, b: w.id });
-      });
-      const beams = parseInt(beamsInput, 10);
-      if (Number.isNaN(beams)) throw new Error("Beams ungültig");
-      addCeremony(pairs, beams);
-      setCeremonyInput(""); setBeamsInput("");
-    } catch (e:any) { alert(e.message || "Eingabe fehlerhaft"); }
-  }
+        const [mi, wi] = ch.split('-').map(x => parseInt(x.trim(), 10))
+        const m = model.men[mi-1]
+        const w = model.women[wi-1]
+        if (!m || !w) throw new Error("Index out of range")
+        pairs.push({ a: m.id, b: w.id })
+      })
+      const beams = parseInt(beamsInput, 10)
+      if (Number.isNaN(beams)) throw new Error("Beams ungültig")
+      addCeremony(pairs, beams)
+      setCeremonyInput("")
+      setBeamsInput("")
+    } catch (e: unknown) { 
+      const errorMessage = e instanceof Error ? e.message : "Eingabe fehlerhaft"
+      alert(errorMessage)
+    }
+  }, [ceremonyInput, beamsInput, model.men, model.women, addCeremony])
 
   // Truth Booth quick add
-  const [tbM, setTbM] = useState(1);
-  const [tbW, setTbW] = useState(1);
-  const [tbIsMatch, setTbIsMatch] = useState(false);
+  const [tbM, setTbM] = useState(1)
+  const [tbW, setTbW] = useState(1)
+  const [tbIsMatch, setTbIsMatch] = useState(false)
 
-  // Participant Card Component - Apple Style
-  function ParticipantCard({ person }: { person: Person }) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 p-6 shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        <div className="flex items-start gap-4">
-          {/* Profile Image - Apple Style */}
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <User className="h-8 w-8 text-white" />
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg mb-2">{person.name}</h3>
-            
-            {/* Badges - Apple Style */}
-            <div className="flex gap-3 mb-3">
-              <Badge className="bg-blue-500 text-white border-0 px-4 py-2 text-sm font-semibold rounded-full shadow-sm">
-                {person.age} Jahre
-              </Badge>
-              <Badge className="bg-green-500 text-white border-0 px-4 py-2 text-sm font-semibold rounded-full shadow-sm">
-                {person.status}
-              </Badge>
-            </div>
-            
-            {/* Show */}
-            <p className="text-sm text-gray-600 mb-4 font-medium">{person.show}</p>
-            
-            {/* Action Buttons - 44pt minimum */}
-            <div className="flex gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-11 w-11 p-0 rounded-2xl hover:bg-blue-50 hover:text-blue-600 shadow-sm"
-              >
-                <Edit className="h-5 w-5" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-11 w-11 p-0 rounded-2xl hover:bg-red-50 hover:text-red-600 shadow-sm"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
+  // Performance-optimierte Callbacks
+  const handleEditParticipant = useCallback((person: unknown) => {
+    console.log('Edit:', person)
+  }, [])
+
+  const handleDeleteParticipant = useCallback((person: unknown) => {
+    console.log('Delete:', person)
+  }, [])
+
+  const handleAddTruthBooth = useCallback(() => {
+    const m = model.men[tbM-1]
+    const w = model.women[tbW-1]
+    if (!m || !w) return alert("Index fehlerhaft")
+    addTruthBooth(m.id, w.id, tbIsMatch)
+  }, [tbM, tbW, tbIsMatch, model.men, model.women, addTruthBooth])
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 text-gray-900">
@@ -400,7 +211,12 @@ export default function AYTO_Mobile_MVP() {
                 {/* Participant Grid - 4 per row - Apple Style */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
                   {filteredParticipants.map((person) => (
-                    <ParticipantCard key={person.id} person={person} />
+                    <ParticipantCard 
+                      key={person.id} 
+                      person={person}
+                      onEdit={handleEditParticipant}
+                      onDelete={handleDeleteParticipant}
+                    />
                   ))}
                 </div>
                 
@@ -446,11 +262,7 @@ export default function AYTO_Mobile_MVP() {
                       <span className="text-gray-700">Perfect Match</span>
                     </label>
                     <Button 
-                      onClick={()=>{
-                        const m = model.men[tbM-1]; const w = model.women[tbW-1];
-                        if (!m||!w) return alert("Index fehlerhaft");
-                        addTruthBooth(m.id, w.id, tbIsMatch);
-                      }}
+                      onClick={handleAddTruthBooth}
                       className="bg-gradient-to-r from-pink-500 to-red-500 text-white h-14 px-10 rounded-2xl font-bold text-lg hover:from-pink-600 hover:to-red-600 shadow-xl"
                     >
                       Hinzufügen
@@ -569,7 +381,13 @@ export default function AYTO_Mobile_MVP() {
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 <div className="rounded-3xl border-2 border-gray-200 overflow-hidden shadow-xl">
-                  <ProbabilityGrid/>
+                  <ProbabilityGrid
+                    men={model.men}
+                    women={model.women}
+                    probabilities={probabilities}
+                    forbidden={model.forbidden}
+                    confirmed={model.confirmed}
+                  />
                 </div>
                 <div className="bg-orange-50 border border-orange-200 rounded-3xl p-6">
                   <div className="text-base text-orange-800 font-medium">

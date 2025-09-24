@@ -2465,14 +2465,22 @@ Alle Daten gehen unwiderruflich verloren!`)
           }}>
             <Box>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Aktuelle Startsumme
+                Aktueller Kontostand
               </Typography>
-              <Card variant="outlined" sx={{ textAlign: 'center', p: 3, bgcolor: 'success.50' }}>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                  {budgetSettings.startingBudget.toLocaleString('de-DE')} €
+              <Card variant="outlined" sx={{ 
+                textAlign: 'center', 
+                p: 3, 
+                bgcolor: currentBalance >= 0 ? 'success.50' : 'error.50' 
+              }}>
+                <Typography variant="h4" sx={{ 
+                  fontWeight: 700, 
+                  color: currentBalance >= 0 ? 'success.main' : 'error.main', 
+                  mb: 1 
+                }}>
+                  {currentBalance.toLocaleString('de-DE')} €
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Verfügbares Startkapital
+                  {currentBalance >= 0 ? 'Verfügbares Budget' : 'Überzogenes Budget'}
                 </Typography>
               </Card>
             </Box>
@@ -3248,7 +3256,11 @@ const AdminPanelMUI: React.FC = () => {
           {/* Broadcast */}
           {activeTab === 'broadcast' && (
             <Box sx={{ p: 3 }}>
-              <BroadcastManagement />
+              <BroadcastManagement 
+                matchingNights={matchingNights}
+                matchboxes={matchboxes}
+                onUpdate={loadAllData}
+              />
             </Box>
           )}
 

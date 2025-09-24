@@ -32,10 +32,10 @@ import {
   Inventory as InventoryIcon
 } from '@mui/icons-material'
 import { db, type MatchingNight, type Matchbox } from '../../lib/db'
-import { 
-  createBroadcastSortKey,
-  formatBroadcastDateTime
-} from '../../utils/broadcastUtils'
+// import { 
+//   createBroadcastSortKey,
+//   formatBroadcastDateTime
+// } from '../../utils/broadcastUtils'
 
 // Interface für ein Broadcast Event
 interface BroadcastEvent {
@@ -50,9 +50,17 @@ interface BroadcastEvent {
 }
 
 // ** Broadcast Management Component
-const BroadcastManagement: React.FC = () => {
-  const [, setMatchingNights] = useState<MatchingNight[]>([])
-  const [, setMatchboxes] = useState<Matchbox[]>([])
+interface BroadcastManagementProps {
+  matchingNights: MatchingNight[]
+  matchboxes: Matchbox[]
+  onUpdate: () => void
+}
+
+const BroadcastManagement: React.FC<BroadcastManagementProps> = ({ 
+  matchingNights, 
+  matchboxes, 
+  onUpdate 
+}) => {
   const [broadcastEvents, setBroadcastEvents] = useState<BroadcastEvent[]>([])
   const [editingEvent, setEditingEvent] = useState<BroadcastEvent | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -63,23 +71,8 @@ const BroadcastManagement: React.FC = () => {
   })
 
   useEffect(() => {
-    loadAllData()
-  }, [])
-
-  const loadAllData = async () => {
-    try {
-      const [matchingNightsData, matchboxesData] = await Promise.all([
-        db.matchingNights.toArray(),
-        db.matchboxes.toArray()
-      ])
-      setMatchingNights(matchingNightsData)
-      setMatchboxes(matchboxesData)
-      generateBroadcastEvents(matchingNightsData, matchboxesData)
-    } catch (error) {
-      console.error('Fehler beim Laden der Daten:', error)
-      setSnackbar({ open: true, message: 'Fehler beim Laden der Daten', severity: 'error' })
-    }
-  }
+    generateBroadcastEvents(matchingNights, matchboxes)
+  }, [matchingNights, matchboxes])
 
   const generateBroadcastEvents = (matchingNights: MatchingNight[], matchboxes: Matchbox[]) => {
     const events: BroadcastEvent[] = []
@@ -89,16 +82,19 @@ const BroadcastManagement: React.FC = () => {
       const ausstrahlungsdatum = mn.ausstrahlungsdatum || mn.date
       const ausstrahlungszeit = mn.ausstrahlungszeit || '20:15' // Standard AYTO Zeit
       
-      events.push({
-        id: `mn-${mn.id}`,
-        type: 'matching-night',
-        title: mn.name,
-        description: `Matching Night mit ${mn.pairs.length} Paaren und ${mn.totalLights || 0} Lichtern`,
-        ausstrahlungsdatum,
-        ausstrahlungszeit,
-        data: mn,
-        sortKey: createBroadcastSortKey(ausstrahlungsdatum, ausstrahlungszeit)
-      })
+      // Nur Events mit gültigen Ausstrahlungsdaten hinzufügen
+      if (ausstrahlungsdatum && ausstrahlungszeit) {
+        events.push({
+          id: `mn-${mn.id}`,
+          type: 'matching-night',
+          title: mn.name,
+          description: `Matching Night mit ${mn.pairs.length} Paaren und ${mn.totalLights || 0} Lichtern`,
+          ausstrahlungsdatum,
+          ausstrahlungszeit,
+          data: mn,
+          sortKey: new Date(`${ausstrahlungsdatum}T${ausstrahlungszeit}`).getTime()
+        })
+      }
     })
 
     // MatchBoxes zu Events konvertieren
@@ -106,37 +102,40 @@ const BroadcastManagement: React.FC = () => {
       const ausstrahlungsdatum = mb.ausstrahlungsdatum || new Date(mb.createdAt).toISOString().split('T')[0]
       const ausstrahlungszeit = mb.ausstrahlungszeit || '20:15' // Standard AYTO Zeit
       
-      let title = ''
-      let description = ''
-      
-      // MatchBox Name im Format "Teilnehmer 1 + Teilnehmer 2"
-      const matchboxName = `${mb.woman} + ${mb.man}`
-      
-      switch (mb.matchType) {
-        case 'perfect':
-          title = `Perfect Match: ${matchboxName}`
-          description = 'MatchBox bestätigt als Perfect Match'
-          break
-        case 'no-match':
-          title = `No Match: ${matchboxName}`
-          description = 'MatchBox bestätigt als No Match'
-          break
-        case 'sold':
-          title = `MatchBox Verkauf: ${matchboxName}`
-          description = `Verkauft für ${mb.price} € an ${mb.buyer}`
-          break
+      // Nur Events mit gültigen Ausstrahlungsdaten hinzufügen
+      if (ausstrahlungsdatum && ausstrahlungszeit) {
+        let title = ''
+        let description = ''
+        
+        // MatchBox Name im Format "Teilnehmer 1 + Teilnehmer 2"
+        const matchboxName = `${mb.woman} + ${mb.man}`
+        
+        switch (mb.matchType) {
+          case 'perfect':
+            title = `Perfect Match: ${matchboxName}`
+            description = 'MatchBox bestätigt als Perfect Match'
+            break
+          case 'no-match':
+            title = `No Match: ${matchboxName}`
+            description = 'MatchBox bestätigt als No Match'
+            break
+          case 'sold':
+            title = `MatchBox Verkauf: ${matchboxName}`
+            description = `Verkauft für ${mb.price} € an ${mb.buyer}`
+            break
+        }
+        
+        events.push({
+          id: `mb-${mb.id}`,
+          type: 'matchbox',
+          title,
+          description,
+          ausstrahlungsdatum,
+          ausstrahlungszeit,
+          data: mb,
+          sortKey: new Date(`${ausstrahlungsdatum}T${ausstrahlungszeit}`).getTime()
+        })
       }
-      
-      events.push({
-        id: `mb-${mb.id}`,
-        type: 'matchbox',
-        title,
-        description,
-        ausstrahlungsdatum,
-        ausstrahlungszeit,
-        data: mb,
-        sortKey: createBroadcastSortKey(ausstrahlungsdatum, ausstrahlungszeit)
-      })
     })
 
     // Chronologisch sortieren - neueste zuerst
@@ -170,7 +169,7 @@ const BroadcastManagement: React.FC = () => {
       setSnackbar({ open: true, message: 'Ausstrahlungsdaten erfolgreich aktualisiert!', severity: 'success' })
       setEditDialogOpen(false)
       setEditingEvent(null)
-      loadAllData()
+      onUpdate()
     } catch (error) {
       console.error('Fehler beim Speichern:', error)
       setSnackbar({ open: true, message: 'Fehler beim Speichern der Daten', severity: 'error' })
@@ -241,7 +240,12 @@ const BroadcastManagement: React.FC = () => {
           {Object.entries(groupedEvents)
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
             .map(([date, events]) => {
-              const { date: formattedDate } = formatBroadcastDateTime(date, '00:00')
+              const formattedDate = new Date(date).toLocaleDateString('de-DE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })
               
               return (
                 <Accordion key={date}>
@@ -258,7 +262,10 @@ const BroadcastManagement: React.FC = () => {
                   <AccordionDetails>
                     <List>
                       {events.map((event, index) => {
-                        const { time } = formatBroadcastDateTime(event.ausstrahlungsdatum, event.ausstrahlungszeit)
+                        const time = new Date(`${event.ausstrahlungsdatum}T${event.ausstrahlungszeit}`).toLocaleTimeString('de-DE', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
                         const color = getEventColor(event.type, event.data)
                         
                         return (

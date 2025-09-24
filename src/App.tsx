@@ -1,270 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useAppRouting } from '@/hooks/useAppRouting'
+import { AppInitialization } from '@/components/AppInitialization'
+import { AppLayout } from '@/components/AppLayout'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import OverviewMUI from "@/features/overview/OverviewMUI"
 import AdminPanelMUI from "@/features/admin/AdminPanelMUI"
 import ThemeProvider from "@/theme/ThemeProvider"
-import LegalFooter from "@/components/LegalFooter"
-import VersionCheckDialog from "@/components/VersionCheckDialog"
-import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from "@/lib/db"
-import { extractDateFromFilename } from "@/utils/jsonVersion"
-import { initializeVersionCheck } from "@/utils/versionCheck"
 
+/**
+ * Haupt-App-Komponente
+ * 
+ * Refactored nach Single Responsibility Principle:
+ * - Routing-Logik in useAppRouting Hook ausgelagert
+ * - Initialisierung in AppInitialization Komponente ausgelagert
+ * - Layout-Logik in AppLayout Komponente ausgelagert
+ * - Nur noch 20 Zeilen statt 270 Zeilen
+ */
 export default function App() {
-  const [route, setRoute] = useState<'root' | 'admin'>('root')
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [initError, setInitError] = useState<string | null>(null)
-  const [versionCheck, setVersionCheck] = useState<{
-    shouldShowDialog: boolean
-    lastVersion: string | null
-    currentVersion: string
-  }>({
-    shouldShowDialog: false,
-    lastVersion: null,
-    currentVersion: ''
-  })
+  const { route } = useAppRouting()
 
-  // Versions-Check beim App-Start
-  useEffect(() => {
-    const versionResult = initializeVersionCheck()
-    setVersionCheck({
-      shouldShowDialog: versionResult.shouldShowDialog,
-      lastVersion: versionResult.lastVersion,
-      currentVersion: versionResult.currentVersion
-    })
-  }, [])
-
-  // Legacy-Query-Weiterleitungen und pfadbasiertes Routing
-  useEffect(() => {
-    const url = new URL(window.location.href)
-    const pathname = url.pathname
-    const searchParams = url.searchParams
-
-    // Legacy: /?overview=1&mui=1 -> /
-    const isOverviewLegacy = searchParams.get('overview') === '1'
-    const isAdminLegacy = searchParams.get('admin') === '1'
-    const isMuiLegacy = searchParams.get('mui') === '1'
-
-    // Wenn Legacy-Parameter vorhanden sind, entsprechend umleiten
-    if (isOverviewLegacy || isMuiLegacy || isAdminLegacy) {
-      if (isAdminLegacy) {
-        window.history.replaceState({}, '', '/admin')
-        setRoute('admin')
-      } else {
-        window.history.replaceState({}, '', '/')
-        setRoute('root')
-      }
-    } else {
-      // Pfadbasiertes Routing
-      if (pathname.startsWith('/admin')) {
-        setRoute('admin')
-      } else {
-        setRoute('root')
-      }
-    }
-  }, [])
-
-  // Bootstrap: Seed-Load aus /public/json (Manifest-gesteuert) beim ersten Start
-  useEffect(() => {
-    const bootstrap = async () => {
-      try {
-        // Überspringen, wenn bereits Daten vorhanden sind
-        const [pCount, mnCount, mbCount, peCount] = await Promise.all([
-          db.participants.count(),
-          db.matchingNights.count(),
-          db.matchboxes.count(),
-          db.penalties.count()
-        ])
-        if (pCount + mnCount + mbCount + peCount > 0) {
-          setIsInitializing(false)
-          return
-        }
-
-        // Ermittele Seed-Quelle: Versuche Manifest /json/index.json, sonst Fallback auf bekannte Datei
-        const resolveSeedUrl = async (): Promise<string> => {
-          try {
-            const manifestResp = await fetch('/json/index.json', { cache: 'no-store' })
-            if (manifestResp.ok) {
-              const files = await manifestResp.json()
-              if (Array.isArray(files) && files.length > 0) {
-                const sorted = files
-                  .filter((f: unknown) => typeof f === 'string' && (f as string).endsWith('.json'))
-                  .map((f: string) => ({
-                    name: f,
-                    date: extractDateFromFilename(f) ?? new Date(0)
-                  }))
-                  .sort((a, b) => b.date.getTime() - a.date.getTime())
-                if (sorted.length > 0) return `/json/${sorted[0].name}`
-              }
-            }
-          } catch {
-            // Ignorieren und Fallback nutzen
-          }
-          // Fallback: jüngste bekannte Datei im Repo
-          return '/json/ayto-complete-export-2025-09-10.json'
-        }
-
-        const seedUrl = await resolveSeedUrl()
-        const resp = await fetch(seedUrl, { cache: 'no-store' })
-        if (!resp.ok) {
-          // Versuche Fallback auf ayto-complete-noPicture.json
-          const fallbackUrl = '/ayto-complete-noPicture.json'
-          const fallbackResp = await fetch(fallbackUrl, { cache: 'no-store' })
-          if (fallbackResp.ok) {
-            const fallbackType = fallbackResp.headers.get('content-type') || ''
-            if (fallbackType.includes('application/json')) {
-              const fallbackJson = await fallbackResp.json()
-              // Verwende Fallback-Daten
-              const json = fallbackJson as {
-                participants: Participant[]
-                matchingNights: (Omit<MatchingNight, 'createdAt'> & { createdAt: string })[]
-                matchboxes: (Omit<Matchbox, 'createdAt' | 'updatedAt' | 'soldDate'> & { createdAt: string, updatedAt: string, soldDate?: string })[]
-                penalties: (Omit<Penalty, 'createdAt'> & { createdAt: string })[]
-              }
-              // Konvertiere Datumsfelder zu Date
-              const matchingNights: MatchingNight[] = json.matchingNights.map(mn => ({
-                ...mn,
-                createdAt: new Date(mn.createdAt)
-              }))
-              const matchboxes: Matchbox[] = json.matchboxes.map(mb => ({
-                ...mb,
-                createdAt: new Date(mb.createdAt),
-                updatedAt: new Date(mb.updatedAt),
-                soldDate: mb.soldDate ? new Date(mb.soldDate) : undefined
-              }))
-              const penalties: Penalty[] = json.penalties.map(p => ({
-                ...p,
-                createdAt: new Date(p.createdAt)
-              }))
-              // Atomar neu befüllen
-              await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
-                await Promise.all([
-                  db.participants.clear(),
-                  db.matchingNights.clear(),
-                  db.matchboxes.clear(),
-                  db.penalties.clear()
-                ])
-                await Promise.all([
-                  db.participants.bulkAdd(json.participants),
-                  db.matchingNights.bulkAdd(matchingNights),
-                  db.matchboxes.bulkAdd(matchboxes),
-                  db.penalties.bulkAdd(penalties)
-                ])
-              })
-              return
-            }
-          }
-          throw new Error(`Seed-JSON nicht ladbar (${resp.status}): ${seedUrl}`)
-        }
-        const contentType = resp.headers.get('content-type') || ''
-        if (!contentType.includes('application/json')) {
-          // Wahrscheinlich HTML (z.B. 404 mit index.html)
-          const text = await resp.text()
-          throw new Error(`Unerwarteter Inhaltstyp für ${seedUrl}: ${contentType || 'unbekannt'}; Beginn: ${text.slice(0, 80)}`)
-        }
-        const json = await resp.json() as {
-          participants: Participant[]
-          matchingNights: (Omit<MatchingNight, 'createdAt'> & { createdAt: string })[]
-          matchboxes: (Omit<Matchbox, 'createdAt' | 'updatedAt' | 'soldDate'> & { createdAt: string, updatedAt: string, soldDate?: string })[]
-          penalties: (Omit<Penalty, 'createdAt'> & { createdAt: string })[]
-        }
-
-        // Konvertiere Datumsfelder zu Date
-        const matchingNights: MatchingNight[] = json.matchingNights.map(mn => ({
-          ...mn,
-          createdAt: new Date(mn.createdAt)
-        }))
-        const matchboxes: Matchbox[] = json.matchboxes.map(mb => ({
-          ...mb,
-          createdAt: new Date(mb.createdAt),
-          updatedAt: new Date(mb.updatedAt),
-          soldDate: mb.soldDate ? new Date(mb.soldDate) : undefined
-        }))
-        const penalties: Penalty[] = json.penalties.map(p => ({
-          ...p,
-          createdAt: new Date(p.createdAt)
-        }))
-
-        // Atomar neu befüllen
-        await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
-          await Promise.all([
-            db.participants.clear(),
-            db.matchingNights.clear(),
-            db.matchboxes.clear(),
-            db.penalties.clear()
-          ])
-          await Promise.all([
-            db.participants.bulkAdd(json.participants),
-            db.matchingNights.bulkAdd(matchingNights),
-            db.matchboxes.bulkAdd(matchboxes),
-            db.penalties.bulkAdd(penalties)
-          ])
-        })
-      } catch (err: any) {
-        console.error('Bootstrap-Fehler:', err)
-        setInitError(err?.message ?? 'Unbekannter Fehler beim Initialisieren')
-      } finally {
-        setIsInitializing(false)
-      }
-    }
-
-    bootstrap()
-  }, [])
-
-  // Handler für Versions-Check-Dialog
-  const handleVersionDialogClose = () => {
-    setVersionCheck(prev => ({ ...prev, shouldShowDialog: false }))
-  }
-
-  const handleCacheCleared = () => {
-    // Seite neu laden nach Cache-Clear
-    window.location.reload()
-  }
-
-  if (isInitializing) {
     return (
-      <div style={{ padding: 16 }}>
-        Initialisiere Daten ...
-      </div>
-    )
-  }
-
-  if (initError) {
-    return (
-      <div style={{ padding: 16, color: 'red' }}>
-        Fehler bei der Initialisierung: {initError}
-      </div>
-    )
-  }
-
-  if (route === 'admin') {
-    return (
+    <ErrorBoundary>
+      <AppInitialization>
+        <AppLayout>
+          {route === 'admin' ? (
       <ThemeProvider>
-        <div>
           <AdminPanelMUI />
-          <LegalFooter />
-          <VersionCheckDialog
-            isOpen={versionCheck.shouldShowDialog}
-            lastVersion={versionCheck.lastVersion}
-            currentVersion={versionCheck.currentVersion}
-            onClose={handleVersionDialogClose}
-            onCacheCleared={handleCacheCleared}
-          />
-        </div>
       </ThemeProvider>
-    )
-  }
-
-  // Root rendert OverviewMUI als Standard
-  return (
-    <div>
+          ) : (
       <OverviewMUI />
-      <LegalFooter />
-      <VersionCheckDialog
-        isOpen={versionCheck.shouldShowDialog}
-        lastVersion={versionCheck.lastVersion}
-        currentVersion={versionCheck.currentVersion}
-        onClose={handleVersionDialogClose}
-        onCacheCleared={handleCacheCleared}
-      />
-    </div>
+          )}
+        </AppLayout>
+      </AppInitialization>
+    </ErrorBoundary>
   )
 }
