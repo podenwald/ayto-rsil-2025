@@ -1,30 +1,19 @@
-# Deployment mit Datenbank-Synchronisation
+# Deployment
 
-Dieses Dokument beschreibt den neuen Deployment-Prozess, der sicherstellt, dass der aktuelle Datenbankstand beim Deployment der neuesten Version verfügbar ist.
-
-## Problem
-
-Beim normalen Deployment wird nur der Code aktualisiert, aber die JSON-Daten in `/public/json/` bleiben unverändert. Das führt dazu, dass neue Benutzer oder nach einem Cache-Clear die App mit veralteten Daten startet.
-
-## Lösung
-
-Das neue System exportiert automatisch den aktuellen Datenbankstand vor dem Deployment und stellt sicher, dass die neueste Version der Daten verfügbar ist.
+Dieses Dokument beschreibt den Deployment-Prozess der Anwendung.
 
 ## Deployment-Prozess
 
-### Automatisches Deployment
+### Standard Deployment
 
 ```bash
 npm run deploy
 ```
 
-Dieses Kommando führt folgende Schritte aus:
+Dieses Kommando führt einen normalen Build durch:
 
-1. **Datenbank-Export**: Exportiert den aktuellen Datenbankstand
-2. **Index-Update**: Aktualisiert `public/json/index.json` mit der neuesten Datei
-3. **Version-Generierung**: Erstellt Versions-Informationen
-4. **Build**: Führt den normalen Build-Prozess durch
-5. **Deployment-Vorbereitung**: Bereitet alles für das Deployment vor
+1. **Build**: Führt den Build-Prozess durch
+2. **Deployment**: Bereitet alles für das Deployment vor
 
 ### Manueller Export
 
@@ -62,25 +51,21 @@ Beim App-Start:
 3. Die neueste Datei wird basierend auf dem Dateinamen (Datum) ermittelt
 4. Die Daten werden in die IndexedDB importiert
 
-## Skripte
+## Verfügbare Skripte
 
 ### `scripts/export-current-db.js`
 - Exportiert den aktuellen Datenbankstand
 - Erstellt eine neue JSON-Datei mit aktuellem Datum
 - Aktualisiert `index.json`
 
-### `scripts/deploy-with-db-sync.js`
-- Führt den kompletten Deployment-Prozess durch
-- Kombiniert DB-Export, Version-Generierung und Build
 
 ### `scripts/generate-version.cjs`
 - Generiert Versions-Informationen
-- Führt automatisch den DB-Export vor dem Build durch
 
 ## Best Practices
 
 1. **Vor jedem Deployment**: Führe `npm run deploy` aus
-2. **Nach Datenänderungen**: Exportiere die Daten über das Admin-Panel
+2. **Nach Datenänderungen**: Exportiere die Daten über das Admin-Panel oder `npm run export-db`
 3. **Backup**: Behalte alte JSON-Dateien als Backup
 4. **Testing**: Teste die App nach dem Deployment mit einem leeren Cache
 
