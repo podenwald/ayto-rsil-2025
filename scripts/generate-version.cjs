@@ -4,6 +4,45 @@ const { execSync } = require('child_process');
 const { writeFileSync } = require('fs');
 const { resolve } = require('path');
 
+function run(cmd) {
+  return execSync(cmd, { encoding: 'utf8' }).trim();
+}
+
+function ensureGitTagsAvailable() {
+  try {
+    // In CI (Netlify, Vercel, GitHub) werden Repos oft shallow ohne Tags ausgecheckt
+    const isRepo = (() => {
+      try { run('git rev-parse --is-inside-work-tree'); return true } catch { return false }
+    })();
+    if (!isRepo) {
+      console.warn('⚠️  Kein Git-Repository erkannt – überspringe Tag-Ermittlung.');
+      return;
+    }
+
+    let isShallow = false;
+    try {
+      isShallow = run('git rev-parse --is-shallow-repository') === 'true';
+    } catch {
+      // Fallback: Prüfen, ob .git/shallow existiert
+      try { run('test -f .git/shallow && echo true || echo false'); } catch {}
+    }
+
+    try {
+      // Stets Tags holen; bei shallow zuvor unshallow
+      if (isShallow) {
+        console.log('🔧 Unshallow Repository und lade Tags...');
+        try { execSync('git fetch --unshallow --tags --prune --force', { stdio: 'inherit' }); } catch {}
+      }
+      console.log('🔧 Synchronisiere Tags vom Remote...');
+      execSync('git fetch --tags --prune --force', { stdio: 'inherit' });
+    } catch (e) {
+      console.warn('⚠️  Konnte Tags nicht synchronisieren:', e.message);
+    }
+  } catch (e) {
+    console.warn('⚠️  Fehler bei Git-Setup-Erkennung:', e.message);
+  }
+}
+
 try {
   // Zuerst DB-Export für Deployment durchführen (immer ausführen)
   console.log('🔄 Führe Datenbank-Export für Deployment durch...');
@@ -12,15 +51,18 @@ try {
   } catch (exportError) {
     console.warn('⚠️ DB-Export fehlgeschlagen, fahre mit Build fort:', exportError.message);
   }
+  
+  // Sicherstellen, dass Git-Tags verfügbar sind (wichtig für Netlify/CI)
+  ensureGitTagsAvailable();
   // Get current git tag
   let gitTag = null;
   try {
     // First try to get exact tag match
-    gitTag = execSync('git describe --tags --exact-match HEAD', { encoding: 'utf8' }).trim();
+    gitTag = run('git describe --tags --exact-match HEAD');
   } catch {
     // No exact tag match, try to get the latest tag
     try {
-      const describe = execSync('git describe --tags', { encoding: 'utf8' }).trim();
+      const describe = run('git describe --tags');
       // Extract tag from describe output (e.g., "v1.0.0-5-g1234567" -> "v1.0.0")
       const match = describe.match(/^([^-]+)/);
       if (match) {
@@ -29,7 +71,7 @@ try {
     } catch {
       // No tags available, try to get all tags and find the latest
       try {
-        const allTags = execSync('git tag --sort=-version:refname', { encoding: 'utf8' }).trim();
+        const allTags = run('git tag --sort=-version:refname');
         if (allTags) {
           const tags = allTags.split('\n').filter(tag => tag.trim());
           if (tags.length > 0) {
@@ -44,7 +86,7 @@ try {
   }
 
   // Get current commit hash
-  const gitCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+  const gitCommit = run('git rev-parse HEAD');
   
   // Get build date
   const buildDate = new Date().toISOString();
