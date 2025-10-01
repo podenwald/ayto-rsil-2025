@@ -331,7 +331,11 @@ const ParticipantsList: React.FC<{
                         height: 12,
                         borderRadius: '50%',
                         border: '2px solid white',
-                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899',
+                        // Zusätzliche Sicherheit für pinke Farbe bei Perfekt Matches
+                        ...(participant.active === false && {
+                          backgroundColor: '#EC4899 !important'
+                        })
                       }
                     }}
                   />
@@ -525,7 +529,11 @@ const ParticipantsList: React.FC<{
                         height: 12,
                         borderRadius: '50%',
                         border: '2px solid white',
-                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
+                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899',
+                        // Zusätzliche Sicherheit für pinke Farbe bei Perfekt Matches
+                        ...(participant.active === false && {
+                          backgroundColor: '#EC4899 !important'
+                        })
                       }
                     }}
                   />
