@@ -239,11 +239,12 @@ const ParticipantForm: React.FC<{
 // ** Participants List Component
 const ParticipantsList: React.FC<{
   participants: Participant[]
+  matchboxes: Matchbox[]
   onEdit: (participant: Participant) => void
   onDelete: (id: number) => void
   limit: number
   onLoadMore: () => void
-}> = ({ participants, onEdit, onDelete, limit, onLoadMore }) => {
+}> = ({ participants, matchboxes, onEdit, onDelete, limit, onLoadMore }) => {
   return (
     <Card>
       <CardHeader 
@@ -317,7 +318,7 @@ const ParticipantsList: React.FC<{
                   />
                   
                   {/* Active status indicator */}
-                    <Badge
+              <Badge
                       badgeContent=""
                       color="default"
                       variant="dot"
@@ -331,7 +332,7 @@ const ParticipantsList: React.FC<{
                         height: 12,
                         borderRadius: '50%',
                         border: '2px solid white',
-                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
+                  backgroundColor: (matchboxes.some(mb => mb.matchType === 'perfect' && (mb.woman === participant.name || mb.man === participant.name))) ? '#EC4899' : (participant.active !== false ? 'success.main' : 'grey.400')
                       }
                     }}
                   />
@@ -525,7 +526,7 @@ const ParticipantsList: React.FC<{
                         height: 12,
                         borderRadius: '50%',
                         border: '2px solid white',
-                        backgroundColor: participant.active !== false ? 'success.main' : '#EC4899'
+                      backgroundColor: (matchboxes.some(mb => mb.matchType === 'perfect' && (mb.woman === participant.name || mb.man === participant.name))) ? '#EC4899' : (participant.active !== false ? 'success.main' : 'grey.400')
                       }
                     }}
                   />
@@ -3104,6 +3105,7 @@ const AdminPanelMUI: React.FC = () => {
             <Box sx={{ p: 3 }}>
               <ParticipantsList
                 participants={participants}
+                matchboxes={matchboxes}
                 onEdit={handleEditParticipant}
                 onDelete={handleDeleteParticipant}
                 limit={limit}
