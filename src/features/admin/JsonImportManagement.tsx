@@ -159,7 +159,7 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
             />
             <Chip 
               icon={<CheckCircleIcon />} 
-              label={`${dataCounts.matchboxes} MatchBoxes`} 
+              label={`${dataCounts.matchboxes} Match Boxes`} 
               color="secondary" 
             />
             <Chip 
