@@ -8,8 +8,8 @@
  * - Service Worker Integration
  */
 
-import { DatabaseUtils, db } from '@/lib/db'
-import type { DatabaseImport } from '@/types'
+import { DatabaseUtils, db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
+import type { DatabaseImport, ParticipantDTO, MatchingNightDTO, MatchboxDTO, PenaltyDTO } from '@/types'
 
 // Manifest-Interface
 export interface DatabaseManifest {
@@ -165,7 +165,7 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
     console.log(`📥 Neue Daten geladen (Version ${manifest.dbVersion})`)
     
     // 2. Atomares Update: Neue Daten zuerst in temporäre Struktur
-    await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, db.meta, async () => {
+    await db.transaction('rw', [db.participants, db.matchingNights, db.matchboxes, db.penalties, db.meta], async () => {
       // Alle bestehenden Daten löschen
       await Promise.all([
         db.participants.clear(),
@@ -174,12 +174,70 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
         db.penalties.clear()
       ])
       
+      // DTO -> Domain Mapping mit Typ-Konvertierungen
+      const mapParticipant = (p: ParticipantDTO): Participant => ({
+        id: p.id,
+        name: p.name,
+        knownFrom: p.knownFrom,
+        age: p.age,
+        status: p.status === 'Aktiv' || p.status === 'Inaktiv' ? p.status : undefined,
+        active: p.active,
+        photoUrl: p.photoUrl,
+        bio: p.bio,
+        gender: p.gender,
+        photoBlob: p.photoBlob,
+        socialMediaAccount: p.socialMediaAccount,
+        freeProfilePhotoUrl: p.freeProfilePhotoUrl,
+        freeProfilePhotoAttribution: p.freeProfilePhotoAttribution,
+        freeProfilePhotoLicense: p.freeProfilePhotoLicense
+      })
+
+      const mapMatchingNight = (m: MatchingNightDTO): MatchingNight => ({
+        id: m.id,
+        name: m.name,
+        date: m.date,
+        pairs: m.pairs,
+        totalLights: m.totalLights,
+        createdAt: new Date(m.createdAt),
+        ausstrahlungsdatum: m.ausstrahlungsdatum,
+        ausstrahlungszeit: m.ausstrahlungszeit
+      })
+
+      const mapMatchbox = (m: MatchboxDTO): Matchbox => ({
+        id: m.id,
+        woman: m.woman,
+        man: m.man,
+        matchType: m.matchType,
+        price: m.price,
+        buyer: m.buyer,
+        soldDate: m.soldDate ? new Date(m.soldDate) : undefined,
+        createdAt: new Date(m.createdAt),
+        updatedAt: new Date(m.updatedAt),
+        ausstrahlungsdatum: m.ausstrahlungsdatum,
+        ausstrahlungszeit: m.ausstrahlungszeit
+      })
+
+      const mapPenalty = (p: PenaltyDTO): Penalty => ({
+        id: p.id,
+        participantName: p.participantName,
+        reason: p.reason,
+        amount: p.amount,
+        date: p.date,
+        description: p.description,
+        createdAt: new Date(p.createdAt)
+      })
+
+      const participantsMapped = newData.participants.map(mapParticipant)
+      const matchingNightsMapped = newData.matchingNights.map(mapMatchingNight)
+      const matchboxesMapped = newData.matchboxes.map(mapMatchbox)
+      const penaltiesMapped = newData.penalties.map(mapPenalty)
+
       // Neue Daten einfügen (upsert)
       await Promise.all([
-        db.participants.bulkPut(newData.participants),
-        db.matchingNights.bulkPut(newData.matchingNights),
-        db.matchboxes.bulkPut(newData.matchboxes),
-        db.penalties.bulkPut(newData.penalties)
+        db.participants.bulkPut(participantsMapped),
+        db.matchingNights.bulkPut(matchingNightsMapped),
+        db.matchboxes.bulkPut(matchboxesMapped),
+        db.penalties.bulkPut(penaltiesMapped)
       ])
       
       // Meta-Daten aktualisieren
