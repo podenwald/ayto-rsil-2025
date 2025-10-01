@@ -38,6 +38,16 @@ export function useAppInitialization(): UseAppInitializationResult {
       try {
         console.log('🚀 Starte App-Initialisierung...')
         
+        // Debugging: Umgebungsinformationen
+        if (typeof window !== 'undefined') {
+          console.log('🌐 Browser-Umgebung:', {
+            url: window.location.href,
+            origin: window.location.origin,
+            userAgent: navigator.userAgent,
+            online: navigator.onLine
+          })
+        }
+        
         // Überspringen, wenn bereits Daten vorhanden sind
         if (!(await DatabaseUtils.isEmpty())) {
           console.log('✅ Datenbank bereits initialisiert, überspringe Seed-Loading')
@@ -50,6 +60,9 @@ export function useAppInitialization(): UseAppInitializationResult {
         
         // Deaktiviere Service Worker temporär, falls er Probleme verursacht
         await disableServiceWorkerIfNeeded()
+
+        // Teste Erreichbarkeit der JSON-Dateien
+        await testJsonAvailability()
 
         console.log('📥 Datenbank ist leer, lade Seed-Daten...')
         
@@ -102,6 +115,44 @@ async function clearJsonCache(): Promise<void> {
 }
 
 /**
+ * Testet die Erreichbarkeit der JSON-Dateien
+ */
+async function testJsonAvailability(): Promise<void> {
+  const testFiles = [
+    'ayto-complete-export-2025-10-01.json',
+    'ayto-vip-2025.json',
+    'ayto-vip-2024.json',
+    'ayto-complete-noPicture.json',
+    'index.json'
+  ]
+  
+  const possiblePaths = [
+    '/json/',
+    '/',
+    './json/',
+    './'
+  ]
+  
+  console.log('🔍 Teste Erreichbarkeit der JSON-Dateien...')
+  
+  for (const fileName of testFiles) {
+    console.log(`📁 Teste ${fileName}:`)
+    for (const path of possiblePaths) {
+      const url = `${path}${fileName}`
+      try {
+        const response = await fetch(url, { 
+          method: 'HEAD',
+          cache: 'no-store'
+        })
+        console.log(`  ${url}: ${response.status} ${response.statusText}`)
+      } catch (error) {
+        console.warn(`  ${url}: Fehler - ${error instanceof Error ? error.message : 'Unbekannt'}`)
+      }
+    }
+  }
+}
+
+/**
  * Deaktiviert den Service Worker temporär, falls er Probleme verursacht
  */
 async function disableServiceWorkerIfNeeded(): Promise<void> {
@@ -135,10 +186,18 @@ async function loadSeedDataWithRetry(maxRetries: number = 3): Promise<{
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`🔄 Versuch ${attempt}/${maxRetries}: Lade Seed-Daten...`)
+      
+      // Debugging: Prüfe ob wir im Browser sind
+      if (typeof window !== 'undefined') {
+        console.log(`🌐 Browser-Umgebung erkannt, aktuelle URL: ${window.location.href}`)
+        console.log(`🌐 Base URL: ${window.location.origin}`)
+      }
+      
       return await loadSeedData()
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Unbekannter Fehler')
-      console.warn(`⚠️ Versuch ${attempt}/${maxRetries} fehlgeschlagen:`, lastError.message)
+      console.error(`❌ Versuch ${attempt}/${maxRetries} fehlgeschlagen:`, lastError.message)
+      console.error(`❌ Vollständiger Fehler:`, error)
       
       if (attempt < maxRetries) {
         const delay = Math.pow(2, attempt) * 1000 // Exponential backoff
@@ -147,6 +206,17 @@ async function loadSeedDataWithRetry(maxRetries: number = 3): Promise<{
       }
     }
   }
+  
+  // Detaillierte Fehlerinformationen für Debugging
+  const errorDetails = {
+    message: lastError?.message || 'Unbekannter Fehler',
+    stack: lastError?.stack,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unbekannt',
+    url: typeof window !== 'undefined' ? window.location.href : 'Unbekannt',
+    timestamp: new Date().toISOString()
+  }
+  
+  console.error('❌ Detaillierte Fehlerinformationen:', errorDetails)
   
   throw new Error(`Seed-Daten konnten nach ${maxRetries} Versuchen nicht geladen werden. Letzter Fehler: ${lastError?.message}`)
 }
@@ -160,29 +230,63 @@ async function loadSeedData(): Promise<{
   matchboxes: Matchbox[]
   penalties: Penalty[]
 }> {
-  // Ermittele Seed-Quelle: Versuche Manifest /json/index.json, sonst Fallback
-  const seedUrl = await resolveSeedUrl()
-  console.log(`🔄 Lade Seed-Daten von: ${seedUrl}`)
+  // Liste der möglichen Seed-Dateien in Prioritätsreihenfolge
+  const seedFiles = [
+    'ayto-complete-export-2025-10-01.json',
+    'ayto-vip-2025.json',
+    'ayto-vip-2024.json',
+    'ayto-complete-noPicture.json'
+  ]
   
-  const response = await fetch(seedUrl, { 
-    cache: 'no-store',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+  // Zusätzliche Pfade für verschiedene Deployment-Szenarien
+  const possiblePaths = [
+    '/json/',  // Standard-Pfad
+    '/',       // Root-Pfad (falls JSON-Dateien im Root sind)
+    './json/', // Relativer Pfad
+    './'       // Relativer Root-Pfad
+  ]
+  
+  let lastError: Error | null = null
+  
+  // Versuche jede Datei mit verschiedenen Pfaden
+  for (const fileName of seedFiles) {
+    for (const path of possiblePaths) {
+      const url = `${path}${fileName}`
+      try {
+        console.log(`🔄 Versuche Seed-Datei: ${url}`)
+        
+        const response = await fetch(url, { 
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
+        
+        if (response.ok) {
+          console.log(`✅ Seed-Daten erfolgreich geladen von: ${url}`)
+          return await parseSeedData(response)
+        } else {
+          console.warn(`⚠️ Datei nicht erreichbar (${response.status}): ${url}`)
+          lastError = new Error(`HTTP ${response.status}: ${url}`)
+        }
+      } catch (error) {
+        console.warn(`⚠️ Fehler beim Laden von ${url}:`, error)
+        lastError = error instanceof Error ? error : new Error(`Unbekannter Fehler: ${url}`)
+      }
     }
-  })
+  }
   
-  if (!response.ok) {
-    console.warn(`⚠️ Erste Seed-Quelle fehlgeschlagen (${response.status}): ${seedUrl}`)
+  // Wenn alle Dateien fehlschlagen, versuche das Manifest
+  try {
+    console.log(`🔄 Versuche Manifest-basierte Seed-Auflösung...`)
+    const seedUrl = await resolveSeedUrl()
+    console.log(`🔄 Lade Seed-Daten von: ${seedUrl}`)
     
-    // Versuche Fallback auf ayto-vip-2025.json
-    const fallbackUrl = '/json/ayto-vip-2025.json'
-    console.log(`🔄 Versuche Fallback: ${fallbackUrl}`)
-    
-    const fallbackResponse = await fetch(fallbackUrl, { 
+    const response = await fetch(seedUrl, { 
       cache: 'no-store',
       headers: {
         'Accept': 'application/json',
@@ -193,17 +297,58 @@ async function loadSeedData(): Promise<{
       }
     })
     
-    if (fallbackResponse.ok) {
-      console.log(`✅ Fallback erfolgreich: ${fallbackUrl}`)
-      return await parseSeedData(fallbackResponse)
+    if (response.ok) {
+      console.log(`✅ Seed-Daten erfolgreich geladen von: ${seedUrl}`)
+      return await parseSeedData(response)
+    } else {
+      console.warn(`⚠️ Manifest-basierte Auflösung fehlgeschlagen (${response.status}): ${seedUrl}`)
+      lastError = new Error(`HTTP ${response.status}: ${seedUrl}`)
     }
-    
-    console.error(`❌ Auch Fallback fehlgeschlagen (${fallbackResponse.status}): ${fallbackUrl}`)
-    throw new Error(`Seed-JSON nicht ladbar (${response.status}): ${seedUrl} und Fallback (${fallbackResponse.status}): ${fallbackUrl}`)
+  } catch (error) {
+    console.warn(`⚠️ Fehler bei Manifest-basierter Auflösung:`, error)
+    lastError = error instanceof Error ? error : new Error('Manifest-Auflösung fehlgeschlagen')
   }
-
-  console.log(`✅ Seed-Daten erfolgreich geladen von: ${seedUrl}`)
-  return await parseSeedData(response)
+  
+  // Letzter Versuch: Verwende die neueste verfügbare Datei direkt
+  console.log(`🔄 Letzter Versuch: Verwende neueste verfügbare Datei direkt...`)
+  const latestFile = 'ayto-complete-export-2025-10-01.json' // Neueste Datei basierend auf dem Dateinamen
+  const latestUrl = `/json/${latestFile}`
+  
+  try {
+    console.log(`🔄 Versuche neueste Datei: ${latestUrl}`)
+    const response = await fetch(latestUrl, { 
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
+    
+    if (response.ok) {
+      console.log(`✅ Neueste Datei erfolgreich geladen: ${latestUrl}`)
+      return await parseSeedData(response)
+    } else {
+      console.error(`❌ Auch neueste Datei fehlgeschlagen (${response.status}): ${latestUrl}`)
+      lastError = new Error(`HTTP ${response.status}: ${latestUrl}`)
+    }
+  } catch (error) {
+    console.error(`❌ Fehler beim Laden der neuesten Datei:`, error)
+    lastError = error instanceof Error ? error : new Error(`Neueste Datei fehlgeschlagen: ${latestUrl}`)
+  }
+  
+  // Notfall-Strategie: Verwende leere Daten als Fallback
+  console.warn('⚠️ Alle Seed-Dateien konnten nicht geladen werden. Verwende leere Daten als Fallback.')
+  console.warn('⚠️ Letzter Fehler:', lastError?.message)
+  
+  return {
+    participants: [],
+    matchingNights: [],
+    matchboxes: [],
+    penalties: []
+  }
 }
 
 /**

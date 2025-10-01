@@ -126,6 +126,9 @@ export default function VersionCheckDialog({
               <div style={{ marginBottom: 8 }}>
                 <strong>Aktuelle Version:</strong> {currentVersion}
               </div>
+              <div style={{ marginBottom: 8 }}>
+                <strong>Veröffentlicht:</strong> {new Date().toLocaleDateString('de-DE')}
+              </div>
             </div>
           </div>
 

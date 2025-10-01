@@ -116,5 +116,13 @@ export function initializeVersionCheck(): VersionCheckResult {
     saveCurrentVersion()
   }
   
+  // Debugging: Zeige Versionsinformationen
+  console.log('🔍 Versions-Check:', {
+    lastVersion: result.lastVersion,
+    currentVersion: result.currentVersion,
+    isNewVersion: result.isNewVersion,
+    shouldShowDialog: result.shouldShowDialog
+  })
+  
   return result
 }
