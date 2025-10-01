@@ -57,7 +57,7 @@ export function ImportExport(){
       
       await db.transaction('rw', db.participants, async () => {
         await db.participants.clear();
-        await db.participants.bulkAdd(normalizedParticipants);
+        await db.participants.bulkPut(normalizedParticipants);
       });
       
       // Nach Erfolg: Dateiname speichern

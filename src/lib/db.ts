@@ -7,6 +7,13 @@ import type {
   DatabaseCounts 
 } from '@/types'
 
+// Meta Store Interface für Datenbank-Versionierung
+export interface DatabaseMeta {
+  key: string
+  value: string | number
+  updatedAt: Date
+}
+
 // Re-export types for backward compatibility
 export type { 
   Participant, 
@@ -21,6 +28,7 @@ export class AytoDB extends Dexie {
   matchingNights!: Table<MatchingNight, number>
   matchboxes!: Table<Matchbox, number>
   penalties!: Table<Penalty, number>
+  meta!: Table<DatabaseMeta, string>
 
   constructor() {
     super('aytoDB')
@@ -91,6 +99,13 @@ export class AytoDB extends Dexie {
         })
       ])
     })
+    this.version(10).stores({
+      participants: '++id, name, gender, status, active, socialMediaAccount, freeProfilePhotoUrl',
+      matchingNights: '++id, name, date, pairs, totalLights, createdAt, ausstrahlungsdatum, ausstrahlungszeit',
+      matchboxes: '++id, woman, man, matchType, price, buyer, soldDate, createdAt, updatedAt, ausstrahlungsdatum, ausstrahlungszeit',
+      penalties: '++id, participantName, reason, amount, date, createdAt',
+      meta: 'key, value, updatedAt'
+    })
   }
 }
 
@@ -152,10 +167,10 @@ export class DatabaseUtils {
   }): Promise<void> {
     await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
       await Promise.all([
-        db.participants.bulkAdd(data.participants),
-        db.matchingNights.bulkAdd(data.matchingNights),
-        db.matchboxes.bulkAdd(data.matchboxes),
-        db.penalties.bulkAdd(data.penalties)
+        db.participants.bulkPut(data.participants),
+        db.matchingNights.bulkPut(data.matchingNights),
+        db.matchboxes.bulkPut(data.matchboxes),
+        db.penalties.bulkPut(data.penalties)
       ])
     })
   }
@@ -182,6 +197,40 @@ export class DatabaseUtils {
       matchboxes,
       penalties
     }
+  }
+
+  /**
+   * Meta-Daten-Funktionen für Datenbank-Versionierung
+   */
+  static async getMetaValue(key: string): Promise<string | number | null> {
+    const meta = await db.meta.get(key)
+    return meta?.value ?? null
+  }
+
+  static async setMetaValue(key: string, value: string | number): Promise<void> {
+    await db.meta.put({
+      key,
+      value,
+      updatedAt: new Date()
+    })
+  }
+
+  static async getDbVersion(): Promise<number> {
+    const version = await this.getMetaValue('dbVersion')
+    return typeof version === 'number' ? version : 0
+  }
+
+  static async setDbVersion(version: number): Promise<void> {
+    await this.setMetaValue('dbVersion', version)
+  }
+
+  static async getLastUpdateDate(): Promise<string | null> {
+    const date = await this.getMetaValue('lastUpdateDate')
+    return typeof date === 'string' ? date : null
+  }
+
+  static async setLastUpdateDate(date: string): Promise<void> {
+    await this.setMetaValue('lastUpdateDate', date)
   }
 }
 
