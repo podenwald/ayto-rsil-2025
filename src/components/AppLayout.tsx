@@ -6,7 +6,9 @@
  */
 
 import { useVersionCheck } from '@/hooks/useVersionCheck'
+import { useDatabaseUpdate } from '@/hooks/useDatabaseUpdate'
 import VersionCheckDialog from '@/components/VersionCheckDialog'
+import DatabaseUpdateBanner from '@/components/DatabaseUpdateBanner'
 import LegalFooter from '@/components/LegalFooter'
 
 interface AppLayoutProps {
@@ -23,11 +25,28 @@ interface AppLayoutProps {
  */
 export function AppLayout({ children }: AppLayoutProps) {
   const { versionCheck, handleVersionDialogClose, handleCacheCleared } = useVersionCheck()
+  const { updateState, performUpdate, dismissUpdate } = useDatabaseUpdate()
 
   return (
     <>
-      {children}
+      {/* Datenbank-Update-Banner */}
+      <DatabaseUpdateBanner
+        updateState={updateState}
+        onUpdate={performUpdate}
+        onDismiss={dismissUpdate}
+      />
+      
+      {/* Hauptinhalt mit Top-Padding wenn Banner angezeigt wird */}
+      <div style={{ 
+        paddingTop: updateState.isUpdateAvailable ? '60px' : '0',
+        transition: 'padding-top 0.3s ease'
+      }}>
+        {children}
+      </div>
+      
       <LegalFooter />
+      
+      {/* App-Versions-Check-Dialog */}
       <VersionCheckDialog
         isOpen={versionCheck.shouldShowDialog}
         lastVersion={versionCheck.lastVersion}

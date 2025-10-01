@@ -1,0 +1,262 @@
+/**
+ * Service für benutzer-gesteuerte Datenbank-Updates
+ * 
+ * Implementiert das PWA + IndexedDB Update-System mit:
+ * - Versions-Check über manifest.json
+ * - Benutzer-gesteuerte Updates
+ * - Atomic Updates für Konsistenz
+ * - Service Worker Integration
+ */
+
+import { DatabaseUtils, db } from '@/lib/db'
+import type { DatabaseImport } from '@/types'
+
+// Manifest-Interface
+export interface DatabaseManifest {
+  dbVersion: number
+  released: string
+  description?: string
+}
+
+// Update-State-Interface
+export interface DatabaseUpdateState {
+  isUpdateAvailable: boolean
+  currentVersion: number
+  latestVersion: number
+  releasedDate: string
+  isUpdating: boolean
+  updateError: string | null
+}
+
+// Update-Result-Interface
+export interface DatabaseUpdateResult {
+  success: boolean
+  newVersion: number
+  releasedDate: string
+  error?: string
+}
+
+/**
+ * Lädt das aktuelle Manifest von der Server
+ */
+export async function fetchDatabaseManifest(): Promise<DatabaseManifest> {
+  try {
+    const response = await fetch('/manifest.json', {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+    
+    const manifest: DatabaseManifest = await response.json()
+    
+    // Validierung
+    if (typeof manifest.dbVersion !== 'number' || !manifest.released) {
+      throw new Error('Ungültiges Manifest-Format')
+    }
+    
+    return manifest
+  } catch (error) {
+    console.error('Fehler beim Laden des Manifests:', error)
+    throw new Error(`Manifest konnte nicht geladen werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
+  }
+}
+
+/**
+ * Prüft, ob ein Datenbank-Update verfügbar ist
+ */
+export async function checkForDatabaseUpdate(): Promise<DatabaseUpdateState> {
+  try {
+    const [manifest, currentVersion] = await Promise.all([
+      fetchDatabaseManifest(),
+      DatabaseUtils.getDbVersion()
+    ])
+    
+    const isUpdateAvailable = manifest.dbVersion > currentVersion
+    
+    return {
+      isUpdateAvailable,
+      currentVersion,
+      latestVersion: manifest.dbVersion,
+      releasedDate: manifest.released,
+      isUpdating: false,
+      updateError: null
+    }
+  } catch (error) {
+    console.error('Fehler beim Versions-Check:', error)
+    return {
+      isUpdateAvailable: false,
+      currentVersion: 0,
+      latestVersion: 0,
+      releasedDate: '',
+      isUpdating: false,
+      updateError: error instanceof Error ? error.message : 'Unbekannter Fehler'
+    }
+  }
+}
+
+/**
+ * Lädt die aktuellen Daten vom Server
+ */
+export async function fetchLatestDatabaseData(): Promise<DatabaseImport> {
+  try {
+    // Versuche verschiedene Datenquellen
+    const dataSources = [
+      '/json/ayto-complete-export-2025-01-15.json',
+      '/json/ayto-complete-export-2025-09-17.json', 
+      '/json/ayto-complete-export-2025-09-24.json',
+      '/ayto-complete-noPicture.json'
+    ]
+    
+    let lastError: Error | null = null
+    
+    for (const source of dataSources) {
+      try {
+        const response = await fetch(source, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
+        
+        if (response.ok) {
+          const data: DatabaseImport = await response.json()
+          
+          // Validierung der Datenstruktur
+          if (data.participants && Array.isArray(data.participants)) {
+            console.log(`✅ Daten erfolgreich von ${source} geladen`)
+            return data
+          }
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unbekannter Fehler')
+        console.warn(`⚠️ Fehler beim Laden von ${source}:`, error)
+      }
+    }
+    
+    throw lastError || new Error('Keine gültigen Datenquellen gefunden')
+  } catch (error) {
+    console.error('Fehler beim Laden der Datenbank-Daten:', error)
+    throw new Error(`Daten konnten nicht geladen werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
+  }
+}
+
+/**
+ * Führt ein atomares Update der Datenbank durch
+ */
+export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
+  try {
+    console.log('🔄 Starte Datenbank-Update...')
+    
+    // 1. Manifest und neue Daten laden
+    const [manifest, newData] = await Promise.all([
+      fetchDatabaseManifest(),
+      fetchLatestDatabaseData()
+    ])
+    
+    console.log(`📥 Neue Daten geladen (Version ${manifest.dbVersion})`)
+    
+    // 2. Atomares Update: Neue Daten zuerst in temporäre Struktur
+    await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, db.meta, async () => {
+      // Alle bestehenden Daten löschen
+      await Promise.all([
+        db.participants.clear(),
+        db.matchingNights.clear(),
+        db.matchboxes.clear(),
+        db.penalties.clear()
+      ])
+      
+      // Neue Daten einfügen (upsert)
+      await Promise.all([
+        db.participants.bulkPut(newData.participants),
+        db.matchingNights.bulkPut(newData.matchingNights),
+        db.matchboxes.bulkPut(newData.matchboxes),
+        db.penalties.bulkPut(newData.penalties)
+      ])
+      
+      // Meta-Daten aktualisieren
+      await Promise.all([
+        DatabaseUtils.setDbVersion(manifest.dbVersion),
+        DatabaseUtils.setLastUpdateDate(manifest.released)
+      ])
+    })
+    
+    console.log(`✅ Datenbank erfolgreich auf Version ${manifest.dbVersion} aktualisiert`)
+    
+    return {
+      success: true,
+      newVersion: manifest.dbVersion,
+      releasedDate: manifest.released
+    }
+  } catch (error) {
+    console.error('❌ Fehler beim Datenbank-Update:', error)
+    return {
+      success: false,
+      newVersion: 0,
+      releasedDate: '',
+      error: error instanceof Error ? error.message : 'Unbekannter Fehler'
+    }
+  }
+}
+
+/**
+ * Service Worker Integration: Lädt Daten im Hintergrund vor
+ */
+export async function preloadDatabaseData(): Promise<void> {
+  try {
+    if ('serviceWorker' in navigator && 'caches' in window) {
+      const cache = await caches.open('ayto-db-cache')
+      
+      // Manifest cachen
+      await cache.add('/manifest.json')
+      
+      // Datenquellen cachen
+      const dataSources = [
+        '/json/ayto-complete-export-2025-01-15.json',
+        '/json/ayto-complete-export-2025-09-17.json',
+        '/json/ayto-complete-export-2025-09-24.json',
+        '/ayto-complete-noPicture.json'
+      ]
+      
+      for (const source of dataSources) {
+        try {
+          await cache.add(source)
+        } catch (error) {
+          console.warn(`⚠️ Konnte ${source} nicht cachen:`, error)
+        }
+      }
+      
+      console.log('✅ Datenbank-Daten im Hintergrund geladen')
+    }
+  } catch (error) {
+    console.warn('⚠️ Fehler beim Vorladen der Daten:', error)
+  }
+}
+
+/**
+ * Initialisiert den Datenbank-Update-Service
+ */
+export async function initializeDatabaseUpdateService(): Promise<void> {
+  try {
+    // Service Worker für Hintergrund-Downloads registrieren
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      console.log('✅ Service Worker registriert:', registration)
+    }
+    
+    // Daten im Hintergrund vorladen
+    await preloadDatabaseData()
+    
+    console.log('✅ Datenbank-Update-Service initialisiert')
+  } catch (error) {
+    console.warn('⚠️ Fehler bei der Initialisierung des Update-Services:', error)
+  }
+}

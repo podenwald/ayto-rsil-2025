@@ -36,19 +36,19 @@ export async function importJsonDataForVersion(fileName: string, version: string
     // Importiere neue Daten
     await db.transaction('rw', [db.participants, db.matchboxes, db.matchingNights, db.penalties], async () => {
       if (jsonData.participants && jsonData.participants.length > 0) {
-        await db.participants.bulkAdd(jsonData.participants)
+        await db.participants.bulkPut(jsonData.participants)
       }
       
       if (jsonData.matchboxes && jsonData.matchboxes.length > 0) {
-        await db.matchboxes.bulkAdd(jsonData.matchboxes)
+        await db.matchboxes.bulkPut(jsonData.matchboxes)
       }
       
       if (jsonData.matchingNights && jsonData.matchingNights.length > 0) {
-        await db.matchingNights.bulkAdd(jsonData.matchingNights)
+        await db.matchingNights.bulkPut(jsonData.matchingNights)
       }
       
       if (jsonData.penalties && jsonData.penalties.length > 0) {
-        await db.penalties.bulkAdd(jsonData.penalties)
+        await db.penalties.bulkPut(jsonData.penalties)
       }
     })
     

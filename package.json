@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-version.cjs",
     "build": "tsc -b tsconfig.node.json tsconfig.app.json && vite build",
-    "deploy": "node scripts/deploy-with-db-sync.cjs",
+    "deploy": "npm run build",
     "export-db": "node scripts/export-current-db.cjs",
+    "update-manifest": "node scripts/update-manifest.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
