@@ -174,12 +174,12 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
         db.penalties.clear()
       ])
       
-      // Neue Daten einfügen
+      // Neue Daten einfügen (upsert)
       await Promise.all([
-        db.participants.bulkAdd(newData.participants),
-        db.matchingNights.bulkAdd(newData.matchingNights),
-        db.matchboxes.bulkAdd(newData.matchboxes),
-        db.penalties.bulkAdd(newData.penalties)
+        db.participants.bulkPut(newData.participants),
+        db.matchingNights.bulkPut(newData.matchingNights),
+        db.matchboxes.bulkPut(newData.matchboxes),
+        db.penalties.bulkPut(newData.penalties)
       ])
       
       // Meta-Daten aktualisieren

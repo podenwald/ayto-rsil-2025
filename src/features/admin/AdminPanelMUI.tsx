@@ -60,7 +60,6 @@ import {
   Warning as WarningIcon,
   DeleteSweep as DeleteSweepIcon,
   Backup as BackupIcon,
-  Restore as RestoreIcon,
   HelpOutline as HelpOutlineIcon,
   ExpandMore as ExpandMoreIcon,
   Cached as CachedIcon,
@@ -2216,77 +2215,7 @@ Alle Daten gehen unwiderruflich verloren!`)
     }
   }
 
-  // ** Test Data Function **
-  const loadTestData = async () => {
-    setConfirmDialog({
-      open: true,
-      title: 'Testdaten laden',
-      message: 'Testdaten laden?\n\nDies fügt Beispieldaten zu allen Kategorien hinzu.',
-      onConfirm: async () => {
-        try {
-          setIsLoading(true)
-          
-          // Testdaten für Teilnehmer
-          const testParticipants: Omit<Participant, 'id'>[] = [
-            // Frauen
-            { name: "Antonia", gender: "F", age: 25, knownFrom: "Germany Shore (2022), DSDS (2024)", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/antonia" },
-            { name: "Beverly", gender: "F", age: 23, knownFrom: "Love Island", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/beverly" },
-            { name: "Nelly", gender: "F", age: 24, knownFrom: "Bachelor", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/nelly" },
-            { name: "Elli", gender: "F", age: 26, knownFrom: "Bachelorette", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/elli" },
-            { name: "Joanna", gender: "F", age: 22, knownFrom: "Temptation Island", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/joanna" },
-            
-            // Männer
-            { name: "Xander S.", gender: "M", age: 28, knownFrom: "Make Love, Fake Love", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/xanders" },
-            { name: "Oli", gender: "M", age: 27, knownFrom: "Die Wilden Kerle", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/oli" },
-            { name: "Leandro", gender: "M", age: 25, knownFrom: "Love Island VIP", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/leandro" },
-            { name: "Nico", gender: "M", age: 24, knownFrom: "Germany Shore", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/nico" },
-            { name: "Kevin Nje", gender: "M", age: 26, knownFrom: "Too Hot To Handle Germany", status: "Aktiv", active: true, socialMediaAccount: "https://instagram.com/kevinnje" },
-          ];
-
-          for (const participant of testParticipants) {
-            await db.participants.add(participant);
-          }
-          
-          // Testdaten für Matching Night
-          await db.matchingNights.add({
-            name: "Test Matching Night",
-            date: new Date().toISOString().split('T')[0],
-            pairs: [
-              { woman: "Antonia", man: "Oli" },
-              { woman: "Beverly", man: "Leandro" }
-            ],
-            createdAt: new Date()
-          });
-
-          // Testdaten für Matchboxes
-          const now = new Date()
-          await db.matchboxes.add({
-            woman: "Nelly",
-            man: "Xander S.",
-            matchType: "perfect",
-            createdAt: now,
-            updatedAt: now
-          })
-
-          await db.matchboxes.add({
-            woman: "Elli", 
-            man: "Nico",
-            matchType: "no-match",
-            createdAt: now,
-            updatedAt: now
-          })
-          
-          await onUpdate()
-          setSnackbar({ open: true, message: '✅ Testdaten wurden erfolgreich geladen!', severity: 'success' })
-        } catch (error) {
-          console.error('Fehler beim Laden der Testdaten:', error)
-          setSnackbar({ open: true, message: `❌ Fehler beim Laden der Testdaten: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
-        } finally {
-          setIsLoading(false)
-        }
-      }
-    })
-  }
+  // entfernt: Testdaten-Funktion
 
   // ** Import Functions **
   const importParticipantsJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2330,7 +2259,7 @@ Alle Daten gehen unwiderruflich verloren!`)
           try {
             await db.transaction('rw', db.participants, async () => {
               await db.participants.clear()
-              await db.participants.bulkAdd(normalizedParticipants)
+              await db.participants.bulkPut(normalizedParticipants)
             })
             
             await onUpdate()
@@ -2382,16 +2311,16 @@ Alle Daten gehen unwiderruflich verloren!`)
               
               // Neue Daten einfügen
               if (data.participants.length > 0) {
-                await db.participants.bulkAdd(data.participants)
+                await db.participants.bulkPut(data.participants)
               }
               if (data.matchingNights.length > 0) {
-                await db.matchingNights.bulkAdd(data.matchingNights)
+                await db.matchingNights.bulkPut(data.matchingNights)
               }
               if (data.matchboxes.length > 0) {
-                await db.matchboxes.bulkAdd(data.matchboxes)
+                await db.matchboxes.bulkPut(data.matchboxes)
               }
               if (data.penalties && data.penalties.length > 0) {
-                await db.penalties.bulkAdd(data.penalties)
+                await db.penalties.bulkPut(data.penalties)
               }
             })
             
@@ -2689,14 +2618,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 onChange={importCompleteData}
               />
             </Button>
-            <Button
-              variant="outlined"
-              startIcon={<RestoreIcon />}
-              onClick={loadTestData}
-              disabled={isLoading}
-            >
-              Testdaten laden
-            </Button>
+              
           </Box>
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="body2">
@@ -2876,7 +2798,7 @@ Alle Daten gehen unwiderruflich verloren!`)
                 <li>Alle Löschvorgänge sind <strong>unwiderruflich</strong></li>
                 <li>Vor jedem Vorgang erscheint eine Sicherheitsabfrage</li>
                 <li>Kompletter Reset erfordert doppelte Bestätigung</li>
-                <li>Testdaten können zur Demonstration geladen werden</li>
+                
                 <li><strong>JSON-Import:</strong> Gender wird automatisch von w/m zu F/M konvertiert</li>
                 <li>JSON-Import ersetzt alle bestehenden Teilnehmer</li>
               </Box>

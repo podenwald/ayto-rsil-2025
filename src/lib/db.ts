@@ -167,10 +167,10 @@ export class DatabaseUtils {
   }): Promise<void> {
     await db.transaction('rw', db.participants, db.matchingNights, db.matchboxes, db.penalties, async () => {
       await Promise.all([
-        db.participants.bulkAdd(data.participants),
-        db.matchingNights.bulkAdd(data.matchingNights),
-        db.matchboxes.bulkAdd(data.matchboxes),
-        db.penalties.bulkAdd(data.penalties)
+        db.participants.bulkPut(data.participants),
+        db.matchingNights.bulkPut(data.matchingNights),
+        db.matchboxes.bulkPut(data.matchboxes),
+        db.penalties.bulkPut(data.penalties)
       ])
     })
   }
