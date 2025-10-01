@@ -76,8 +76,8 @@ async function loadSeedData(): Promise<{
   const response = await fetch(seedUrl, { cache: 'no-store' })
   
   if (!response.ok) {
-    // Versuche Fallback auf ayto-complete-noPicture.json
-    const fallbackUrl = '/ayto-complete-noPicture.json'
+    // Versuche Fallback auf ayto-vip-2025.json
+    const fallbackUrl = '/json/ayto-vip-2025.json'
     const fallbackResponse = await fetch(fallbackUrl, { cache: 'no-store' })
     
     if (fallbackResponse.ok) {
@@ -116,8 +116,8 @@ async function resolveSeedUrl(): Promise<string> {
     // Ignorieren und Fallback nutzen
   }
   
-  // Fallback: jüngste bekannte Datei im Repo
-  return '/json/ayto-complete-export-2025-09-10.json'
+  // Fallback: ayto-vip-2025.json als zuverlässige Datenquelle
+  return '/json/ayto-vip-2025.json'
 }
 
 /**
