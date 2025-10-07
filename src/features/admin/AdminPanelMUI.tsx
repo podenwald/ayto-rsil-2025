@@ -1074,11 +1074,9 @@ const MatchingNightManagement: React.FC<{
   const currentMatchingNight = editingMatchingNight || {
     id: 0,
     name: 'temp',
-    date: matchingNightForm.ausstrahlungsdatum || new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0],
     pairs: [],
-    createdAt: new Date(),
-    ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
-    ausstrahlungszeit: matchingNightForm.ausstrahlungszeit || '21:00'
+    createdAt: new Date()
   }
   
   const perfectMatchPairs = getValidPerfectMatches(currentMatchingNight)
@@ -1097,10 +1095,7 @@ const MatchingNightManagement: React.FC<{
   ]
 
   // Lichter-Berechnungen - berücksichtigt chronologische Reihenfolge
-  const automaticLights = matchingNightForm.pairs.filter(pair => {
-    // Prüfe, ob dieses Paar in den Perfect Match Paaren ist
-    return perfectMatchPairs.some(pm => pm.woman === pair.woman && pm.man === pair.man)
-  }).length
+  // Hinweis: automatische Lichter werden nicht separat angezeigt; Logik bleibt in totalPerfectMatches enthalten
   
   // Perfect Matches: Gesamtanzahl aller bis dahin bekannten Perfect Matches
   const totalPerfectMatches = perfectMatchPairs.length
@@ -1190,11 +1185,9 @@ const MatchingNightManagement: React.FC<{
       const tempMatchingNight = {
         id: 0,
         name: 'temp',
-        date: matchingNightForm.ausstrahlungsdatum || new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0],
         pairs: [],
-        createdAt: new Date(),
-        ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
-        ausstrahlungszeit: matchingNightForm.ausstrahlungszeit || '21:00'
+        createdAt: new Date()
       }
       
       const validPerfectMatches = getValidPerfectMatchesForMatchingNight(matchboxes, tempMatchingNight)

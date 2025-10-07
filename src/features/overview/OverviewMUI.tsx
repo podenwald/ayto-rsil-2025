@@ -28,7 +28,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  CircularProgress,
   LinearProgress
 } from '@mui/material'
 import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
@@ -941,7 +940,7 @@ const OverviewMUI: React.FC = () => {
   )
 
   // Get pair probabilities from calculation result or use empty matrix
-  const pairProbabilities = probabilityResult?.probabilityMatrix || {}
+  const pairProbabilities: Record<string, Record<string, number>> = probabilityResult?.probabilityMatrix || {}
   
   // Helper: Check if participant has a perfect match (nur ausgestrahlte Matchboxes)
   const hasConfirmedPerfectMatch = (participantName: string, gender: 'M' | 'F') => {
@@ -1037,14 +1036,7 @@ const OverviewMUI: React.FC = () => {
     const excludedByPerfectMatch = (womanHasPerfectMatch && womanPerfectPartner !== manName) ||
                                   (manHasPerfectMatch && manPerfectPartner !== womanName)
     
-    // Debug: Zeige alle Matchbox-Typen
-    if (matchboxes.length > 0 && !window.debugShown) {
-      console.log('🔍 Matchbox-Typen:', matchboxes.map(mb => ({ 
-        pair: `${mb.woman} & ${mb.man}`, 
-        type: mb.matchType 
-      })))
-      window.debugShown = true
-    }
+  // Debug-Logging entfernt für Build-Stabilität
     
     return excludedByBox || excludedByPerfectMatch
   }
@@ -1062,13 +1054,13 @@ const OverviewMUI: React.FC = () => {
     
     sortedMatchingNights.forEach((night, index) => {
       const nightNumber = index + 1
-      const womanPair = night.pairs.find(p => p.womanName === womanName && p.manName !== manName)
+      const womanPair = night.pairs.find(p => p.woman === womanName && p.man !== manName)
       if (womanPair) {
-        womanOtherNights.push({ nightNumber, lights: night.totalLights, partner: womanPair.manName })
+        womanOtherNights.push({ nightNumber, lights: night.totalLights || 0, partner: womanPair.man })
       }
-      const manPair = night.pairs.find(p => p.manName === manName && p.womanName !== womanName)
+      const manPair = night.pairs.find(p => p.man === manName && p.woman !== womanName)
       if (manPair) {
-        manOtherNights.push({ nightNumber, lights: night.totalLights, partner: manPair.womanName })
+        manOtherNights.push({ nightNumber, lights: night.totalLights || 0, partner: manPair.woman })
       }
     })
     
@@ -1094,7 +1086,7 @@ const OverviewMUI: React.FC = () => {
       )
       if (pairExists) {
         nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
-        allLights.push(night.totalLights)
+        allLights.push(night.totalLights || 0)
       }
     }
     

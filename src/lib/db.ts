@@ -23,7 +23,8 @@ export type {
   Matchbox, 
   Penalty,
   ProbabilityCache,
-  DatabaseCounts 
+  DatabaseCounts,
+  BroadcastNote
 } from '@/types'
 
 export class AytoDB extends Dexie {
