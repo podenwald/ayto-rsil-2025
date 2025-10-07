@@ -1112,7 +1112,7 @@ const OverviewMUI: React.FC = () => {
       )
       if (pairExists) {
         nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
-        allLights.push(night.totalLights)
+        allLights.push(night.totalLights || 0)
       }
     }
     
@@ -2179,8 +2179,8 @@ const OverviewMUI: React.FC = () => {
                               // Prüfe, ob es definitiv ausgeschlossen ist (durch Box-Entscheidungen)
                               const isDefinitelyExcluded = isDefinitivelyExcluded(woman.name!, man.name!)
                               
-                              // Prüfe, ob das Paar bereits in einer Matching Night zusammensaß
-                              const matchingNightInfo = getMatchingNightInfo(woman.name!, man.name!)
+                              // Prüfe, ob das Paar bereits in einer Matching Night zusammensaß (Ergebnis wird unten dargestellt)
+                              // const matchingNightInfo = getMatchingNightInfo(woman.name!, man.name!)
                               
                               // Für alle Paare: Zeige ALLE Matching Nights, in denen sie zusammensaßen
                               const allMatchingNightsTogether = getAllMatchingNightsTogether(woman.name!, man.name!)
@@ -2345,7 +2345,7 @@ const OverviewMUI: React.FC = () => {
                         size="small"
                         onClick={() => {
                           // Lösungs-Matrix zurücksetzen
-                          const newSolution = {}
+                          const newSolution: Record<string, Record<string, string>> = {}
                           women.forEach(woman => {
                             newSolution[woman.name!] = {}
                             men.forEach(man => {
