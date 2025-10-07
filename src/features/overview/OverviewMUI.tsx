@@ -1041,31 +1041,7 @@ const OverviewMUI: React.FC = () => {
     return excludedByBox || excludedByPerfectMatch
   }
 
-  // Hilfsfunktion: Findet Matching Nights, in denen Teilnehmer mit ANDEREN Partnern saßen
-  const getOtherPartnerNights = (womanName: string, manName: string) => {
-    const womanOtherNights: Array<{nightNumber: number, lights: number, partner: string}> = []
-    const manOtherNights: Array<{nightNumber: number, lights: number, partner: string}> = []
-    
-    const sortedMatchingNights = [...matchingNights].sort((a, b) => {
-      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
-      return dateA - dateB
-    })
-    
-    sortedMatchingNights.forEach((night, index) => {
-      const nightNumber = index + 1
-      const womanPair = night.pairs.find(p => p.woman === womanName && p.man !== manName)
-      if (womanPair) {
-        womanOtherNights.push({ nightNumber, lights: night.totalLights || 0, partner: womanPair.man })
-      }
-      const manPair = night.pairs.find(p => p.man === manName && p.woman !== womanName)
-      if (manPair) {
-        manOtherNights.push({ nightNumber, lights: night.totalLights || 0, partner: manPair.woman })
-      }
-    })
-    
-    return { womanOtherNights, manOtherNights }
-  }
+  // (entfernt) getOtherPartnerNights – Quadrate für andere Partner werden nicht mehr angezeigt
 
   // Helper: Find ALL matching nights where participants sat together (including before they became Perfect Match)
   const getAllMatchingNightsTogether = (womanName: string, manName: string): { nightNumbers: number[], allLights: number[] } => {
@@ -2156,8 +2132,7 @@ const OverviewMUI: React.FC = () => {
                               // Für alle Paare: Zeige ALLE Matching Nights, in denen sie zusammensaßen
                               const allMatchingNightsTogether = getAllMatchingNightsTogether(woman.name!, man.name!)
 
-                              // Finde andere Partner-Nächte (immer ermitteln, Anzeige je nach Kontext)
-                              const otherPartnerNights = getOtherPartnerNights(woman.name!, man.name!)
+                              // Andere Partner-Nächte nicht mehr visualisieren
                               
                               return (
                                 <TableCell 
@@ -2233,23 +2208,7 @@ const OverviewMUI: React.FC = () => {
                                     </Box>
                                   )}
                                   
-                                  {/* Andere Partner Quadrate */}
-                                  {otherPartnerNights && (otherPartnerNights.womanOtherNights.length > 0 || otherPartnerNights.manOtherNights.length > 0) && (
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3, justifyContent: 'center', mt: 0.5 }}>
-                                      {otherPartnerNights.womanOtherNights.map(night => (
-                                        <Box key={`woman-${night.nightNumber}`} sx={{ width: 16, height: 16, bgcolor: 'white', border: '2px solid', borderColor: 'warning.main', borderRadius: '2px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold', color: 'warning.main' }}>
-                                          <Typography variant="caption" sx={{ fontSize: '0.45rem', lineHeight: 1, fontWeight: 'bold', color: 'warning.main' }}>{night.nightNumber}</Typography>
-                                          <Typography variant="caption" sx={{ fontSize: '0.35rem', lineHeight: 1, fontWeight: 'bold', color: 'warning.main' }}>{night.lights}</Typography>
-                                        </Box>
-                                      ))}
-                                      {otherPartnerNights.manOtherNights.map(night => (
-                                        <Box key={`man-${night.nightNumber}`} sx={{ width: 16, height: 16, bgcolor: 'white', border: '2px solid', borderColor: 'error.main', borderRadius: '2px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold', color: 'error.main' }}>
-                                          <Typography variant="caption" sx={{ fontSize: '0.45rem', lineHeight: 1, fontWeight: 'bold', color: 'error.main' }}>{night.nightNumber}</Typography>
-                                          <Typography variant="caption" sx={{ fontSize: '0.35rem', lineHeight: 1, fontWeight: 'bold', color: 'error.main' }}>{night.lights}</Typography>
-                                        </Box>
-                                      ))}
-                                    </Box>
-                                  )}
+                                  {/* Andere Partner Quadrate entfernt */}
                                 </TableCell>
                               )
                             })}
