@@ -139,6 +139,9 @@ export function getValidPerfectMatchesBeforeDateTime(matchboxes: Matchbox[], bef
   return matchboxes.filter(mb => {
     if (mb.matchType !== 'perfect') return false
     
+    // Nur Matchboxes mit gültigen Ausstrahlungsdaten berücksichtigen
+    if (!mb.ausstrahlungsdatum || !mb.ausstrahlungszeit) return false
+    
     const broadcastDate = getMatchboxBroadcastDateTime(mb)
     return broadcastDate < beforeDate
   })

@@ -10,7 +10,7 @@ export type Gender = 'F' | 'M'
 
 export type MatchType = 'perfect' | 'no-match' | 'sold'
 
-export type ParticipantStatus = 'Aktiv' | 'Inaktiv'
+export type ParticipantStatus = 'Aktiv' | 'aktiv' | 'Inaktiv' | 'Perfekt Match'
 
 // === Domain-Entitäten ===
 export interface Participant {
@@ -63,6 +63,14 @@ export interface Penalty {
   date: string
   description?: string
   createdAt: Date
+}
+
+export interface BroadcastNote {
+  id?: number
+  date: string // ISO date (YYYY-MM-DD)
+  notes: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 // === API/DTO-Typen ===
@@ -118,12 +126,22 @@ export interface PenaltyDTO {
   createdAt: string // ISO string für JSON
 }
 
+export interface BroadcastNoteDTO {
+  id?: number
+  date: string
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
 // === Import/Export-Typen ===
 export interface DatabaseExport {
   participants: Participant[]
   matchingNights: MatchingNight[]
   matchboxes: Matchbox[]
   penalties: Penalty[]
+  probabilityCache?: ProbabilityCache[]
+  broadcastNotes?: BroadcastNote[]
 }
 
 export interface DatabaseImport {
@@ -131,6 +149,8 @@ export interface DatabaseImport {
   matchingNights: MatchingNightDTO[]
   matchboxes: MatchboxDTO[]
   penalties: PenaltyDTO[]
+  probabilityCache?: ProbabilityCacheDTO[]
+  broadcastNotes?: BroadcastNoteDTO[]
 }
 
 // === UI-State-Typen ===
@@ -184,5 +204,97 @@ export interface BroadcastDateTime {
 
 export interface BroadcastInfo extends BroadcastDateTime {
   createdAt: Date
+}
+
+// === Wahrscheinlichkeits-Analyse-Typen ===
+
+/**
+ * Ein Matching ist eine vollständige Zuordnung von Männern zu Frauen
+ * Repräsentiert als Array von Paaren
+ */
+export interface Matching {
+  pairs: Pair[]
+}
+
+/**
+ * Wahrscheinlichkeits-Matrix
+ * Speichert für jedes mögliche Paar (Frau, Mann) die Wahrscheinlichkeit [0..1]
+ */
+export interface ProbabilityMatrix {
+  [womanName: string]: {
+    [manName: string]: number
+  }
+}
+
+/**
+ * Ergebnis der Wahrscheinlichkeits-Berechnung
+ */
+export interface ProbabilityResult {
+  probabilityMatrix: ProbabilityMatrix
+  fixedPairs: Pair[]
+  totalValidMatchings: number
+  calculationTime: number // in ms
+  limitReached: boolean
+}
+
+/**
+ * Cache-Eintrag für Wahrscheinlichkeits-Berechnungen
+ * Wird in IndexedDB gespeichert um wiederholte Berechnungen zu vermeiden
+ */
+export interface ProbabilityCache {
+  id?: number
+  dataHash: string // Hash der Input-Daten (Teilnehmer, Zeremonien, Matchboxen)
+  result: ProbabilityResult
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
+ * DTO für Probability Cache (JSON Export/Import)
+ */
+export interface ProbabilityCacheDTO {
+  id?: number
+  dataHash: string
+  result: ProbabilityResult
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
+/**
+ * Input-Daten für die Wahrscheinlichkeits-Berechnung
+ */
+export interface ProbabilityInput {
+  men: string[] // Namen der Männer
+  women: string[] // Namen der Frauen
+  ceremonies: CeremonyConstraint[]
+  boxDecisions: BoxDecision[]
+}
+
+/**
+ * Constraint aus einer Matching Night Zeremonie
+ */
+export interface CeremonyConstraint {
+  pairs: Pair[]
+  correctCount: number // Anzahl korrekter Lichter
+  knownPerfectMatches: Pair[] // Perfect Matches die VOR dieser Zeremonie bekannt waren
+}
+
+/**
+ * Fixierung durch Matchbox-Entscheidung
+ */
+export interface BoxDecision {
+  woman: string
+  man: string
+  isPerfectMatch: boolean // true = perfect match, false = no match
+}
+
+/**
+ * Status der Wahrscheinlichkeits-Berechnung
+ */
+export interface ProbabilityCalculationStatus {
+  isCalculating: boolean
+  progress: number // 0-100
+  currentStep: string
+  error?: string
 }
 

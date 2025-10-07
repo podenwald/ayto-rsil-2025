@@ -66,6 +66,7 @@ import {
   Inventory as InventoryIcon,
   Analytics as AnalyticsIcon,
   Nightlife as NightlifeIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
 import BroadcastManagement from './BroadcastManagement'
@@ -669,15 +670,13 @@ const MatchboxManagement: React.FC<{
   onUpdate: () => void
 }> = ({ participants, matchboxes, onUpdate }) => {
   const [editingMatchbox, setEditingMatchbox] = useState<Matchbox | undefined>(undefined)
-  const [matchboxForm, setMatchboxForm] = useState<Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt'>>({
+  const [matchboxForm, setMatchboxForm] = useState<Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt' | 'ausstrahlungsdatum' | 'ausstrahlungszeit'>>({
     woman: '',
     man: '',
     matchType: 'no-match',
     price: undefined,
     buyer: undefined,
-    soldDate: undefined,
-    ausstrahlungsdatum: undefined,
-    ausstrahlungszeit: undefined
+    soldDate: undefined
   })
   const [showDialog, setShowDialog] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -724,9 +723,7 @@ const MatchboxManagement: React.FC<{
       matchType: matchbox.matchType,
       price: matchbox.price,
       buyer: matchbox.buyer,
-      soldDate: matchbox.soldDate,
-      ausstrahlungsdatum: matchbox.ausstrahlungsdatum,
-      ausstrahlungszeit: matchbox.ausstrahlungszeit
+      soldDate: matchbox.soldDate
     })
     setShowDialog(true)
   }
@@ -837,8 +834,8 @@ const MatchboxManagement: React.FC<{
             }}>
               {matchboxes
                 .sort((a, b) => {
-                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : 0
+                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : 0
                   return dateB - dateA
                 })
                 .map((matchbox) => (
@@ -899,15 +896,12 @@ const MatchboxManagement: React.FC<{
                       </Typography>
                     )}
                     
-                    <Typography variant="caption" color="text.secondary">
-                      {matchbox.ausstrahlungsdatum ? 
-                        `Ausstrahlung: ${new Date(matchbox.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
-                        `Erstellt: ${new Date(matchbox.createdAt).toLocaleString('de-DE', { 
-                          day: '2-digit', month: '2-digit', year: 'numeric', 
-                          hour: '2-digit', minute: '2-digit' 
-                        })}`
-                      }
-                    </Typography>
+                    {matchbox.ausstrahlungsdatum && (
+                      <Typography variant="caption" color="text.secondary">
+                        Ausstrahlung: {new Date(matchbox.ausstrahlungsdatum).toLocaleDateString('de-DE')}
+                        {matchbox.ausstrahlungszeit && ` um ${matchbox.ausstrahlungszeit} Uhr`}
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -972,29 +966,9 @@ const MatchboxManagement: React.FC<{
               </FormControl>
             </Box>
 
-            {/* Ausstrahlungsdatum und Zeit */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2
-            }}>
-              <TextField
-                fullWidth
-                label="Ausstrahlungsdatum"
-                type="date"
-                value={matchboxForm.ausstrahlungsdatum || ''}
-                onChange={(e) => setMatchboxForm({...matchboxForm, ausstrahlungsdatum: e.target.value})}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                fullWidth
-                label="Ausstrahlungszeit"
-                type="time"
-                value={matchboxForm.ausstrahlungszeit || ''}
-                onChange={(e) => setMatchboxForm({...matchboxForm, ausstrahlungszeit: e.target.value})}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Box>
+            <Alert severity="info" icon={<ScheduleIcon />}>
+              Die Ausstrahlungszeiten werden zentral über den <strong>Ausstrahlungsplan</strong> verwaltet.
+            </Alert>
 
             {matchboxForm.matchType === 'sold' && (
               <Box sx={{ 
@@ -1070,14 +1044,10 @@ const MatchingNightManagement: React.FC<{
     name: string;
     totalLights: number;
     pairs: Array<{woman: string, man: string}>;
-    ausstrahlungsdatum: string;
-    ausstrahlungszeit: string;
   }>({
     name: '',
     totalLights: 0,
-    pairs: [],
-    ausstrahlungsdatum: '',
-    ausstrahlungszeit: ''
+    pairs: []
   })
   const [selectedWoman, setSelectedWoman] = useState<string>('')
   const [selectedMan, setSelectedMan] = useState<string>('')
@@ -1089,29 +1059,29 @@ const MatchingNightManagement: React.FC<{
   })
 
   // Perfect Match Logik - nur Matchboxes die VOR der aktuellen Matching Night ausgestrahlt wurden
-  const getValidPerfectMatches = (currentMatchingNightDate?: string) => {
-    if (!currentMatchingNightDate) {
-      // Wenn keine Matching Night ausgewählt ist, alle Perfect Matches anzeigen
+  const getValidPerfectMatches = (matchingNight?: MatchingNight) => {
+    if (!matchingNight || !matchingNight.ausstrahlungsdatum) {
+      // Wenn keine Matching Night ausgewählt ist, nur Perfect Matches mit Ausstrahlungsdaten anzeigen
       return matchboxes
-        .filter(mb => mb.matchType === 'perfect')
+        .filter(mb => mb.matchType === 'perfect' && mb.ausstrahlungsdatum && mb.ausstrahlungszeit)
         .map(mb => ({ woman: mb.woman, man: mb.man }))
     }
     
-    // Erstelle ein temporäres Matching Night Objekt für die zentrale Logik
-    const tempMatchingNight: MatchingNight = {
-      id: 0,
-      name: 'temp',
-      date: currentMatchingNightDate,
-      pairs: [],
-      createdAt: new Date(),
-      ausstrahlungsdatum: currentMatchingNightDate,
-      ausstrahlungszeit: '20:15' // Standard AYTO Zeit
-    }
-    
-    return getValidPerfectMatchesForMatchingNight(matchboxes, tempMatchingNight)
+    return getValidPerfectMatchesForMatchingNight(matchboxes, matchingNight)
   }
   
-  const perfectMatchPairs = getValidPerfectMatches(matchingNightForm.ausstrahlungsdatum)
+  // Für die Lichter-Berechnung: Verwende die aktuell bearbeitete Matching Night
+  const currentMatchingNight = editingMatchingNight || {
+    id: 0,
+    name: 'temp',
+    date: matchingNightForm.ausstrahlungsdatum || new Date().toISOString().split('T')[0],
+    pairs: [],
+    createdAt: new Date(),
+    ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
+    ausstrahlungszeit: matchingNightForm.ausstrahlungszeit || '21:00'
+  }
+  
+  const perfectMatchPairs = getValidPerfectMatches(currentMatchingNight)
 
   const women = participants.filter(p => p.gender === 'F')
   const men = participants.filter(p => p.gender === 'M')
@@ -1126,19 +1096,23 @@ const MatchingNightManagement: React.FC<{
     ...perfectMatchPairs.map(pair => pair.man)
   ]
 
-  // Lichter-Berechnungen
-  const automaticLights = matchingNightForm.pairs.filter(pair => 
-    perfectMatchPairs.some(pm => pm.woman === pair.woman && pm.man === pair.man)
-  ).length
-  const manualLights = Math.max(0, matchingNightForm.totalLights - automaticLights)
+  // Lichter-Berechnungen - berücksichtigt chronologische Reihenfolge
+  const automaticLights = matchingNightForm.pairs.filter(pair => {
+    // Prüfe, ob dieses Paar in den Perfect Match Paaren ist
+    return perfectMatchPairs.some(pm => pm.woman === pair.woman && pm.man === pair.man)
+  }).length
+  
+  // Perfect Matches: Gesamtanzahl aller bis dahin bekannten Perfect Matches
+  const totalPerfectMatches = perfectMatchPairs.length
+  
+  // Andere Paare: Gesamtlichter minus alle bekannten Perfect Matches
+  const manualLights = Math.max(0, matchingNightForm.totalLights - totalPerfectMatches)
 
   const resetForm = () => {
     setMatchingNightForm({
       name: '',
       totalLights: 0,
-      pairs: [],
-      ausstrahlungsdatum: '',
-      ausstrahlungszeit: ''
+      pairs: []
     })
     setSelectedWoman('')
     setSelectedMan('')
@@ -1151,9 +1125,7 @@ const MatchingNightManagement: React.FC<{
     setMatchingNightForm({
       name: matchingNight.name,
       totalLights: matchingNight.totalLights || 0,
-      pairs: [...matchingNight.pairs],
-      ausstrahlungsdatum: matchingNight.ausstrahlungsdatum || '',
-      ausstrahlungszeit: matchingNight.ausstrahlungszeit || ''
+      pairs: [...matchingNight.pairs]
     })
     setShowDialog(true)
   }
@@ -1214,12 +1186,20 @@ const MatchingNightManagement: React.FC<{
       }
       
       // Validierung: Gesamtlichter dürfen nicht weniger als Perfect Match Lichter sein
+      // Erstelle temporäres Matching Night Objekt für die Validierung
+      const tempMatchingNight = {
+        id: 0,
+        name: 'temp',
+        date: matchingNightForm.ausstrahlungsdatum || new Date().toISOString().split('T')[0],
+        pairs: [],
+        createdAt: new Date(),
+        ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
+        ausstrahlungszeit: matchingNightForm.ausstrahlungszeit || '21:00'
+      }
+      
+      const validPerfectMatches = getValidPerfectMatchesForMatchingNight(matchboxes, tempMatchingNight)
       const perfectMatchLights = completePairs.filter(pair => 
-        matchboxes.some(mb => 
-          mb.matchType === 'perfect' && 
-          mb.woman === pair.woman && 
-          mb.man === pair.man
-        )
+        validPerfectMatches.some(pm => pm.woman === pair.woman && pm.man === pair.man)
       ).length
 
       if (matchingNightForm.totalLights < perfectMatchLights) {
@@ -1237,9 +1217,7 @@ const MatchingNightManagement: React.FC<{
         await db.matchingNights.update(editingMatchingNight.id!, {
           name: matchingNightForm.name,
           totalLights: matchingNightForm.totalLights,
-          pairs: matchingNightForm.pairs,
-          ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
-          ausstrahlungszeit: matchingNightForm.ausstrahlungszeit
+          pairs: matchingNightForm.pairs
         })
         setSnackbar({ open: true, message: 'Matching Night wurde erfolgreich aktualisiert!', severity: 'success' })
       } else {
@@ -1250,9 +1228,7 @@ const MatchingNightManagement: React.FC<{
           date: new Date().toISOString().split('T')[0],
           totalLights: matchingNightForm.totalLights,
           pairs: matchingNightForm.pairs,
-          createdAt: now,
-          ausstrahlungsdatum: matchingNightForm.ausstrahlungsdatum,
-          ausstrahlungszeit: matchingNightForm.ausstrahlungszeit
+          createdAt: now
         })
         setSnackbar({ open: true, message: `Matching Night "${autoGeneratedName}" wurde erfolgreich erstellt!`, severity: 'success' })
       }
@@ -1313,8 +1289,8 @@ const MatchingNightManagement: React.FC<{
             }}>
               {matchingNights
                 .sort((a, b) => {
-                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
-                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+                  const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : 0
+                  const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : 0
                   return dateB - dateA
                 })
                 .map((matchingNight) => (
@@ -1361,19 +1337,12 @@ const MatchingNightManagement: React.FC<{
                       </Box>
                     </Box>
                     
-                    <Typography variant="body2" color="text.secondary">
-                      {matchingNight.ausstrahlungsdatum ? 
-                        `Ausstrahlung: ${new Date(matchingNight.ausstrahlungsdatum).toLocaleDateString('de-DE')}` :
-                        `Datum: ${new Date(matchingNight.date).toLocaleDateString('de-DE')}`
-                      }
-                    </Typography>
-                    
-                    <Typography variant="caption" color="text.secondary">
-                      Erstellt: {new Date(matchingNight.createdAt).toLocaleString('de-DE', { 
-                        day: '2-digit', month: '2-digit', year: 'numeric', 
-                        hour: '2-digit', minute: '2-digit' 
-                      })}
-                    </Typography>
+                    {matchingNight.ausstrahlungsdatum && (
+                      <Typography variant="body2" color="text.secondary">
+                        Ausstrahlung: {new Date(matchingNight.ausstrahlungsdatum).toLocaleDateString('de-DE')}
+                        {matchingNight.ausstrahlungszeit && ` um ${matchingNight.ausstrahlungszeit} Uhr`}
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -1413,29 +1382,9 @@ const MatchingNightManagement: React.FC<{
               />
             </Box>
 
-            {/* Ausstrahlungsdatum und Zeit */}
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 2
-            }}>
-              <TextField
-                fullWidth
-                label="Ausstrahlungsdatum"
-                type="date"
-                value={matchingNightForm.ausstrahlungsdatum}
-                onChange={(e) => setMatchingNightForm({...matchingNightForm, ausstrahlungsdatum: e.target.value})}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                fullWidth
-                label="Ausstrahlungszeit"
-                type="time"
-                value={matchingNightForm.ausstrahlungszeit}
-                onChange={(e) => setMatchingNightForm({...matchingNightForm, ausstrahlungszeit: e.target.value})}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Box>
+            <Alert severity="info" icon={<ScheduleIcon />}>
+              Die Ausstrahlungszeiten werden zentral über den <strong>Ausstrahlungsplan</strong> verwaltet.
+            </Alert>
 
             {/* Lichter-Analyse */}
             {matchingNightForm.totalLights > 0 && (
@@ -1457,7 +1406,7 @@ const MatchingNightManagement: React.FC<{
                     </Card>
                     <Card variant="outlined">
                       <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                        <Typography variant="h5" color="success.main">{automaticLights}</Typography>
+                        <Typography variant="h5" color="success.main">{totalPerfectMatches}</Typography>
                         <Typography variant="caption">Perfect Matches</Typography>
                       </CardContent>
                     </Card>
@@ -1469,14 +1418,14 @@ const MatchingNightManagement: React.FC<{
                     </Card>
                     <Card variant="outlined">
                       <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                        <Typography variant="h5" color="text.secondary">{Math.max(0, 11 - matchingNightForm.pairs.length)}</Typography>
+                        <Typography variant="h5" color="text.secondary">{Math.max(0, 10 - matchingNightForm.pairs.length)}</Typography>
                         <Typography variant="caption">Fehlende Paare</Typography>
                       </CardContent>
                     </Card>
                   </Box>
-                  {manualLights < 0 && (
+                  {totalPerfectMatches > matchingNightForm.totalLights && (
                     <Alert severity="warning" sx={{ mt: 2 }}>
-                      Achtung: Mehr Perfect Matches als Gesamtlichter!
+                      Achtung: Mehr bekannte Perfect Matches ({totalPerfectMatches}) als Gesamtlichter ({matchingNightForm.totalLights})!
                     </Alert>
                   )}
                 </CardContent>
@@ -1577,7 +1526,13 @@ const MatchingNightManagement: React.FC<{
                                   {isPerfectMatch ? <AutoAwesomeIcon /> : <GroupsIcon />}
                                 </Avatar>
                                 <Box>
-                                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                  <Typography 
+                                    variant="body1" 
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      color: isPerfectMatch ? 'success.main' : 'inherit'
+                                    }}
+                                  >
                                     {pair.woman} + {pair.man}
                                   </Typography>
                                   {isPerfectMatch && (
@@ -1876,11 +1831,12 @@ const SettingsManagement: React.FC<{
 
   const exportAllData = async () => {
     try {
-      const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+      const [participantsData, matchingNightsData, matchboxesData, penaltiesData, probabilityCacheData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
-        db.penalties.toArray()
+        db.penalties.toArray(),
+        db.probabilityCache.toArray()
       ])
       
       const allData = {
@@ -1888,8 +1844,9 @@ const SettingsManagement: React.FC<{
         matchingNights: matchingNightsData,
         matchboxes: matchboxesData,
         penalties: penaltiesData,
+        probabilityCache: probabilityCacheData,
         exportedAt: new Date().toISOString(),
-        version: "1.1"
+        version: "1.2"
       }
       
       const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' })
@@ -1901,7 +1858,7 @@ const SettingsManagement: React.FC<{
       URL.revokeObjectURL(url)
       
       const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
-      setSnackbar({ open: true, message: `✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n${penaltiesData.length} Strafen/Transaktionen\n\nGesamt: ${totalItems} Einträge`, severity: 'success' })
+      setSnackbar({ open: true, message: `✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n${penaltiesData.length} Strafen/Transaktionen\n${probabilityCacheData.length} Wahrscheinlichkeits-Cache\n\nGesamt: ${totalItems} Einträge`, severity: 'success' })
     } catch (error) {
       console.error('Fehler beim kompletten Export:', error)
       setSnackbar({ open: true, message: `❌ Fehler beim kompletten Export: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
@@ -1913,11 +1870,12 @@ const SettingsManagement: React.FC<{
       setIsLoading(true)
       
       // Alle aktuellen Daten laden
-      const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+      const [participantsData, matchingNightsData, matchboxesData, penaltiesData, probabilityCacheData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
-        db.penalties.toArray()
+        db.penalties.toArray(),
+        db.probabilityCache.toArray()
       ])
       
       // Komplette Datenstruktur erstellen
@@ -1926,8 +1884,9 @@ const SettingsManagement: React.FC<{
         matchingNights: matchingNightsData,
         matchboxes: matchboxesData,
         penalties: penaltiesData,
+        probabilityCache: probabilityCacheData,
         exportedAt: new Date().toISOString(),
-        version: "0.3.1",
+        version: "0.4.0",
         deploymentReady: true
       }
       
@@ -2060,6 +2019,139 @@ const SettingsManagement: React.FC<{
           console.error('Fehler beim Löschen der Matchboxes:', error)
           setSnackbar({ open: true, message: `Fehler beim Löschen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
         } finally {
+          setIsLoading(false)
+        }
+      }
+    })
+  }
+
+  const fixSwappedMatchingNights = async () => {
+    setConfirmDialog({
+      open: true,
+      title: '🔧 Matching Nights korrigieren',
+      message: 'Vertauschte Mann/Frau-Zuordnungen in Matching Nights korrigieren?\n\nDies analysiert alle Matching Nights und korrigiert automatisch fehlerhafte Zuordnungen.',
+      severity: 'warning',
+      onConfirm: async () => {
+        try {
+          setIsLoading(true)
+          console.log('🔧 Starte Matching Nights Korrektur...')
+          
+          // Lade alle Daten
+          const [allParticipants, allMatchingNights] = await Promise.all([
+            db.participants.toArray(),
+            db.matchingNights.toArray()
+          ])
+          
+          // Extrahiere Männer- und Frauen-Listen
+          const menNames = allParticipants.filter(p => p.gender === 'M').map(p => p.name)
+          const womenNames = allParticipants.filter(p => p.gender === 'F').map(p => p.name)
+          
+          console.log('👥 Teilnehmer:', { männer: menNames.length, frauen: womenNames.length })
+          
+          let correctedCount = 0
+          
+          // Prüfe jede Matching Night
+          for (const night of allMatchingNights) {
+            const menInNight = new Set(night.pairs.map(p => p.man))
+            
+            // Prüfe ob die Mehrheit der "Männer" tatsächlich Frauen sind
+            const menNamesInMenField = Array.from(menInNight).filter(name => menNames.includes(name))
+            const womenNamesInMenField = Array.from(menInNight).filter(name => womenNames.includes(name))
+            
+            const isSwapped = womenNamesInMenField.length > menNamesInMenField.length
+            
+            if (isSwapped) {
+              console.warn(`⚠️ Matching Night "${night.name}" (ID: ${night.id}): Paare sind vertauscht!`)
+              
+              // Korrigiere die Paare
+              const correctedPairs = night.pairs.map(pair => ({
+                woman: pair.man, // Vertausche
+                man: pair.woman  // Vertausche
+              }))
+              
+              // Speichere in der Datenbank
+              await db.matchingNights.update(night.id!, { pairs: correctedPairs })
+              
+              console.log(`✅ Matching Night "${night.name}" korrigiert!`)
+              correctedCount++
+            }
+          }
+          
+          console.log(`✅ Korrektur abgeschlossen: ${correctedCount} Matching Night(s) korrigiert`)
+          
+          // Zeige Erfolgsmeldung
+          if (correctedCount > 0) {
+            alert(`✅ ${correctedCount} Matching Night(s) erfolgreich korrigiert!\n\nDie Seite wird neu geladen.`)
+            // Seite neu laden, um alle Daten zu aktualisieren
+            window.location.reload()
+          } else {
+            alert('✅ Keine fehlerhaften Matching Nights gefunden - alles korrekt!')
+            setIsLoading(false)
+          }
+          
+        } catch (error) {
+          console.error('Fehler bei der Matching Night Korrektur:', error)
+          alert(`❌ Fehler bei der Korrektur: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
+          setIsLoading(false)
+        }
+      }
+    })
+  }
+
+  const fixTimestamps = async () => {
+    setConfirmDialog({
+      open: true,
+      title: '📅 Zeitstempel korrigieren',
+      message: 'Möchtest du die Ausstrahlungszeiten setzen?\n\nMatchbox: 20:15 Uhr (zuerst)\nMatching Night: 21:00 Uhr (danach)\n\n(Nur Uhrzeiten, Daten bleiben unverändert)',
+      severity: 'warning',
+      onConfirm: async () => {
+        try {
+          setIsLoading(true)
+          console.log('📅 Starte Zeitstempel-Korrektur...')
+          
+          // Lade alle Daten
+          const [allMatchingNights, allMatchboxes] = await Promise.all([
+            db.matchingNights.toArray(),
+            db.matchboxes.toArray()
+          ])
+          
+          let nightsUpdated = 0
+          let boxesUpdated = 0
+          
+          // Update Matching Nights - setze nur die Uhrzeit auf 21:00
+          console.log('📅 Aktualisiere Matching Nights...')
+          for (const night of allMatchingNights) {
+            if (!night.id) continue
+            
+            await db.matchingNights.update(night.id, {
+              ausstrahlungszeit: '21:00'
+            })
+            
+            console.log(`  ✅ ${night.name}: 21:00`)
+            nightsUpdated++
+          }
+          
+          // Update Matchboxes - setze nur die Uhrzeit auf 20:15
+          console.log('📦 Aktualisiere Matchboxes...')
+          for (const box of allMatchboxes) {
+            if (!box.id) continue
+            
+            await db.matchboxes.update(box.id, {
+              ausstrahlungszeit: '20:15'
+            })
+            
+            console.log(`  ✅ Matchbox ${box.woman} & ${box.man}: 20:15`)
+            boxesUpdated++
+          }
+          
+          console.log(`✅ Zeitstempel-Korrektur abgeschlossen: ${nightsUpdated} Matching Nights und ${boxesUpdated} Matchboxes aktualisiert`)
+          
+          alert(`✅ Zeitstempel erfolgreich korrigiert!\n\n${boxesUpdated} Matchboxes (20:15)\n${nightsUpdated} Matching Nights (21:00)\n\nDie Seite wird neu geladen.`)
+          window.location.reload()
+          
+        } catch (error) {
+          console.error('Fehler bei der Zeitstempel-Korrektur:', error)
+          alert(`❌ Fehler bei der Korrektur: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`)
           setIsLoading(false)
         }
       }
@@ -2759,6 +2851,77 @@ Alle Daten gehen unwiderruflich verloren!`)
       </Card>
       )}
 
+      {/* Data Correction Tool */}
+      {renderContext === 'json-import' && (
+      <Card sx={{ border: '2px solid', borderColor: 'info.main', mb: 4 }}>
+        <CardHeader 
+          title="🔧 Daten-Korrektur"
+          avatar={<Avatar sx={{ bgcolor: 'info.main' }}><AutoAwesomeIcon /></Avatar>}
+          sx={{ bgcolor: 'info.50' }}
+        />
+        <CardContent>
+          <Stack spacing={4}>
+            {/* Matching Nights Korrektur */}
+            <Box sx={{ textAlign: 'center' }}>
+              <AutoAwesomeIcon sx={{ fontSize: 64, color: 'info.main', mb: 2 }} />
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: 'info.main' }}>
+                Matching Nights korrigieren
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                🔄 Erkennt und korrigiert vertauschte Mann/Frau-Zuordnungen in Matching Nights
+              </Typography>
+              <Button
+                variant="contained"
+                color="info"
+                size="large"
+                onClick={fixSwappedMatchingNights}
+                disabled={isLoading}
+                startIcon={<AutoAwesomeIcon />}
+                sx={{ px: 4, py: 1.5 }}
+              >
+                Matching Nights korrigieren
+              </Button>
+            </Box>
+
+            <Divider />
+
+            {/* Zeitstempel-Korrektur */}
+            <Box sx={{ textAlign: 'center' }}>
+              <NightlifeIcon sx={{ fontSize: 64, color: 'info.main', mb: 2 }} />
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2, color: 'info.main' }}>
+                Zeitstempel setzen
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                📅 Setzt die Ausstrahlungszeiten für alle Daten
+              </Typography>
+              <Alert severity="info" sx={{ mb: 3, textAlign: 'left' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Standardzeiten:
+                </Typography>
+                <Typography variant="body2" component="div">
+                  • Matchbox: 20:15 Uhr (zuerst)<br />
+                  • Matching Night: 21:00 Uhr (danach)<br />
+                  • Nur Uhrzeiten werden gesetzt<br />
+                  • Daten bleiben komplett unverändert
+                </Typography>
+              </Alert>
+              <Button
+                variant="contained"
+                color="info"
+                size="large"
+                onClick={fixTimestamps}
+                disabled={isLoading}
+                startIcon={<NightlifeIcon />}
+                sx={{ px: 4, py: 1.5 }}
+              >
+                Zeitstempel setzen
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+      )}
+
       {/* Cache Management */}
       {renderContext === 'json-import' && (
       <Card sx={{ border: '2px solid', borderColor: 'warning.main', mb: 4 }}>
@@ -3215,6 +3378,7 @@ const AdminPanelMUI: React.FC = () => {
               <Box sx={{ mb: 4 }}>
                 <JsonImportManagement onDataUpdate={loadAllData} />
               </Box>
+
               <SettingsManagement 
                 participants={participants}
                 matchboxes={matchboxes}

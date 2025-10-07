@@ -27,7 +27,9 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  CircularProgress,
+  LinearProgress
 } from '@mui/material'
 import { useDeviceDetection, lockTabletOrientation, lockSmartphoneOrientation } from '@/lib/deviceDetection'
 import MenuLayout from '@/components/layout/MenuLayout'
@@ -47,6 +49,7 @@ import {
   getValidPerfectMatchesBeforeDateTime,
   getMatchboxBroadcastDateTime
 } from '@/utils/broadcastUtils'
+import { useProbabilityCalculation } from '@/hooks/useProbabilityCalculation'
 
 // ** Tab Panel Component
 interface TabPanelProps {
@@ -716,10 +719,42 @@ const OverviewMUI: React.FC = () => {
   const [penalties, setPenalties] = useState<Penalty[]>([])
   const [activeTab, setActiveTab] = useState(0)
   const [expandedMatchingNights, setExpandedMatchingNights] = useState<Set<number>>(new Set())
+  
+  // Wahrscheinlichkeits-Berechnung Hook
+  const { result: probabilityResult, status: probabilityStatus, triggerCalculation, clearCache: clearProbabilityCache } = useProbabilityCalculation()
+
+  // Benutzer-Lösungs-Matrix State
+  const [userSolution, setUserSolution] = useState<Record<string, Record<string, string>>>({})
 
   useEffect(() => {
     loadAllData()
   }, [])
+
+  // Lade gespeicherte Benutzer-Lösung
+  useEffect(() => {
+    const savedSolution = localStorage.getItem('userSolution')
+    if (savedSolution) {
+      try {
+        setUserSolution(JSON.parse(savedSolution))
+      } catch (error) {
+        console.error('Fehler beim Laden der gespeicherten Lösung:', error)
+      }
+    }
+  }, [])
+  
+  // Trigger probability calculation when switching to probability tab
+  useEffect(() => {
+    console.log('🔍 useEffect Wahrscheinlichkeit:', {
+      activeTab,
+      probabilityResult: !!probabilityResult,
+      isCalculating: probabilityStatus.isCalculating
+    })
+    
+    if (activeTab === 3 && !probabilityResult && !probabilityStatus.isCalculating) {
+      console.log('▶️ Starte Wahrscheinlichkeits-Berechnung...')
+      triggerCalculation()
+    }
+  }, [activeTab, probabilityResult, probabilityStatus.isCalculating, triggerCalculation])
 
   const loadAllData = async () => {
     try {
@@ -887,9 +922,15 @@ const OverviewMUI: React.FC = () => {
   const [isDraggingBox, setIsDraggingBox] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
 
-  // Helper functions
-  const women = participants.filter(p => p.gender === 'F' && p.active !== false)
-  const men = participants.filter(p => p.gender === 'M' && p.active !== false)
+  // Helper functions - Zeige alle aktiven Teilnehmer (inkl. Perfect Matches)
+  const women = participants.filter(p => 
+    p.gender === 'F' && 
+    (p.status === 'Aktiv' || p.status === 'aktiv' || p.status === 'Perfekt Match')
+  )
+  const men = participants.filter(p => 
+    p.gender === 'M' && 
+    (p.status === 'Aktiv' || p.status === 'aktiv' || p.status === 'Perfekt Match')
+  )
   
   // Get available participants (excluding perfect matches for new matchboxes)
   const availableWomen = women.filter(woman => 
@@ -899,107 +940,193 @@ const OverviewMUI: React.FC = () => {
     !matchboxes.some(mb => mb.matchType === 'perfect' && mb.man === man.name)
   )
 
-  // Probability calculation functions
-  const calculatePairProbabilities = () => {
-    const probabilities: Record<string, Record<string, number>> = {}
-    
-    // Calculate correct base probability based on AYTO rules
-    const womenCount = women.length
-    const menCount = men.length
-    
-    // AYTO Rule: Total Perfect Matches = max(womenCount, menCount)
-    // If unequal, some participants have multiple perfect matches
-    
-    let baseProbabilityForWomen: number
-    
-    if (womenCount === menCount) {
-      // Equal numbers: each person has exactly 1 perfect match
-      baseProbabilityForWomen = 1 / menCount
-    } else if (womenCount < menCount) {
-      // More men: some women have multiple perfect matches
-      // Total matches = menCount, distributed among womenCount women
-      const avgMatchesPerWoman = menCount / womenCount
-      baseProbabilityForWomen = avgMatchesPerWoman / menCount
-    } else {
-      // More women: some men have multiple perfect matches  
-      // Total matches = womenCount, distributed among menCount men
-      baseProbabilityForWomen = 1 / menCount
-    }
-    
-    // Initialize probability matrix with correct AYTO mathematics
-    women.forEach(woman => {
-      probabilities[woman.name!] = {}
-      men.forEach(man => {
-        probabilities[woman.name!][man.name!] = baseProbabilityForWomen
-      })
-    })
-
-    // Analyze Matching Night results
-    matchingNights.forEach(night => {
-      const totalPairs = night.pairs.length
-      const lights = night.totalLights || 0
+  // Get pair probabilities from calculation result or use empty matrix
+  const pairProbabilities = probabilityResult?.probabilityMatrix || {}
+  
+  // Helper: Check if participant has a perfect match (nur ausgestrahlte Matchboxes)
+  const hasConfirmedPerfectMatch = (participantName: string, gender: 'M' | 'F') => {
+    const now = new Date()
+    return matchboxes.some(mb => {
+      // Nur Perfect Matches berücksichtigen
+      if (mb.matchType !== 'perfect') return false
       
-      if (totalPairs > 0) {
-        // Calculate evidence strength based on light ratio
-        const lightRatio = lights / totalPairs
-        const evidenceStrength = lightRatio * 0.4 // Max 40% boost for perfect night
-        
-        night.pairs.forEach(pair => {
-          if (probabilities[pair.woman] && probabilities[pair.woman][pair.man] !== undefined) {
-            if (lights > 0) {
-              // Boost probability for pairs in a successful night
-              const boost = evidenceStrength / totalPairs // Distribute boost among all pairs
-              probabilities[pair.woman][pair.man] *= (1 + boost)
-            } else {
-              // Reduce probability for pairs in a failed night (0 lights)
-              probabilities[pair.woman][pair.man] *= 0.8 // 20% reduction
-            }
-          }
-        })
-        
-        // Also reduce probability for pairs NOT in this night (if it was successful)
-        if (lights > 0) {
-          const reductionFactor = Math.min(0.1, lightRatio * 0.05) // Max 10% reduction
-          women.forEach(woman => {
-            men.forEach(man => {
-              const wasInNight = night.pairs.some(p => p.woman === woman.name && p.man === man.name)
-              if (!wasInNight && probabilities[woman.name!] && probabilities[woman.name!][man.name!] !== undefined) {
-                probabilities[woman.name!][man.name!] *= (1 - reductionFactor)
-              }
-            })
-          })
-        }
+      // Nur wenn die richtige Person betroffen ist
+      const isCorrectParticipant = gender === 'F' ? mb.woman === participantName : mb.man === participantName
+      if (!isCorrectParticipant) return false
+      
+      // Nur Matchboxes mit gültigen Ausstrahlungsdaten berücksichtigen
+      if (!mb.ausstrahlungsdatum || !mb.ausstrahlungszeit) return false
+      
+      // Prüfe, ob bereits ausgestrahlt
+      try {
+        const broadcastDate = getMatchboxBroadcastDateTime(mb)
+        return broadcastDate <= now
+      } catch {
+        return false
       }
     })
-
-    // Analyze Matchbox results
-    matchboxes.forEach(matchbox => {
-      if (probabilities[matchbox.woman] && probabilities[matchbox.woman][matchbox.man] !== undefined) {
-        switch (matchbox.matchType) {
-          case 'perfect':
-            probabilities[matchbox.woman][matchbox.man] = 1.0 // 100% if confirmed perfect match
-            break
-          case 'no-match':
-            probabilities[matchbox.woman][matchbox.man] = 0.0 // 0% if confirmed no match
-            break
-          case 'sold':
-            probabilities[matchbox.woman][matchbox.man] += 0.2 // +20% if someone bought it
-            break
-        }
+  }
+  
+  // Helper: Get perfect match partner name (nur ausgestrahlte Matchboxes)
+  const getPerfectMatchPartner = (participantName: string, gender: 'M' | 'F'): string | null => {
+    const now = new Date()
+    const match = matchboxes.find(mb => {
+      // Nur Perfect Matches berücksichtigen
+      if (mb.matchType !== 'perfect') return false
+      
+      // Nur wenn die richtige Person betroffen ist
+      const isCorrectParticipant = gender === 'F' ? mb.woman === participantName : mb.man === participantName
+      if (!isCorrectParticipant) return false
+      
+      // Nur Matchboxes mit gültigen Ausstrahlungsdaten berücksichtigen
+      if (!mb.ausstrahlungsdatum || !mb.ausstrahlungszeit) return false
+      
+      // Prüfe, ob bereits ausgestrahlt
+      try {
+        const broadcastDate = getMatchboxBroadcastDateTime(mb)
+        return broadcastDate <= now
+      } catch {
+        return false
       }
     })
-
-    // Normalize probabilities to 0-1 range
-    Object.keys(probabilities).forEach(woman => {
-      Object.keys(probabilities[woman]).forEach(man => {
-        probabilities[woman][man] = Math.max(0, Math.min(1, probabilities[woman][man]))
-      })
-    })
-
-    return probabilities
+    return match ? (gender === 'F' ? match.man : match.woman) : null
   }
 
-  const pairProbabilities = calculatePairProbabilities()
+  // Helper: Check if pair was in a "Perfect Light" Matching Night (alle Lichter angegangen)
+  const isPairInPerfectLightMatchingNight = (womanName: string, manName: string): boolean => {
+    const now = new Date()
+    return matchingNights.some(mn => {
+      // Nur ausgestrahlte Matching Nights berücksichtigen
+      if (mn.ausstrahlungsdatum && mn.ausstrahlungszeit) {
+        try {
+          const broadcastDate = new Date(`${mn.ausstrahlungsdatum}T${mn.ausstrahlungszeit}`)
+          if (broadcastDate > now) return false
+        } catch {
+          return false
+        }
+      }
+      
+      // Prüfe ob alle Lichter angegangen sind (z.B. 10 von 10)
+      const maxPairs = 10 // Maximale Anzahl Paare
+      const isPerfectLight = mn.totalLights === maxPairs && mn.pairs.length === maxPairs
+      
+      if (!isPerfectLight) return false
+      
+      // Prüfe ob dieses Paar in dieser Matching Night war
+      return mn.pairs.some(pair => pair.woman === womanName && pair.man === manName)
+    })
+  }
+
+  // Helper: Check if a match is definitively excluded (by box decisions OR perfect match logic)
+  const isDefinitivelyExcluded = (womanName: string, manName: string): boolean => {
+    // 1. Direkt ausgeschlossen durch Box-Entscheidung
+    const excludedByBox = matchboxes.some(mb => 
+      mb.matchType === 'no-match' && 
+      mb.woman === womanName && 
+      mb.man === manName
+    )
+    
+    // 2. Ausgeschlossen durch Perfect Match Logik:
+    // Wenn eine Person bereits ein Perfect Match hat, sind alle anderen Matches unmöglich
+    const womanHasPerfectMatch = hasConfirmedPerfectMatch(womanName, 'F')
+    const manHasPerfectMatch = hasConfirmedPerfectMatch(manName, 'M')
+    const womanPerfectPartner = getPerfectMatchPartner(womanName, 'F')
+    const manPerfectPartner = getPerfectMatchPartner(manName, 'M')
+    
+    // Wenn beide bereits Perfect Matches haben, aber nicht miteinander
+    const excludedByPerfectMatch = (womanHasPerfectMatch && womanPerfectPartner !== manName) ||
+                                  (manHasPerfectMatch && manPerfectPartner !== womanName)
+    
+    // Debug: Zeige alle Matchbox-Typen
+    if (matchboxes.length > 0 && !window.debugShown) {
+      console.log('🔍 Matchbox-Typen:', matchboxes.map(mb => ({ 
+        pair: `${mb.woman} & ${mb.man}`, 
+        type: mb.matchType 
+      })))
+      window.debugShown = true
+    }
+    
+    return excludedByBox || excludedByPerfectMatch
+  }
+
+  // Hilfsfunktion: Findet Matching Nights, in denen Teilnehmer mit ANDEREN Partnern saßen
+  const getOtherPartnerNights = (womanName: string, manName: string) => {
+    const womanOtherNights: Array<{nightNumber: number, lights: number, partner: string}> = []
+    const manOtherNights: Array<{nightNumber: number, lights: number, partner: string}> = []
+    
+    const sortedMatchingNights = [...matchingNights].sort((a, b) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+      return dateA - dateB
+    })
+    
+    sortedMatchingNights.forEach((night, index) => {
+      const nightNumber = index + 1
+      const womanPair = night.pairs.find(p => p.womanName === womanName && p.manName !== manName)
+      if (womanPair) {
+        womanOtherNights.push({ nightNumber, lights: night.totalLights, partner: womanPair.manName })
+      }
+      const manPair = night.pairs.find(p => p.manName === manName && p.womanName !== womanName)
+      if (manPair) {
+        manOtherNights.push({ nightNumber, lights: night.totalLights, partner: manPair.womanName })
+      }
+    })
+    
+    return { womanOtherNights, manOtherNights }
+  }
+
+  // Helper: Find all matching night info for a pair
+  const getMatchingNightInfo = (womanName: string, manName: string): { nightNumbers: number[], allLights: number[] } | null => {
+    // Sortiere Matching Nights nach Ausstrahlungsdatum (chronologisch)
+    const sortedNights = [...matchingNights].sort((a, b) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum) : new Date(a.createdAt)
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum) : new Date(b.createdAt)
+      return dateA.getTime() - dateB.getTime()
+    })
+    
+    const nightNumbers: number[] = []
+    const allLights: number[] = []
+    
+    for (let i = 0; i < sortedNights.length; i++) {
+      const night = sortedNights[i]
+      const pairExists = night.pairs.some(pair => 
+        pair.woman === womanName && pair.man === manName
+      )
+      if (pairExists) {
+        nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
+        allLights.push(night.totalLights)
+      }
+    }
+    
+    return nightNumbers.length > 0 ? { nightNumbers, allLights } : null
+  }
+
+  // Helper: Find ALL matching nights where participants sat together (including before they became Perfect Match)
+  const getAllMatchingNightsTogether = (womanName: string, manName: string): { nightNumbers: number[], allLights: number[] } => {
+    const sortedNights = [...matchingNights].sort((a, b) => {
+      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum) : new Date(a.createdAt)
+      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum) : new Date(b.createdAt)
+      return dateA.getTime() - dateB.getTime()
+    })
+    
+    const nightNumbers: number[] = []
+    const allLights: number[] = []
+    
+    
+    for (let i = 0; i < sortedNights.length; i++) {
+      const night = sortedNights[i]
+      const pairExists = night.pairs.some(pair => 
+        pair.woman === womanName && pair.man === manName
+      )
+      if (pairExists) {
+        nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
+        allLights.push(night.totalLights)
+      }
+    }
+    
+    return { nightNumbers, allLights }
+  }
+
 
 
   // Admin functions
@@ -1841,158 +1968,205 @@ const OverviewMUI: React.FC = () => {
 
           {/* Probability Analysis Tab */}
           <TabPanel value={activeTab} index={3}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                Wahrscheinlichkeits-Analyse
-                </Typography>
-            </Box>
+            {/* Error Message */}
+            {probabilityStatus.error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {probabilityStatus.error}
+              </Alert>
+            )}
 
-            {/* Overall Statistics */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 4 }}>
-              <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                    {(() => {
-                      // Berechne aktuelle mögliche Paare (ohne 0% und 100%)
-                      let possiblePairs = 0
-                      Object.values(pairProbabilities).forEach(womanProbs => {
-                        Object.values(womanProbs).forEach(prob => {
-                          const percentage = Math.round(prob * 100)
-                          if (percentage > 0 && percentage < 100) {
-                            possiblePairs++
-                          }
-                        })
-                      })
-                      return possiblePairs
-                    })()}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' }}>
-                    Mögliche Paare
-                  </Typography>
-                </CardContent>
-              </Card>
+            {/* Warning: Missing Broadcast Data */}
+            {(() => {
+              const matchboxesWithoutBroadcast = matchboxes.filter(mb => 
+                !mb.ausstrahlungsdatum || !mb.ausstrahlungszeit
+              )
+              const matchingNightsWithoutBroadcast = matchingNights.filter(mn => 
+                !mn.ausstrahlungsdatum || !mn.ausstrahlungszeit
+              )
               
-              <Card sx={{ background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', color: 'white' }}>
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                    {matchboxes.filter(m => m.matchType === 'perfect').length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' }}>
-                    Bestätigte Matches
-                  </Typography>
-                </CardContent>
-              </Card>
-              
-              <Card sx={{ background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', color: '#333' }}>
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                    {matchingNights.length}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'rgba(51,51,51,0.8)' }}>
-                    Matching Nights
-                  </Typography>
-                </CardContent>
-        </Card>
-      </Box>
+              if (matchboxesWithoutBroadcast.length > 0 || matchingNightsWithoutBroadcast.length > 0) {
+                return (
+                  <Alert severity="warning" sx={{ mb: 3 }}>
+                    <strong>Fehlende Ausstrahlungsdaten:</strong>
+                    {matchboxesWithoutBroadcast.length > 0 && (
+                      <div>
+                        • {matchboxesWithoutBroadcast.length} Matchbox{matchboxesWithoutBroadcast.length > 1 ? 'en' : ''} ohne Ausstrahlungsdatum/-zeit 
+                        (werden nicht in der Matrix berücksichtigt)
+                      </div>
+                    )}
+                    {matchingNightsWithoutBroadcast.length > 0 && (
+                      <div>
+                        • {matchingNightsWithoutBroadcast.length} Matching Night{matchingNightsWithoutBroadcast.length > 1 ? 's' : ''} ohne Ausstrahlungsdatum/-zeit 
+                        (verwenden Erstellungsdatum als Fallback)
+                      </div>
+                    )}
+                    <div style={{ marginTop: '8px' }}>
+                      → Bitte Ausstrahlungsdaten im <strong>Admin-Panel → Ausstrahlungsplan</strong> vervollständigen.
+                    </div>
+                  </Alert>
+                )
+              }
+              return null
+            })()}
 
-              {/* Heatmap Matrix */}
+            {/* Heatmap Matrix */}
             <Card sx={{ height: 'fit-content', mb: 3 }}>
                 <CardHeader 
                   title="Wahrscheinlichkeits-Matrix"
                   subheader="Heatmap aller Paar-Kombinationen"
                   action={
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: '0.7rem' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 12, height: 12, bgcolor: 'success.main', borderRadius: '2px' }} />
-                        <Typography variant="caption">100% Perfect Match ✓</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ width: 12, height: 12, bgcolor: 'error.main', borderRadius: '2px' }} />
-                        <Typography variant="caption">0% No Match ✗</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ 
-                          width: 12, 
-                          height: 12, 
-                          background: 'linear-gradient(90deg, hsl(0, 70%, 80%) 0%, hsl(60, 70%, 70%) 50%, hsl(120, 70%, 60%) 100%)',
-                          borderRadius: '2px' 
-                        }} />
-                        <Typography variant="caption">1-99% Wahrscheinlichkeit</Typography>
-                      </Box>
-                    </Box>
+                    <Button
+                      variant="contained"
+                      onClick={async () => {
+                        if (probabilityResult) {
+                          console.log('🗑️ Lösche Cache vor Neuberechnung...')
+                          await clearProbabilityCache()
+                        }
+                        triggerCalculation()
+                      }}
+                      disabled={probabilityStatus.isCalculating}
+                    >
+                      {probabilityResult ? 'Neu berechnen' : 'Berechnen'}
+                    </Button>
                   }
                 />
-                <CardContent>
-                  <Box sx={{ overflow: 'auto', maxHeight: 600 }}>
+                
+                {/* Progress Bar */}
+                {probabilityStatus.isCalculating && (
+                  <Box sx={{ mx: 2, mt: 2 }}>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={probabilityStatus.progress} 
+                      sx={{ height: 8, borderRadius: 1 }}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {probabilityStatus.progress}% - {probabilityStatus.currentStep}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {/* Calculation Info */}
+                {probabilityResult && !probabilityStatus.isCalculating && (
+                  <Alert severity="info" sx={{ mx: 2, mt: 2 }}>
+                    Berechnung abgeschlossen: {probabilityResult.totalValidMatchings.toLocaleString()} gültige Kombinationen gefunden 
+                    in {(probabilityResult.calculationTime / 1000).toFixed(2)}s
+                    {probabilityResult.limitReached && ' (Limit erreicht)'}
+                    {probabilityResult.fixedPairs.length > 0 && ` • ${probabilityResult.fixedPairs.length} fixierte Paare`}
+                  </Alert>
+                )}
+                
+                <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                  <Box sx={{ overflow: 'visible' }}>
                     <Table size="small">
                       <TableHead>
                         <TableRow>
-                        <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
-                          {men.map(man => (
+                        <TableCell sx={{ 
+                          fontWeight: 'bold',
+                          bgcolor: 'white',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}></TableCell>
+                          {men.map(man => {
+                            const hasPerfectMatch = hasConfirmedPerfectMatch(man.name!, 'M')
+                            const partner = getPerfectMatchPartner(man.name!, 'M')
+                            return (
                             <TableCell key={man.id} sx={{ 
-                              fontWeight: 'bold', 
-                              fontSize: '0.75rem',
-                            minWidth: '80px',
+                              fontWeight: 'bold',
+                              fontSize: '0.9rem',
+                              minWidth: '80px',
                               textAlign: 'center',
-                              height: '80px',
-                            verticalAlign: 'bottom',
-                            p: 1
+                              verticalAlign: 'top',
+                              p: 1,
+                              bgcolor: 'white',
+                              border: '1px solid',
+                              borderColor: 'divider'
                           }}>
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
                               <Avatar 
                                 src={man.photoUrl}
                                 sx={{ 
-                                  width: 24, 
-                                  height: 24, 
-                                  fontSize: '0.7rem',
+                                  width: 32, 
+                                  height: 32, 
+                                  fontSize: '0.9rem',
                                   bgcolor: 'white',
-                                  border: '1px solid',
-                                  borderColor: 'grey.300'
+                                  border: hasPerfectMatch ? '2px solid' : '1px solid',
+                                  borderColor: hasPerfectMatch ? 'success.dark' : 'grey.300'
                                 }}
                               >
                                 {man.name?.charAt(0)}
                               </Avatar>
                               <Typography variant="caption" sx={{ 
-                                fontSize: '0.65rem',
+                                fontSize: '0.9rem',
                                 lineHeight: 1,
                                 textAlign: 'center',
                                 wordBreak: 'break-word',
-                                color: 'black'
+                                color: 'black',
+                                fontWeight: hasPerfectMatch ? 'bold' : 'normal'
                             }}>
                               {man.name?.substring(0, 8)}
                               </Typography>
+                              {hasPerfectMatch && partner && (
+                                <Typography variant="caption" sx={{ 
+                                  fontSize: '0.7rem',
+                                  color: 'success.dark',
+                                  fontWeight: 'bold'
+                                }}>
+                                  ↔ {partner.substring(0, 6)}
+                                </Typography>
+                              )}
                             </Box>
                             </TableCell>
-                          ))}
+                            )
+                          })}
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {women.map(woman => (
+                        {women.map(woman => {
+                          const womanHasPerfectMatch = hasConfirmedPerfectMatch(woman.name!, 'F')
+                          const womanPartner = getPerfectMatchPartner(woman.name!, 'F')
+                          return (
                           <TableRow key={woman.id}>
                             <TableCell sx={{ 
                               fontWeight: 'bold', 
-                              fontSize: '0.75rem',
-                            minWidth: '100px',
-                            p: 1
+                              fontSize: '0.9rem',
+                              width: '1%',
+                              whiteSpace: 'nowrap',
+                              p: 1,
+                              bgcolor: 'white',
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              textAlign: 'right'
                           }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                               <Typography variant="caption" sx={{ 
-                                fontSize: '0.65rem',
+                                fontSize: '0.9rem',
                                 lineHeight: 1,
                                 wordBreak: 'break-word',
-                                color: 'black'
+                                  color: 'black',
+                                  fontWeight: womanHasPerfectMatch ? 'bold' : 'normal'
                             }}>
                               {woman.name?.substring(0, 10)}
                               </Typography>
+                                {womanHasPerfectMatch && womanPartner && (
+                                  <Typography variant="caption" sx={{ 
+                                    fontSize: '0.7rem',
+                                    color: 'success.dark',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    ↔ {womanPartner.substring(0, 6)}
+                                  </Typography>
+                                )}
+                              </Box>
                               <Avatar 
                                 src={woman.photoUrl}
                                 sx={{ 
-                                  width: 24, 
-                                  height: 24, 
-                                  fontSize: '0.7rem',
+                                  width: 32, 
+                                  height: 32, 
+                                  fontSize: '0.9rem',
                                   bgcolor: 'white',
-                                  border: '1px solid',
-                                  borderColor: 'grey.300'
+                                  border: womanHasPerfectMatch ? '2px solid' : '1px solid',
+                                  borderColor: womanHasPerfectMatch ? 'success.dark' : 'grey.300'
                                 }}
                               >
                                 {woman.name?.charAt(0)}
@@ -2003,63 +2177,409 @@ const OverviewMUI: React.FC = () => {
                               const probability = pairProbabilities[woman.name!]?.[man.name!] || 0
                               const percentage = Math.round(probability * 100)
                               
+                              // Prüfe zusätzlich, ob es ein bestätigter Perfect Match ist
+                              const isConfirmedPerfectMatch = percentage === 100 || 
+                                (hasConfirmedPerfectMatch(woman.name!, 'F') && 
+                                 hasConfirmedPerfectMatch(man.name!, 'M') && 
+                                 getPerfectMatchPartner(woman.name!, 'F') === man.name!) ||
+                                isPairInPerfectLightMatchingNight(woman.name!, man.name!)
+                              
+                              // Prüfe, ob es definitiv ausgeschlossen ist (durch Box-Entscheidungen)
+                              const isDefinitelyExcluded = isDefinitivelyExcluded(woman.name!, man.name!)
+                              
+                              // Prüfe, ob das Paar bereits in einer Matching Night zusammensaß
+                              const matchingNightInfo = getMatchingNightInfo(woman.name!, man.name!)
+                              
+                              // Für alle Paare: Zeige ALLE Matching Nights, in denen sie zusammensaßen
+                              const allMatchingNightsTogether = getAllMatchingNightsTogether(woman.name!, man.name!)
+
+                              // Finde andere Partner-Nächte (immer ermitteln, Anzeige je nach Kontext)
+                              const otherPartnerNights = getOtherPartnerNights(woman.name!, man.name!)
+                              
                               return (
                                 <TableCell 
                                   key={`${woman.id}-${man.id}`}
                                   sx={{ 
-                                    bgcolor: percentage === 100 ? 'success.main' :  // 100% = Grün
-                                             percentage === 0 ? 'error.main' :      // 0% = Rot
-                                             `hsl(${probability * 120}, 70%, ${90 - probability * 30}%)`, // Normal HSL
+                                    bgcolor: 'white',  // Alle Felder weiß
                                     textAlign: 'center',
-                                    fontWeight: percentage === 0 || percentage === 100 ? 'bold' : 'bold',
-                                    fontSize: percentage === 0 || percentage === 100 ? '0.9rem' : '0.75rem',
-                                    color: percentage === 100 ? 'white' :           // Perfect Match = Weiß
-                                           percentage === 0 ? 'white' :             // No Match = Weiß  
-                                           probability > 0.5 ? 'white' : 'black',   // Normal logic
+                                    fontWeight: 'bold',
+                                    fontSize: '1.5rem',  // Alle Felder gleich groß
+                                    color: isConfirmedPerfectMatch ? 'success.main' :     // Perfect Match = Grün
+                                           isDefinitelyExcluded ? 'error.main' :          // Definitiv ausgeschlossen = Rot
+                                           'text.secondary',                               // Andere = Grau
                                     cursor: 'pointer',
-                                    border: percentage === 0 || percentage === 100 ? '2px solid' : 'none',
-                                    borderColor: percentage === 100 ? 'success.dark' : 
-                                                percentage === 0 ? 'error.dark' : 'transparent',
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    minWidth: '40px',
+                                    maxWidth: '50px',
+                                    width: '45px',
+                                    height: '45px',
+                                    p: 0.25,
                                     '&:hover': {
-                                      bgcolor: percentage === 100 ? 'success.dark' :
-                                               percentage === 0 ? 'error.dark' :
-                                               `hsl(${probability * 120}, 70%, ${80 - probability * 30}%)`,
-                                      transform: 'scale(1.1)',
-                                      boxShadow: percentage === 0 || percentage === 100 ? 3 : 1
+                                      bgcolor: 'grey.50',
+                                      transform: 'scale(1.02)'
                                     },
                                     transition: 'all 0.2s ease',
                                     position: 'relative',
-                                    '&::after': percentage === 100 ? {
-                                      content: '"✓"',
-                                      position: 'absolute',
-                                      top: 2,
-                                      right: 2,
-                                      fontSize: '0.7rem',
-                                      color: 'white',
-                                      fontWeight: 'bold'
-                                    } : percentage === 0 ? {
-                                      content: '"✗"',
-                                      position: 'absolute',
-                                      top: 2,
-                                      right: 2,
-                                      fontSize: '0.7rem',
-                                      color: 'white',
-                                      fontWeight: 'bold'
-                                    } : {}
                                   }}
-                                  title={`${woman.name} & ${man.name}: ${percentage}%${
-                                    percentage === 100 ? ' (PERFECT MATCH ✓)' : 
-                                    percentage === 0 ? ' (NO MATCH ✗)' : ''
+                                  title={`${woman.name} & ${man.name}: ${isConfirmedPerfectMatch ? '100' : percentage}%${
+                                    isConfirmedPerfectMatch ? 
+                                      allMatchingNightsTogether.nightNumbers.length > 0 ?
+                                        ` (PERFECT MATCH ✓ - Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num, idx) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` :
+                                        ' (PERFECT MATCH ✓)' : 
+                                    isDefinitelyExcluded ? ' (DEFINITIV AUSGESCHLOSSEN ✗)' : 
+                                    allMatchingNightsTogether.nightNumbers.length > 0 ? ` (Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num, idx) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` : ''
                                   }`}
                                 >
-                                  {percentage === 100 ? '100%' : percentage === 0 ? '0%' : `${percentage}%`}
+                                  {/* Oberer Teil: Symbol */}
+                                  <Box sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    minHeight: '24px',
+                                    borderBottom: allMatchingNightsTogether.nightNumbers.length > 0 ? '1px solid' : 'none',
+                                    borderColor: 'divider',
+                                    pb: allMatchingNightsTogether.nightNumbers.length > 0 ? 0.5 : 0
+                                  }}>
+                                    {isConfirmedPerfectMatch ? '💚' : 
+                                     isDefinitelyExcluded ? '✗' : 
+                                     '?'}
+                                  </Box>
+                                  
+                                  {/* Unterer Teil: Matching Night Informationen */}
+                                  {allMatchingNightsTogether.nightNumbers.length > 0 && (
+                                    <Box sx={{ 
+                                      display: 'flex', 
+                                      flexDirection: 'column',
+                                      alignItems: 'center', 
+                                      justifyContent: 'center', 
+                                      pt: 0.5,
+                                      minHeight: '20px'
+                                    }}>
+                                      <Typography variant="caption" sx={{ 
+                                        fontSize: '0.6rem', 
+                                        lineHeight: 1.2, 
+                                        color: isConfirmedPerfectMatch ? 'success.main' : 'info.main',
+                                        fontWeight: 'bold',
+                                        textAlign: 'center'
+                                      }}>
+                                        {allMatchingNightsTogether.nightNumbers.map((nightNum, idx) => 
+                                          `#${nightNum}(${allMatchingNightsTogether.allLights[idx]})`
+                                        ).join(' ')}
+                                      </Typography>
+                                    </Box>
+                                  )}
+                                  
+                                  {/* Andere Partner Quadrate */}
+                                  {otherPartnerNights && (otherPartnerNights.womanOtherNights.length > 0 || otherPartnerNights.manOtherNights.length > 0) && (
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3, justifyContent: 'center', mt: 0.5 }}>
+                                      {otherPartnerNights.womanOtherNights.map(night => (
+                                        <Box key={`woman-${night.nightNumber}`} sx={{ width: 16, height: 16, bgcolor: 'white', border: '2px solid', borderColor: 'warning.main', borderRadius: '2px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold', color: 'warning.main' }}>
+                                          <Typography variant="caption" sx={{ fontSize: '0.45rem', lineHeight: 1, fontWeight: 'bold', color: 'warning.main' }}>{night.nightNumber}</Typography>
+                                          <Typography variant="caption" sx={{ fontSize: '0.35rem', lineHeight: 1, fontWeight: 'bold', color: 'warning.main' }}>{night.lights}</Typography>
+                                        </Box>
+                                      ))}
+                                      {otherPartnerNights.manOtherNights.map(night => (
+                                        <Box key={`man-${night.nightNumber}`} sx={{ width: 16, height: 16, bgcolor: 'white', border: '2px solid', borderColor: 'error.main', borderRadius: '2px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold', color: 'error.main' }}>
+                                          <Typography variant="caption" sx={{ fontSize: '0.45rem', lineHeight: 1, fontWeight: 'bold', color: 'error.main' }}>{night.nightNumber}</Typography>
+                                          <Typography variant="caption" sx={{ fontSize: '0.35rem', lineHeight: 1, fontWeight: 'bold', color: 'error.main' }}>{night.lights}</Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  )}
                                 </TableCell>
                               )
                             })}
                           </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </Box>
+                  
+                  {/* Legende */}
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                      Legende:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 20, height: 20, border: '1px solid', borderColor: 'divider', borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+                          💚
+                        </Box>
+                        <Typography variant="caption">100% Perfect Match</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 20, height: 20, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', color: 'error.main', fontWeight: 'bold' }}>
+                          ✗
+                        </Box>
+                        <Typography variant="caption">0% Definitiv ausgeschlossen</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" sx={{ 
+                          fontSize: '0.6rem', 
+                          color: 'info.main',
+                          fontWeight: 'bold',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: '2px',
+                          px: 0.5,
+                          py: 0.25
+                        }}>
+                          #0(0)
+                        </Typography>
+                        <Typography variant="caption">Matching Night (Night & Lichter)</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 20, height: 20, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', color: 'text.secondary', fontWeight: 'bold' }}>
+                          ?
+                        </Box>
+                        <Typography variant="caption">Unbekannte Wahrscheinlichkeit</Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+            {/* Benutzer-Lösungs-Matrix */}
+            <Card sx={{ height: 'fit-content', mb: 3 }}>
+                <CardHeader 
+                  title="Meine Lösung"
+                  subheader="Trage hier deine eigene Lösung ein"
+                  action={
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => {
+                          // Lösungs-Matrix zurücksetzen
+                          const newSolution = {}
+                          women.forEach(woman => {
+                            newSolution[woman.name!] = {}
+                            men.forEach(man => {
+                              newSolution[woman.name!][man.name!] = ''
+                            })
+                          })
+                          setUserSolution(newSolution)
+                        }}
+                      >
+                        Zurücksetzen
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => {
+                          // Lösungs-Matrix speichern
+                          localStorage.setItem('userSolution', JSON.stringify(userSolution))
+                          setSnackbar({ open: true, message: 'Lösung gespeichert!', severity: 'success' })
+                        }}
+                      >
+                        Speichern
+                      </Button>
+                    </Box>
+                  }
+                />
+                <CardContent>
+                  <Box sx={{ overflow: 'auto', maxHeight: 600 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                          {men.map(man => (
+                            <TableCell key={man.id} sx={{ 
+                              fontWeight: 'bold', 
+                              fontSize: '1rem',
+                              minWidth: '80px',
+                              textAlign: 'center',
+                              height: '80px',
+                              verticalAlign: 'bottom',
+                              p: 1,
+                              bgcolor: 'white'
+                            }}>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                                <Avatar 
+                                  src={man.photoUrl}
+                                  sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    fontSize: '1rem',
+                                    border: '2px solid',
+                                    borderColor: 'primary.main'
+                                  }}
+                                >
+                                  {man.name?.charAt(0)}
+                                </Avatar>
+                                <Typography variant="caption" sx={{ 
+                                  fontSize: '1rem',
+                                  lineHeight: 1,
+                                  wordBreak: 'break-word',
+                                  color: 'black',
+                                  fontWeight: 'bold'
+                                }}>
+                                  {man.name?.substring(0, 10)}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {women.map(woman => (
+                          <TableRow key={woman.id}>
+                            <TableCell sx={{ 
+                              fontWeight: 'bold', 
+                              fontSize: '1rem',
+                              minWidth: '100px',
+                              p: 1,
+                              bgcolor: 'white'
+                            }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                  <Typography variant="caption" sx={{ 
+                                    fontSize: '1rem',
+                                    lineHeight: 1,
+                                    wordBreak: 'break-word',
+                                    color: 'black',
+                                    fontWeight: 'bold'
+                                  }}>
+                                    {woman.name?.substring(0, 10)}
+                                  </Typography>
+                                </Box>
+                                <Avatar 
+                                  src={woman.photoUrl}
+                                  sx={{ 
+                                    width: 32, 
+                                    height: 32, 
+                                    fontSize: '1rem',
+                                    border: '2px solid',
+                                    borderColor: 'primary.main'
+                                  }}
+                                >
+                                  {woman.name?.charAt(0)}
+                                </Avatar>
+                              </Box>
+                            </TableCell>
+                            {men.map(man => (
+                              <TableCell 
+                                key={`${woman.id}-${man.id}`}
+                                sx={{ 
+                                  bgcolor: 'white',
+                                  textAlign: 'center',
+                                  fontWeight: 'bold',
+                                  fontSize: '1.2rem',
+                                  cursor: 'pointer',
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  minWidth: 60,
+                                  height: 40,
+                                  p: 0.5,
+                                  color: userSolution[woman.name!]?.[man.name!] === '✓' ? 'success.main' :
+                                         userSolution[woman.name!]?.[man.name!] === '✗' ? 'error.main' :
+                                         'text.primary'
+                                }}
+                                onClick={() => {
+                                  // Toggle zwischen verschiedenen Zuständen
+                                  const currentValue = userSolution[woman.name!]?.[man.name!] || ''
+                                  const states = ['', '✓', '✗', '?']
+                                  const currentIndex = states.indexOf(currentValue)
+                                  const nextIndex = (currentIndex + 1) % states.length
+                                  const nextValue = states[nextIndex]
+                                  
+                                  setUserSolution(prev => ({
+                                    ...prev,
+                                    [woman.name!]: {
+                                      ...prev[woman.name!],
+                                      [man.name!]: nextValue
+                                    }
+                                  }))
+                                }}
+                                title={`${woman.name} & ${man.name}: ${userSolution[woman.name!]?.[man.name!] || 'Leer'} - Klicken zum Wechseln`}
+                              >
+                                {userSolution[woman.name!]?.[man.name!] || ''}
+                              </TableCell>
+                            ))}
+                          </TableRow>
                         ))}
                       </TableBody>
                     </Table>
+                  </Box>
+                  
+                  {/* Legende für die Benutzer-Matrix */}
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                      Legende:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ 
+                          width: 20, 
+                          height: 20, 
+                          border: '1px solid', 
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1rem',
+                          fontWeight: 'bold',
+                          color: 'success.main'
+                        }}>
+                          ✓
+                        </Box>
+                        <Typography variant="caption">Perfect Match</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ 
+                          width: 20, 
+                          height: 20, 
+                          border: '1px solid', 
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1rem',
+                          fontWeight: 'bold',
+                          color: 'error.main'
+                        }}>
+                          ✗
+                        </Box>
+                        <Typography variant="caption">Kein Match</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ 
+                          width: 20, 
+                          height: 20, 
+                          border: '1px solid', 
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.8rem',
+                          fontWeight: 'bold'
+                        }}>
+                          ?
+                        </Box>
+                        <Typography variant="caption">Unsicher</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ 
+                          width: 20, 
+                          height: 20, 
+                          border: '1px solid', 
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.8rem',
+                          fontWeight: 'bold'
+                        }}>
+                          
+                        </Box>
+                        <Typography variant="caption">Leer</Typography>
+                      </Box>
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      Klicke auf eine Zelle, um zwischen den Zuständen zu wechseln
+                    </Typography>
                   </Box>
                 </CardContent>
               </Card>

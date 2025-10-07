@@ -29,9 +29,11 @@ import {
   Edit as EditIcon,
   Nightlife as NightlifeIcon,
   Group as GroupIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  Notes as NotesIcon,
+  Save as SaveIcon
 } from '@mui/icons-material'
-import { db, type MatchingNight, type Matchbox } from '../../lib/db'
+import { db, DatabaseUtils, type MatchingNight, type Matchbox, type BroadcastNote } from '../../lib/db'
 // import { 
 //   createBroadcastSortKey,
 //   formatBroadcastDateTime
@@ -69,10 +71,75 @@ const BroadcastManagement: React.FC<BroadcastManagementProps> = ({
     message: '',
     severity: 'success'
   })
+  const [notes, setNotes] = useState<Record<string, string>>({}) // date -> notes
+  const [savingNotes, setSavingNotes] = useState<Record<string, boolean>>({}) // date -> isSaving
 
   useEffect(() => {
     generateBroadcastEvents(matchingNights, matchboxes)
   }, [matchingNights, matchboxes])
+
+  useEffect(() => {
+    loadAllNotes()
+  }, [])
+
+  const loadAllNotes = async () => {
+    try {
+      const allNotes = await DatabaseUtils.getAllBroadcastNotes()
+      const notesMap: Record<string, string> = {}
+      allNotes.forEach(note => {
+        notesMap[note.date] = note.notes
+      })
+      setNotes(notesMap)
+    } catch (error) {
+      console.error('Fehler beim Laden der Notizen:', error)
+    }
+  }
+
+  const handleSaveNote = async (date: string) => {
+    const noteText = notes[date] || ''
+    
+    setSavingNotes(prev => ({ ...prev, [date]: true }))
+    
+    try {
+      const note: BroadcastNote = {
+        date,
+        notes: noteText.trim(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      
+      if (noteText.trim()) {
+        await DatabaseUtils.saveBroadcastNote(note)
+        setSnackbar({
+          open: true,
+          message: 'Notiz gespeichert!',
+          severity: 'success'
+        })
+      } else {
+        // Wenn leer, lösche die Notiz
+        const existing = await DatabaseUtils.getBroadcastNoteByDate(date)
+        if (existing && existing.id) {
+          await DatabaseUtils.deleteBroadcastNote(existing.id)
+        }
+        setSnackbar({
+          open: true,
+          message: 'Notiz gelöscht!',
+          severity: 'success'
+        })
+      }
+      
+      await loadAllNotes()
+    } catch (error) {
+      console.error('Fehler beim Speichern der Notiz:', error)
+      setSnackbar({
+        open: true,
+        message: 'Fehler beim Speichern!',
+        severity: 'error'
+      })
+    } finally {
+      setSavingNotes(prev => ({ ...prev, [date]: false }))
+    }
+  }
 
   const generateBroadcastEvents = (matchingNights: MatchingNight[], matchboxes: Matchbox[]) => {
     const events: BroadcastEvent[] = []
@@ -239,16 +306,18 @@ const BroadcastManagement: React.FC<BroadcastManagementProps> = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {Object.entries(groupedEvents)
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-            .map(([date, events]) => {
-              const formattedDate = new Date(date).toLocaleDateString('de-DE', {
+            .map(([dateKey, events]) => {
+              const formattedDate = new Date(dateKey).toLocaleDateString('de-DE', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
               })
               
+              const hasNotes = notes[dateKey] && notes[dateKey].trim().length > 0
+              
               return (
-                <Accordion key={date}>
+                <Accordion key={dateKey}>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                       <Typography variant="h6">{formattedDate}</Typography>
@@ -257,6 +326,15 @@ const BroadcastManagement: React.FC<BroadcastManagementProps> = ({
                         color="primary"
                         size="small"
                       />
+                      {hasNotes && (
+                        <Chip 
+                          icon={<NotesIcon />}
+                          label="Hat Notizen"
+                          color="secondary"
+                          size="small"
+                          variant="outlined"
+                        />
+                      )}
                     </Box>
                   </AccordionSummary>
                   <AccordionDetails>
@@ -336,6 +414,38 @@ const BroadcastManagement: React.FC<BroadcastManagementProps> = ({
                         )
                       })}
                     </List>
+
+                    {/* Notizen Bereich */}
+                    <Divider sx={{ my: 2 }} />
+                    <Box sx={{ px: 2, pb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <NotesIcon color="primary" />
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Notizen zum Ausstrahlungstag
+                        </Typography>
+                      </Box>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        variant="outlined"
+                        placeholder="Notizen zu diesem Ausstrahlungstag..."
+                        value={notes[dateKey] || ''}
+                        onChange={(e) => setNotes(prev => ({ ...prev, [dateKey]: e.target.value }))}
+                        sx={{ mb: 1 }}
+                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<SaveIcon />}
+                          onClick={() => handleSaveNote(dateKey)}
+                          disabled={savingNotes[dateKey]}
+                        >
+                          {savingNotes[dateKey] ? 'Speichere...' : 'Notiz speichern'}
+                        </Button>
+                      </Box>
+                    </Box>
                   </AccordionDetails>
                 </Accordion>
               )
