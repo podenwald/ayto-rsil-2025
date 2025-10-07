@@ -1067,32 +1067,6 @@ const OverviewMUI: React.FC = () => {
     return { womanOtherNights, manOtherNights }
   }
 
-  // Helper: Find all matching night info for a pair
-  const getMatchingNightInfo = (womanName: string, manName: string): { nightNumbers: number[], allLights: number[] } | null => {
-    // Sortiere Matching Nights nach Ausstrahlungsdatum (chronologisch)
-    const sortedNights = [...matchingNights].sort((a, b) => {
-      const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum) : new Date(a.createdAt)
-      const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum) : new Date(b.createdAt)
-      return dateA.getTime() - dateB.getTime()
-    })
-    
-    const nightNumbers: number[] = []
-    const allLights: number[] = []
-    
-    for (let i = 0; i < sortedNights.length; i++) {
-      const night = sortedNights[i]
-      const pairExists = night.pairs.some(pair => 
-        pair.woman === womanName && pair.man === manName
-      )
-      if (pairExists) {
-        nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
-        allLights.push(night.totalLights || 0)
-      }
-    }
-    
-    return nightNumbers.length > 0 ? { nightNumbers, allLights } : null
-  }
-
   // Helper: Find ALL matching nights where participants sat together (including before they became Perfect Match)
   const getAllMatchingNightsTogether = (womanName: string, manName: string): { nightNumbers: number[], allLights: number[] } => {
     const sortedNights = [...matchingNights].sort((a, b) => {
@@ -1104,22 +1078,19 @@ const OverviewMUI: React.FC = () => {
     const nightNumbers: number[] = []
     const allLights: number[] = []
     
-    
     for (let i = 0; i < sortedNights.length; i++) {
       const night = sortedNights[i]
       const pairExists = night.pairs.some(pair => 
         pair.woman === womanName && pair.man === manName
       )
       if (pairExists) {
-        nightNumbers.push(i + 1) // 1-basierte Nummerierung (chronologisch)
+        nightNumbers.push(i + 1)
         allLights.push(night.totalLights || 0)
       }
     }
     
     return { nightNumbers, allLights }
   }
-
-
 
   // Admin functions
   const saveMatchingNight = async () => {
@@ -2217,10 +2188,10 @@ const OverviewMUI: React.FC = () => {
                                   title={`${woman.name} & ${man.name}: ${isConfirmedPerfectMatch ? '100' : percentage}%${
                                     isConfirmedPerfectMatch ? 
                                       allMatchingNightsTogether.nightNumbers.length > 0 ?
-                                        ` (PERFECT MATCH ✓ - Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num, idx) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` :
+                                        ` (PERFECT MATCH ✓ - Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num: number, idx: number) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` :
                                         ' (PERFECT MATCH ✓)' : 
                                     isDefinitelyExcluded ? ' (DEFINITIV AUSGESCHLOSSEN ✗)' : 
-                                    allMatchingNightsTogether.nightNumbers.length > 0 ? ` (Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num, idx) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` : ''
+                                    allMatchingNightsTogether.nightNumbers.length > 0 ? ` (Matching Nights: ${allMatchingNightsTogether.nightNumbers.map((num: number, idx: number) => `#${num} (${allMatchingNightsTogether.allLights[idx]} Lichter)`).join(', ')})` : ''
                                   }`}
                                 >
                                   {/* Oberer Teil: Symbol */}
@@ -2255,7 +2226,7 @@ const OverviewMUI: React.FC = () => {
                                         fontWeight: 'bold',
                                         textAlign: 'center'
                                       }}>
-                                        {allMatchingNightsTogether.nightNumbers.map((nightNum, idx) => 
+                                        {allMatchingNightsTogether.nightNumbers.map((nightNum: number, idx: number) => 
                                           `#${nightNum}(${allMatchingNightsTogether.allLights[idx]})`
                                         ).join(' ')}
                                       </Typography>
