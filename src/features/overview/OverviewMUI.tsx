@@ -1968,7 +1968,7 @@ const OverviewMUI: React.FC = () => {
             )}
 
             {/* Warning: Missing Broadcast Data */}
-            {(() => {
+                    {(() => {
               const matchboxesWithoutBroadcast = matchboxes.filter(mb => 
                 !mb.ausstrahlungsdatum || !mb.ausstrahlungszeit
               )
@@ -1999,7 +1999,7 @@ const OverviewMUI: React.FC = () => {
                 )
               }
               return null
-            })()}
+                    })()}
 
             {/* Heatmap Matrix */}
             <Card sx={{ height: 'fit-content', mb: 3 }}>
@@ -2033,7 +2033,7 @@ const OverviewMUI: React.FC = () => {
                     />
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                       {probabilityStatus.progress}% - {probabilityStatus.currentStep}
-                    </Typography>
+                  </Typography>
                   </Box>
                 )}
                 
@@ -2096,7 +2096,7 @@ const OverviewMUI: React.FC = () => {
                                 fontWeight: hasPerfectMatch ? 'bold' : 'normal'
                             }}>
                               {man.name?.substring(0, 8)}
-                              </Typography>
+                  </Typography>
                               {hasPerfectMatch && partner && (
                                 <Typography variant="caption" sx={{ 
                                   fontSize: '0.7rem',
@@ -2104,7 +2104,7 @@ const OverviewMUI: React.FC = () => {
                                   fontWeight: 'bold'
                                 }}>
                                   ↔ {partner.substring(0, 6)}
-                                </Typography>
+                  </Typography>
                               )}
                             </Box>
                             </TableCell>
@@ -2139,7 +2139,7 @@ const OverviewMUI: React.FC = () => {
                                   fontWeight: womanHasPerfectMatch ? 'bold' : 'normal'
                             }}>
                               {woman.name?.substring(0, 10)}
-                              </Typography>
+                  </Typography>
                                 {womanHasPerfectMatch && womanPartner && (
                                   <Typography variant="caption" sx={{ 
                                     fontSize: '0.7rem',
@@ -2147,9 +2147,9 @@ const OverviewMUI: React.FC = () => {
                                     fontWeight: 'bold'
                                   }}>
                                     ↔ {womanPartner.substring(0, 6)}
-                                  </Typography>
+                  </Typography>
                                 )}
-                              </Box>
+      </Box>
                               <Avatar 
                                 src={woman.photoUrl}
                                 sx={{ 
@@ -2376,41 +2376,41 @@ const OverviewMUI: React.FC = () => {
                     <Table size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}></TableCell>
                           {men.map(man => (
                             <TableCell key={man.id} sx={{ 
                               fontWeight: 'bold', 
                               fontSize: '1rem',
-                              minWidth: '80px',
+                            minWidth: '80px',
                               textAlign: 'center',
                               height: '80px',
-                              verticalAlign: 'bottom',
+                            verticalAlign: 'bottom',
                               p: 1,
                               bgcolor: 'white'
-                            }}>
-                              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                                <Avatar 
-                                  src={man.photoUrl}
-                                  sx={{ 
+                          }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                              <Avatar 
+                                src={man.photoUrl}
+                                sx={{ 
                                     width: 32, 
                                     height: 32, 
                                     fontSize: '1rem',
                                     border: '2px solid',
                                     borderColor: 'primary.main'
-                                  }}
-                                >
-                                  {man.name?.charAt(0)}
-                                </Avatar>
-                                <Typography variant="caption" sx={{ 
+                                }}
+                              >
+                                {man.name?.charAt(0)}
+                              </Avatar>
+                              <Typography variant="caption" sx={{ 
                                   fontSize: '1rem',
-                                  lineHeight: 1,
-                                  wordBreak: 'break-word',
+                                lineHeight: 1,
+                                wordBreak: 'break-word',
                                   color: 'black',
                                   fontWeight: 'bold'
-                                }}>
+                            }}>
                                   {man.name?.substring(0, 10)}
-                                </Typography>
-                              </Box>
+                              </Typography>
+                            </Box>
                             </TableCell>
                           ))}
                         </TableRow>
@@ -2421,45 +2421,45 @@ const OverviewMUI: React.FC = () => {
                             <TableCell sx={{ 
                               fontWeight: 'bold', 
                               fontSize: '1rem',
-                              minWidth: '100px',
+                            minWidth: '100px',
                               p: 1,
                               bgcolor: 'white'
-                            }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                  <Typography variant="caption" sx={{ 
+                              <Typography variant="caption" sx={{ 
                                     fontSize: '1rem',
-                                    lineHeight: 1,
-                                    wordBreak: 'break-word',
+                                lineHeight: 1,
+                                wordBreak: 'break-word',
                                     color: 'black',
                                     fontWeight: 'bold'
-                                  }}>
-                                    {woman.name?.substring(0, 10)}
-                                  </Typography>
+                            }}>
+                              {woman.name?.substring(0, 10)}
+                              </Typography>
                                 </Box>
-                                <Avatar 
-                                  src={woman.photoUrl}
-                                  sx={{ 
+                              <Avatar 
+                                src={woman.photoUrl}
+                                sx={{ 
                                     width: 32, 
                                     height: 32, 
                                     fontSize: '1rem',
                                     border: '2px solid',
                                     borderColor: 'primary.main'
-                                  }}
-                                >
-                                  {woman.name?.charAt(0)}
-                                </Avatar>
-                              </Box>
+                                }}
+                              >
+                                {woman.name?.charAt(0)}
+                              </Avatar>
+                            </Box>
                             </TableCell>
                             {men.map(man => (
-                              <TableCell 
-                                key={`${woman.id}-${man.id}`}
-                                sx={{ 
+                                <TableCell 
+                                  key={`${woman.id}-${man.id}`}
+                                  sx={{ 
                                   bgcolor: 'white',
-                                  textAlign: 'center',
+                                    textAlign: 'center',
                                   fontWeight: 'bold',
                                   fontSize: '1.2rem',
-                                  cursor: 'pointer',
+                                    cursor: 'pointer',
                                   border: '1px solid',
                                   borderColor: 'divider',
                                   minWidth: 60,
@@ -2488,7 +2488,7 @@ const OverviewMUI: React.FC = () => {
                                 title={`${woman.name} & ${man.name}: ${userSolution[woman.name!]?.[man.name!] || 'Leer'} - Klicken zum Wechseln`}
                               >
                                 {userSolution[woman.name!]?.[man.name!] || ''}
-                              </TableCell>
+                                </TableCell>
                             ))}
                           </TableRow>
                         ))}
