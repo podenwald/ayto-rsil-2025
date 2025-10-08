@@ -65,8 +65,12 @@ export class MatchboxService {
     const newMatchbox: Omit<Matchbox, 'id'> = {
       ...matchbox,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      ausstrahlungsdatum: matchbox.ausstrahlungsdatum || now.toISOString().split('T')[0], // Heutiges Datum als Standard
+      ausstrahlungszeit: matchbox.ausstrahlungszeit || '20:15' // Standard AYTO Zeit für Matchboxes
     }
+    
+    console.log('🔧 Service: Erstelle neue Matchbox mit Ausstrahlungsdaten:', newMatchbox)
     return await db.matchboxes.add(newMatchbox)
   }
 
