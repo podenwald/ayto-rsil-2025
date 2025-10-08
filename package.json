@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/generate-version.cjs",
+    "prebuild": "node scripts/generate-version.cjs && node scripts/update-manifest.cjs",
     "build": "tsc -b tsconfig.node.json tsconfig.app.json && vite build",
     "deploy": "npm run build",
     "export-db": "node scripts/export-current-db.cjs",
