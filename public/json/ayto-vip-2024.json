@@ -1,0 +1,850 @@
+{
+  "participants": [
+    {
+      "name": "Antonino",
+      "age": 27,
+      "gender": "M",
+      "id": 1
+    },
+    {
+      "name": "Alex",
+      "age": 28,
+      "gender": "M",
+      "id": 2
+    },
+    {
+      "name": "Chris",
+      "age": 35,
+      "gender": "M",
+      "id": 3
+    },
+    {
+      "name": "Kaan",
+      "age": 27,
+      "gender": "M",
+      "id": 4
+    },
+    {
+      "name": "Lars",
+      "age": 27,
+      "gender": "M",
+      "id": 5
+    },
+    {
+      "name": "Lukas",
+      "age": 30,
+      "gender": "M",
+      "id": 6
+    },
+    {
+      "name": "Marc-Robin",
+      "age": 29,
+      "gender": "M",
+      "id": 7
+    },
+    {
+      "name": "Nikola",
+      "age": 28,
+      "gender": "M",
+      "id": 8
+    },
+    {
+      "name": "Ozan",
+      "age": 28,
+      "gender": "M",
+      "id": 9
+    },
+    {
+      "name": "Tim",
+      "age": 27,
+      "gender": "M",
+      "id": 10
+    },
+    {
+      "name": "Anastasia",
+      "age": 24,
+      "gender": "F",
+      "id": 11
+    },
+    {
+      "name": "Asena",
+      "age": 27,
+      "gender": "F",
+      "id": 12
+    },
+    {
+      "name": "Dana",
+      "age": 28,
+      "gender": "F",
+      "id": 13,
+      "isExtra": 1
+    },
+    {
+      "name": "Emmy",
+      "age": 25,
+      "gender": "F",
+      "id": 14
+    },
+    {
+      "name": "Gabriela",
+      "age": 24,
+      "gender": "F",
+      "id": 15
+    },
+    {
+      "name": "Jennifer",
+      "age": 25,
+      "gender": "F",
+      "id": 16
+    },
+    {
+      "name": "Laura L.",
+      "age": 28,
+      "gender": "F",
+      "id": 17
+    },
+    {
+      "name": "Laura M.",
+      "age": 33,
+      "gender": "F",
+      "id": 18
+    },
+    {
+      "name": "Linda",
+      "age": 23,
+      "gender": "F",
+      "id": 19
+    },
+    {
+      "name": "Nadja",
+      "age": 25,
+      "gender": "F",
+      "id": 20
+    },
+    {
+      "name": "Tara",
+      "age": 31,
+      "gender": "F",
+      "id": 21
+    }
+  ],
+  "matchingNights": [
+    {
+      "name": "Matching Night #1",
+      "date": "2024-01-01",
+      "pairs": [
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Tara",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Lars"
+        },
+        {
+          "woman": "Asena",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Alex"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Antonino"
+        }
+      ],
+      "createdAt": "2024-01-01T20:15:00.000Z",
+      "id": 1,
+      "totalLights": 2,
+      "ausstrahlungsdatum": "2024-07-26",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #2",
+      "date": "2024-01-08",
+      "pairs": [
+        {
+          "woman": "Dana",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Alex"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Lars"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Asena",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Tara",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-01-08T20:15:00.000Z",
+      "id": 2,
+      "totalLights": 3,
+      "ausstrahlungsdatum": "2024-08-02",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #3",
+      "date": "2024-01-15",
+      "pairs": [
+        {
+          "woman": "Jennifer",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Alex"
+        },
+        {
+          "woman": "Asena",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Dana",
+          "man": "Tim"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Linda",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Lars"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-01-15T20:15:00.000Z",
+      "id": 3,
+      "totalLights": 3,
+      "ausstrahlungsdatum": "2024-08-09",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #4",
+      "date": "2024-01-22",
+      "pairs": [
+        {
+          "woman": "Tara",
+          "man": "Lars"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Asena",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Tim"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Alex"
+        },
+        {
+          "woman": "Linda",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-01-22T20:15:00.000Z",
+      "id": 4,
+      "totalLights": 1,
+      "ausstrahlungsdatum": "2024-08-16",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #5",
+      "date": "2024-01-29",
+      "pairs": [
+        {
+          "woman": "Dana",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Tara",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Asena",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Alex"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Lars"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-01-29T20:15:00.000Z",
+      "id": 5,
+      "totalLights": 5,
+      "ausstrahlungsdatum": "2024-08-23",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #6",
+      "date": "2024-02-05",
+      "pairs": [
+        {
+          "woman": "Jennifer",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Dana",
+          "man": "Lars"
+        },
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Asena",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Alex"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Tara",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-02-05T20:15:00.000Z",
+      "id": 6,
+      "totalLights": 6,
+      "ausstrahlungsdatum": "2024-08-30",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #7",
+      "date": "2024-02-12",
+      "pairs": [
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Dana",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Alex"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Lars"
+        },
+        {
+          "woman": "Asena",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Tara",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-02-12T20:15:00.000Z",
+      "id": 7,
+      "totalLights": 6,
+      "ausstrahlungsdatum": "2024-09-06",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #8",
+      "date": "2024-02-19",
+      "pairs": [
+        {
+          "woman": "Tara",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Alex"
+        },
+        {
+          "woman": "Laura L.",
+          "man": "Lars"
+        },
+        {
+          "woman": "Asena",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-02-19T20:15:00.000Z",
+      "id": 8,
+      "totalLights": 7,
+      "ausstrahlungsdatum": "2024-09-13",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "name": "Matching Night #9",
+      "date": "2024-02-26",
+      "pairs": [
+        {
+          "woman": "Laura L.",
+          "man": "Nikola"
+        },
+        {
+          "woman": "Gabriela",
+          "man": "Alex"
+        },
+        {
+          "woman": "Laura M.",
+          "man": "Marc-Robin"
+        },
+        {
+          "woman": "Asena",
+          "man": "Antonino"
+        },
+        {
+          "woman": "Tara",
+          "man": "Lukas"
+        },
+        {
+          "woman": "Nadja",
+          "man": "Kaan"
+        },
+        {
+          "woman": "Jennifer",
+          "man": "Lars"
+        },
+        {
+          "woman": "Linda",
+          "man": "Tim"
+        },
+        {
+          "woman": "Anastasia",
+          "man": "Ozan"
+        },
+        {
+          "woman": "Emmy",
+          "man": "Chris"
+        }
+      ],
+      "createdAt": "2024-02-26T20:15:00.000Z",
+      "id": 9,
+      "totalLights": 10,
+      "ausstrahlungsdatum": "2024-09-20",
+      "ausstrahlungszeit": "21:00"
+    }
+  ],
+  "matchboxes": [
+    {
+      "woman": "Laura L.",
+      "man": "Marc-Robin",
+      "matchType": "no-match",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-01-05T20:15:00.000Z",
+      "updatedAt": "2024-01-05T20:15:00.000Z",
+      "id": 1,
+      "ausstrahlungsdatum": "2024-07-26",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Emmy",
+      "man": "Chris",
+      "matchType": "perfect",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-01-12T20:15:00.000Z",
+      "updatedAt": "2024-01-12T20:15:00.000Z",
+      "id": 2,
+      "ausstrahlungsdatum": "2024-08-02",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Anastasia",
+      "man": "Alex",
+      "matchType": "sold",
+      "price": 20000,
+      "buyer": "Team",
+      "soldDate": "2024-01-19",
+      "createdAt": "2024-01-19T20:15:00.000Z",
+      "updatedAt": "2025-10-06T21:17:38.018Z",
+      "id": 3,
+      "ausstrahlungsdatum": "2024-08-09",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Asena",
+      "man": "Marc-Robin",
+      "matchType": "no-match",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-01-26T20:15:00.000Z",
+      "updatedAt": "2024-01-26T20:15:00.000Z",
+      "id": 4,
+      "ausstrahlungsdatum": "2024-08-16",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Laura M.",
+      "man": "Nikola",
+      "matchType": "sold",
+      "price": 20000,
+      "buyer": "Team",
+      "soldDate": "2024-02-02",
+      "createdAt": "2024-02-02T20:15:00.000Z",
+      "updatedAt": "2025-10-06T21:17:43.229Z",
+      "id": 5,
+      "ausstrahlungsdatum": "2024-08-23",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Anastasia",
+      "man": "Ozan",
+      "matchType": "perfect",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-02-09T20:15:00.000Z",
+      "updatedAt": "2024-02-09T20:15:00.000Z",
+      "id": 6,
+      "ausstrahlungsdatum": "2024-08-30",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Jennifer",
+      "man": "Lukas",
+      "matchType": "no-match",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-02-16T20:15:00.000Z",
+      "updatedAt": "2024-02-16T20:15:00.000Z",
+      "id": 7,
+      "ausstrahlungsdatum": "2024-09-06",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Linda",
+      "man": "Tim",
+      "matchType": "perfect",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-02-23T20:15:00.000Z",
+      "updatedAt": "2024-02-23T20:15:00.000Z",
+      "id": 8,
+      "ausstrahlungsdatum": "2024-09-13",
+      "ausstrahlungszeit": "20:15"
+    },
+    {
+      "woman": "Laura L.",
+      "man": "Lars",
+      "matchType": "no-match",
+      "price": 0,
+      "buyer": "",
+      "soldDate": "",
+      "createdAt": "2024-03-01T20:15:00.000Z",
+      "updatedAt": "2024-03-01T20:15:00.000Z",
+      "id": 9,
+      "ausstrahlungsdatum": "2024-09-20",
+      "ausstrahlungszeit": "20:15"
+    }
+  ],
+  "penalties": [],
+  "probabilityCache": [
+    {
+      "dataHash": "pbftoo",
+      "result": {
+        "probabilityMatrix": {
+          "Anastasia": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Asena": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Emmy": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Gabriela": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Jennifer": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Laura L.": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Laura M.": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Linda": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Nadja": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          },
+          "Tara": {
+            "Antonino": 0,
+            "Alex": 0,
+            "Chris": 0,
+            "Kaan": 0,
+            "Lars": 0,
+            "Lukas": 0,
+            "Marc-Robin": 0,
+            "Nikola": 0,
+            "Ozan": 0,
+            "Tim": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 12176.199999988079,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-06T21:21:00.723Z",
+      "updatedAt": "2025-10-06T21:21:00.723Z",
+      "id": 33
+    }
+  ],
+  "exportedAt": "2025-10-06T21:21:20.116Z",
+  "version": "1.2"
+}
