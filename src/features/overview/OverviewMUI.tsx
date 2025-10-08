@@ -1180,12 +1180,17 @@ const OverviewMUI: React.FC = () => {
       }
 
       const now = new Date()
-      await db.matchboxes.add({
+      const newMatchbox = {
         ...matchboxForm,
         createdAt: now,
         updatedAt: now,
-        soldDate: matchboxForm.matchType === 'sold' ? now : undefined
-      })
+        soldDate: matchboxForm.matchType === 'sold' ? now : undefined,
+        ausstrahlungsdatum: now.toISOString().split('T')[0], // Heutiges Datum als Standard
+        ausstrahlungszeit: '20:15' // Standard AYTO Zeit für Matchboxes
+      }
+      
+      console.log('🔧 Frontend: Erstelle neue Matchbox mit Ausstrahlungsdaten:', newMatchbox)
+      await db.matchboxes.add(newMatchbox)
 
       setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich erstellt!', severity: 'success' })
       setMatchboxDialog(false)
