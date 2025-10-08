@@ -48,16 +48,21 @@ export function useAppInitialization(): UseAppInitializationResult {
           })
         }
         
-        // Prüfe, ob ein Datenbank-Update erforderlich ist
-        const needsUpdate = await checkIfDatabaseUpdateNeeded()
+        // Prüfe, ob die Datenbank leer ist
+        const isDbEmpty = await DatabaseUtils.isEmpty()
         
-        if (!(await DatabaseUtils.isEmpty()) && !needsUpdate) {
-          console.log('✅ Datenbank bereits initialisiert und aktuell, überspringe Seed-Loading')
-          setIsInitializing(false)
-          return
-        }
-        
-        if (needsUpdate) {
+        if (isDbEmpty) {
+          console.log('📥 Datenbank ist leer, lade Seed-Daten...')
+        } else {
+          // Prüfe, ob ein Datenbank-Update erforderlich ist
+          const needsUpdate = await checkIfDatabaseUpdateNeeded()
+          
+          if (!needsUpdate) {
+            console.log('✅ Datenbank bereits initialisiert und aktuell, überspringe Seed-Loading')
+            setIsInitializing(false)
+            return
+          }
+          
           console.log('🔄 Datenbank-Update erforderlich, lade neueste Daten...')
         }
         
@@ -147,6 +152,12 @@ async function checkIfDatabaseUpdateNeeded(): Promise<boolean> {
       savedDataHash,
       needsUpdate: currentDataHash !== savedDataHash
     })
+    
+    // Wenn kein Hash gespeichert ist, ist ein Update erforderlich
+    if (!savedDataHash || savedDataHash === 'unknown') {
+      console.log('🔄 Kein DataHash gespeichert, Update erforderlich')
+      return true
+    }
     
     return currentDataHash !== savedDataHash
   } catch (error) {
@@ -304,10 +315,10 @@ async function loadSeedData(): Promise<{
   
   // Zusätzliche Pfade für verschiedene Deployment-Szenarien
   const possiblePaths = [
+    '/',       // Root-Pfad (primär für Production)
     '/json/',  // Standard-Pfad
-    '/',       // Root-Pfad (falls JSON-Dateien im Root sind)
-    './json/', // Relativer Pfad
-    './'       // Relativer Root-Pfad
+    './',      // Relativer Root-Pfad
+    './json/'  // Relativer Pfad
   ]
   
   let lastError: Error | null = null
