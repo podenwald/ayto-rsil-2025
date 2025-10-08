@@ -206,8 +206,8 @@ export function ensureMatchboxBroadcastData<T extends Partial<Matchbox>>(matchbo
   const defaultData = createDefaultMatchboxBroadcastData()
   return {
     ...matchbox,
-    ausstrahlungsdatum: matchbox.ausstrahlungsdatum ?? defaultData.ausstrahlungsdatum,
-    ausstrahlungszeit: matchbox.ausstrahlungszeit ?? defaultData.ausstrahlungszeit
+    ausstrahlungsdatum: (matchbox.ausstrahlungsdatum && matchbox.ausstrahlungsdatum.trim() !== '') ? matchbox.ausstrahlungsdatum : defaultData.ausstrahlungsdatum,
+    ausstrahlungszeit: (matchbox.ausstrahlungszeit && matchbox.ausstrahlungszeit.trim() !== '') ? matchbox.ausstrahlungszeit : defaultData.ausstrahlungszeit
   }
 }
 
@@ -218,7 +218,7 @@ export function ensureMatchingNightBroadcastData<T extends Partial<MatchingNight
   const defaultData = createDefaultMatchingNightBroadcastData()
   return {
     ...matchingNight,
-    ausstrahlungsdatum: matchingNight.ausstrahlungsdatum ?? defaultData.ausstrahlungsdatum,
-    ausstrahlungszeit: matchingNight.ausstrahlungszeit ?? defaultData.ausstrahlungszeit
+    ausstrahlungsdatum: (matchingNight.ausstrahlungsdatum && matchingNight.ausstrahlungsdatum.trim() !== '') ? matchingNight.ausstrahlungsdatum : defaultData.ausstrahlungsdatum,
+    ausstrahlungszeit: (matchingNight.ausstrahlungszeit && matchingNight.ausstrahlungszeit.trim() !== '') ? matchingNight.ausstrahlungszeit : defaultData.ausstrahlungszeit
   }
 }
