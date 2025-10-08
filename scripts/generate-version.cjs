@@ -30,7 +30,9 @@ try {
   const buildDate = new Date().toISOString();
   
   // Determine if this is a production build
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                      process.env.NETLIFY === 'true' || 
+                      process.env.CI === 'true';
 
   const versionInfo = {
     version: process.env.npm_package_version || '0.0.0',
