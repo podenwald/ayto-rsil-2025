@@ -614,57 +614,83 @@
   "matchboxes": [
     {
       "id": 3,
+      "womanId": "Sandra Janina",
+      "manId": "Kevin",
       "matchType": "sold",
       "ausstrahlungsdatum": "2025-08-13",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 4,
+      "womanId": "Elli",
+      "manId": "Xander",
       "matchType": "perfect",
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 5,
+      "womanId": "Nelly",
+      "manId": "Calvin S.",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 6,
+      "womanId": "Beverly",
+      "manId": "Jonny",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 8,
+      "womanId": "Sandra Janina",
+      "manId": "Leandro",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 10,
+      "womanId": "Nelly",
+      "manId": "Jimi Blue",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-17",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 11,
+      "womanId": "Sandra Janina",
+      "manId": "Lennert",
       "matchType": "perfect",
       "ausstrahlungsdatum": "2025-09-24",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 12,
+      "womanId": "Antonia",
+      "manId": "Olli",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-01",
       "ausstrahlungszeit": "20:15"
     },
     {
       "id": 13,
+      "womanId": "Hati",
+      "manId": "Jimi Blue",
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-01",
       "ausstrahlungszeit": "20:16"
+    },
+    {
+      "id": 14,
+      "womanId": "Henna",
+      "manId": "Sidar",
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-08",
+      "ausstrahlungszeit": "20:15"
     }
   ],
   "penalties": [
@@ -698,7 +724,7 @@
   ],
   "probabilityCache": [
     {
-      "dataHash": "d38iho",
+      "dataHash": "1nwsg2w",
       "result": {
         "probabilityMatrix": {
           "Antonia": {
@@ -784,15 +810,15 @@
         },
         "fixedPairs": [],
         "totalValidMatchings": 0,
-        "calculationTime": 75.39999997615814,
+        "calculationTime": 81,
         "limitReached": false
       },
-      "createdAt": "2025-10-08T09:26:45.796Z",
-      "updatedAt": "2025-10-08T09:26:45.796Z",
-      "id": 1
+      "createdAt": "2025-10-08T18:35:04.405Z",
+      "updatedAt": "2025-10-08T18:35:04.405Z",
+      "id": 3
     }
   ],
-  "exportedAt": "2025-10-08T11:17:20.180Z",
-  "version": "v0.5.3",
+  "exportedAt": "2025-10-08T18:37:10.021Z",
+  "version": "v0.5.4",
   "deploymentReady": true
 }
