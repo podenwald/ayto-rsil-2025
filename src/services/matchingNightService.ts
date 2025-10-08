@@ -33,10 +33,15 @@ export class MatchingNightService {
    * Erstellt eine neue Matching Night
    */
   static async createMatchingNight(matchingNight: Omit<MatchingNight, 'id' | 'createdAt'>): Promise<number> {
+    const now = new Date()
     const newMatchingNight: Omit<MatchingNight, 'id'> = {
       ...matchingNight,
-      createdAt: new Date()
+      createdAt: now,
+      ausstrahlungsdatum: matchingNight.ausstrahlungsdatum || now.toISOString().split('T')[0], // Heutiges Datum als Standard
+      ausstrahlungszeit: matchingNight.ausstrahlungszeit || '21:00' // Standard AYTO Zeit für Matching Nights
     }
+    
+    console.log('🔧 Service: Erstelle neue Matching Night mit Ausstrahlungsdaten:', newMatchingNight)
     return await db.matchingNights.add(newMatchingNight)
   }
 
