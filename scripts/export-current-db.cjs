@@ -64,8 +64,13 @@ async function exportCurrentDatabase() {
         data = baseContent;
       }
       
+      // 1) Schreibe neue Exportdatei
       writeFileSync(newFilePath, JSON.stringify(data, null, 2));
       console.log(`📋 Neue Export-Datei erstellt: ${newFileName} (basierend auf ${baseFile})`);
+
+      // 2) Überschreibe ayto-vip-2025.json mit dem neuen Inhalt
+      writeFileSync(baseFilePath, JSON.stringify(data, null, 2));
+      console.log(`🔄 ayto-vip-2025.json aktualisiert (synchron mit ${newFileName})`);
     } else {
       // Fallback: Erstelle leere Struktur
       const emptyStructure = {
