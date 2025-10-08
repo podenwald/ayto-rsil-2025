@@ -48,11 +48,17 @@ export function useAppInitialization(): UseAppInitializationResult {
           })
         }
         
-        // Überspringen, wenn bereits Daten vorhanden sind
-        if (!(await DatabaseUtils.isEmpty())) {
-          console.log('✅ Datenbank bereits initialisiert, überspringe Seed-Loading')
+        // Prüfe, ob ein Datenbank-Update erforderlich ist
+        const needsUpdate = await checkIfDatabaseUpdateNeeded()
+        
+        if (!(await DatabaseUtils.isEmpty()) && !needsUpdate) {
+          console.log('✅ Datenbank bereits initialisiert und aktuell, überspringe Seed-Loading')
           setIsInitializing(false)
           return
+        }
+        
+        if (needsUpdate) {
+          console.log('🔄 Datenbank-Update erforderlich, lade neueste Daten...')
         }
         
         // Leere Browser-Cache für JSON-Dateien
@@ -74,6 +80,26 @@ export function useAppInitialization(): UseAppInitializationResult {
         // Importiere Daten atomar
         await DatabaseUtils.importData(seedData)
         
+        // Speichere den aktuellen DataHash
+        try {
+          const manifestResponse = await fetch('/manifest.json', { 
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          })
+          
+          if (manifestResponse.ok) {
+            const manifest = await manifestResponse.json()
+            await DatabaseUtils.setDataHash(manifest.dataHash)
+            console.log('✅ DataHash gespeichert:', manifest.dataHash)
+          }
+        } catch (error) {
+          console.warn('⚠️ Fehler beim Speichern des DataHash:', error)
+        }
+        
         console.log('✅ App-Initialisierung erfolgreich abgeschlossen')
       } catch (err: unknown) {
         console.error('❌ Bootstrap-Fehler:', err)
@@ -88,6 +114,45 @@ export function useAppInitialization(): UseAppInitializationResult {
   }, [])
 
   return { isInitializing, initError }
+}
+
+/**
+ * Prüft, ob ein Datenbank-Update erforderlich ist
+ */
+async function checkIfDatabaseUpdateNeeded(): Promise<boolean> {
+  try {
+    // Lade das aktuelle Manifest
+    const manifestResponse = await fetch('/manifest.json', { 
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
+    
+    if (!manifestResponse.ok) {
+      console.warn('⚠️ Manifest nicht erreichbar, verwende Fallback')
+      return true // Bei Problemen immer Update durchführen
+    }
+    
+    const manifest = await manifestResponse.json()
+    const currentDataHash = manifest.dataHash
+    
+    // Lade gespeicherten Hash aus der Datenbank
+    const savedDataHash = await DatabaseUtils.getDataHash()
+    
+    console.log('🔍 Datenbank-Update-Check:', {
+      currentDataHash,
+      savedDataHash,
+      needsUpdate: currentDataHash !== savedDataHash
+    })
+    
+    return currentDataHash !== savedDataHash
+  } catch (error) {
+    console.warn('⚠️ Fehler beim Prüfen des Datenbank-Updates:', error)
+    return true // Bei Problemen immer Update durchführen
+  }
 }
 
 /**
