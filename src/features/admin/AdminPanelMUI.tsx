@@ -1884,8 +1884,8 @@ const SettingsManagement: React.FC<{
 
       const matchboxesData = rawMatchboxes.map(m => ({
         id: m.id,
-        womanId: m.womanId,
-        manId: m.manId,
+        womanId: m.woman,
+        manId: m.man,
         matchType: m.matchType,
         ausstrahlungsdatum: m.ausstrahlungsdatum,
         ausstrahlungszeit: m.ausstrahlungszeit
