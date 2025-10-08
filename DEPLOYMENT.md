@@ -37,8 +37,8 @@ Im Admin-Panel gibt es eine "Export für Deployment" Funktion, die:
 ```
 public/json/
 ├── index.json                    # Liste der verfügbaren JSON-Dateien
-├── ayto-complete-export-2025-01-15.json
-├── ayto-complete-export-2025-09-17.json
+├── ayto-complete-export-2025-10-03.json
+├── ayto-complete-export-2025-10-02.json
 └── ayto-complete-export-YYYY-MM-DD.json  # Neueste Datei
 ```
 

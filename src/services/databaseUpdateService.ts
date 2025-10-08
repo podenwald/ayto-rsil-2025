@@ -108,10 +108,10 @@ export async function fetchLatestDatabaseData(): Promise<DatabaseImport> {
   try {
     // Versuche verschiedene Datenquellen
     const dataSources = [
-      '/json/ayto-complete-export-2025-01-15.json',
-      '/json/ayto-complete-export-2025-09-17.json', 
-      '/json/ayto-complete-export-2025-09-24.json',
-      '/ayto-complete-noPicture.json'
+      '/json/ayto-complete-export-2025-10-03.json',
+      '/json/ayto-complete-export-2025-10-02.json',
+      '/json/ayto-vip-2025.json',
+      '/json/ayto-complete-noPicture.json'
     ]
     
     let lastError: Error | null = null
@@ -278,10 +278,10 @@ export async function preloadDatabaseData(): Promise<void> {
       
       // Datenquellen cachen
       const dataSources = [
-        '/json/ayto-complete-export-2025-01-15.json',
-        '/json/ayto-complete-export-2025-09-17.json',
-        '/json/ayto-complete-export-2025-09-24.json',
-        '/ayto-complete-noPicture.json'
+        '/json/ayto-complete-export-2025-10-03.json',
+        '/json/ayto-complete-export-2025-10-02.json',
+        '/json/ayto-vip-2025.json',
+        '/json/ayto-complete-noPicture.json'
       ]
       
       for (const source of dataSources) {

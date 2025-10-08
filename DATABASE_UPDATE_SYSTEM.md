@@ -132,9 +132,9 @@ if (result.success) {
 
 ### Datenquellen
 Die folgenden Dateien werden für Updates verwendet:
-- `/json/ayto-complete-export-2025-01-15.json`
-- `/json/ayto-complete-export-2025-09-17.json`
-- `/json/ayto-complete-export-2025-09-24.json`
+- `/json/ayto-complete-export-2025-10-03.json`
+- `/json/ayto-complete-export-2025-10-02.json`
+- `/json/ayto-vip-2025.json`
 - `/ayto-complete-noPicture.json`
 
 ### Cache-Einstellungen
