@@ -808,7 +808,9 @@ const OverviewMUI: React.FC = () => {
   const [matchingNightForm, setMatchingNightForm] = useState({
     name: '',
     totalLights: 0,
-    pairs: [] as Array<{woman: string, man: string}>
+    pairs: [] as Array<{woman: string, man: string}>,
+    ausstrahlungsdatum: '',
+    ausstrahlungszeit: ''
   })
   
   // Drag & Drop states for Matching Night
@@ -885,7 +887,9 @@ const OverviewMUI: React.FC = () => {
     setMatchingNightForm(prev => ({
       ...prev,
       pairs: newPairs,
-      totalLights: perfectMatches.length // Auto-set lights for Perfect Matches
+      totalLights: perfectMatches.length, // Auto-set lights for Perfect Matches
+      ausstrahlungsdatum: '',
+      ausstrahlungszeit: ''
     }))
     
     // Mark Perfect Match participants as placed
@@ -910,7 +914,9 @@ const OverviewMUI: React.FC = () => {
     man: '',
     matchType: 'no-match' as 'perfect' | 'no-match' | 'sold',
     price: 0,
-    buyer: ''
+    buyer: '',
+    ausstrahlungsdatum: '',
+    ausstrahlungszeit: ''
   })
   const [draggedParticipants, setDraggedParticipants] = useState<{woman?: Participant, man?: Participant}>({})
   const [dragOverTarget, setDragOverTarget] = useState<'woman' | 'man' | null>(null)
@@ -1202,7 +1208,9 @@ const OverviewMUI: React.FC = () => {
     setMatchingNightForm({
       name: '',
       totalLights: 0,
-      pairs: []
+      pairs: [],
+      ausstrahlungsdatum: '',
+      ausstrahlungszeit: ''
     })
     setPlacedParticipants(new Set())
   }
@@ -1211,7 +1219,9 @@ const OverviewMUI: React.FC = () => {
     setMatchingNightForm({
       name: '',
       totalLights: 0,
-      pairs: []
+      pairs: [],
+      ausstrahlungsdatum: '',
+      ausstrahlungszeit: ''
     })
     setPlacedParticipants(new Set())
     // Auto-initialize Perfect Matches
@@ -1325,7 +1335,9 @@ const OverviewMUI: React.FC = () => {
       man: '',
       matchType: 'no-match',
       price: 0,
-      buyer: ''
+      buyer: '',
+      ausstrahlungsdatum: '',
+      ausstrahlungszeit: ''
     })
     setDraggedParticipants({})
   }
