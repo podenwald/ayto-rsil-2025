@@ -44,7 +44,44 @@ async function exportCurrentDatabase() {
       return newFileName;
     }
     
-    // Versuche die neueste vorhandene Datei zu finden
+    // Verwende immer ayto-vip-2025.json als Basis
+    const baseFile = 'ayto-vip-2025.json';
+    const baseFilePath = resolve(publicJsonDir, baseFile);
+    
+    if (existsSync(baseFilePath)) {
+      // Kopiere ayto-vip-2025.json als neue Export-Datei für heute
+      const baseContent = readFileSync(baseFilePath, 'utf8');
+      
+      // Aktualisiere das exportedAt Datum und Version
+      let data;
+      try {
+        data = JSON.parse(baseContent);
+        data.exportedAt = new Date().toISOString();
+        data.version = process.env.npm_package_version || '0.5.2';
+        data.deploymentReady = true;
+      } catch (error) {
+        console.warn('⚠️ Konnte JSON nicht parsen, verwende Original:', error.message);
+        data = baseContent;
+      }
+      
+      writeFileSync(newFilePath, JSON.stringify(data, null, 2));
+      console.log(`📋 Neue Export-Datei erstellt: ${newFileName} (basierend auf ${baseFile})`);
+    } else {
+      // Fallback: Erstelle leere Struktur
+      const emptyStructure = {
+        participants: [],
+        matchingNights: [],
+        matchboxes: [],
+        penalties: [],
+        exportedAt: new Date().toISOString(),
+        version: process.env.npm_package_version || '0.5.2',
+        deploymentReady: true
+      };
+      writeFileSync(newFilePath, JSON.stringify(emptyStructure, null, 2));
+      console.log(`📋 Leere Export-Datei erstellt: ${newFileName} (${baseFile} nicht gefunden)`);
+    }
+    
+    // Aktualisiere index.json
     const indexJsonPath = resolve(publicJsonDir, 'index.json');
     let currentFiles = [];
     
@@ -57,63 +94,10 @@ async function exportCurrentDatabase() {
         }
       } catch (error) {
         console.warn('⚠️ Konnte index.json nicht laden:', error.message);
+        currentFiles = [];
       }
     }
     
-    // Suche nach der neuesten vorhandenen Datei
-    let latestFile = null;
-    let latestDate = new Date(0);
-    
-    for (const file of currentFiles) {
-      if (file.endsWith('.json') && file.includes('ayto-complete-export-')) {
-        const filePath = resolve(publicJsonDir, file);
-        if (existsSync(filePath)) {
-          // Extrahiere Datum aus Dateinamen
-          const dateMatch = file.match(/ayto-complete-export-(\d{4}-\d{2}-\d{2})\.json/);
-          if (dateMatch) {
-            const fileDate = new Date(dateMatch[1]);
-            if (fileDate > latestDate) {
-              latestDate = fileDate;
-              latestFile = file;
-            }
-          }
-        }
-      }
-    }
-    
-    if (latestFile) {
-      // Kopiere die neueste Datei als neue Datei für heute
-      const latestFilePath = resolve(publicJsonDir, latestFile);
-      const latestContent = readFileSync(latestFilePath, 'utf8');
-      
-      // Aktualisiere das exportedAt Datum
-      let data;
-      try {
-        data = JSON.parse(latestContent);
-        data.exportedAt = new Date().toISOString();
-        data.version = process.env.npm_package_version || '0.3.1';
-      } catch (error) {
-        console.warn('⚠️ Konnte JSON nicht parsen, verwende Original:', error.message);
-        data = latestContent;
-      }
-      
-      writeFileSync(newFilePath, JSON.stringify(data, null, 2));
-      console.log(`📋 Neue Export-Datei erstellt: ${newFileName} (basierend auf ${latestFile})`);
-    } else {
-      // Erstelle leere Struktur
-      const emptyStructure = {
-        participants: [],
-        matchingNights: [],
-        matchboxes: [],
-        penalties: [],
-        exportedAt: new Date().toISOString(),
-        version: process.env.npm_package_version || '0.3.1'
-      };
-      writeFileSync(newFilePath, JSON.stringify(emptyStructure, null, 2));
-      console.log(`📋 Leere Export-Datei erstellt: ${newFileName}`);
-    }
-    
-    // Aktualisiere index.json
     if (!currentFiles.includes(newFileName)) {
       currentFiles.unshift(newFileName); // Neue Datei an den Anfang setzen
     } else {
