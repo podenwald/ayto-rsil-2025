@@ -9,10 +9,10 @@ export interface VersionInfo {
 
 // This will be replaced by Vite during build
 export const VERSION_INFO: VersionInfo = {
-  "version": "0.4.5",
-  "gitTag": "v0.4.5",
-  "gitCommit": "1c891d53160e278ec89bd133af88ffe115eaae2a",
-  "buildDate": "2025-10-01T21:15:00.000Z",
+  "version": "0.5.2",
+  "gitTag": "v0.5.2",
+  "gitCommit": "d73dbe14f698d4929c0f5ca1dba802a3b56a9156",
+  "buildDate": "2025-10-08T06:20:13.130Z",
   "isProduction": false
 }
 
@@ -20,8 +20,7 @@ export function getDisplayVersion(): string {
   if (VERSION_INFO.gitTag) {
     return VERSION_INFO.gitTag
   }
-  // Fallback to package.json version if no git tag
-  return VERSION_INFO.version || 'Beta'
+  return 'Beta'
 }
 
 export function getFullVersionInfo(): string {
