@@ -989,6 +989,7 @@
       "id": 19
     }
   ],
-  "exportedAt": "2025-10-03T21:36:42.277Z",
-  "version": "1.2"
+  "exportedAt": "2025-10-08T08:43:34.423Z",
+  "version": "0.5.3",
+  "deploymentReady": true
 }
