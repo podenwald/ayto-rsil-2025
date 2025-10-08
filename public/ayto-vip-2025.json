@@ -268,8 +268,8 @@
   ],
   "matchingNights": [
     {
+      "id": 1,
       "name": "Matching Night #1",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Viki",
@@ -312,15 +312,13 @@
           "man": "Calvin S."
         }
       ],
-      "createdAt": "2025-09-04T09:45:45.845Z",
-      "id": 1,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 2,
       "name": "Matching Night #2",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Elli",
@@ -363,15 +361,13 @@
           "man": "Jonny"
         }
       ],
-      "createdAt": "2025-09-04T09:54:07.580Z",
-      "id": 2,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 3,
       "name": "Matching Night #3",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Elli",
@@ -414,16 +410,13 @@
           "man": "Calvin O."
         }
       ],
-      "createdAt": "2025-09-04T09:58:33.888Z",
-      "id": 3,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 4,
       "name": "Matching Night #4",
-      "date": "2025-09-10",
-      "totalLights": 3,
       "pairs": [
         {
           "woman": "Xander",
@@ -466,15 +459,13 @@
           "man": "Olli"
         }
       ],
-      "createdAt": "2025-09-10T19:16:15.386Z",
-      "id": 4,
+      "totalLights": 3,
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 10,
       "name": "Matching Night #5",
-      "date": "2025-09-17",
-      "totalLights": 4,
       "pairs": [
         {
           "woman": "Xander",
@@ -517,15 +508,13 @@
           "man": "Kevin"
         }
       ],
-      "createdAt": "2025-09-17T18:58:08.685Z",
-      "id": 10,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-09-17"
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-09-17",
+      "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 11,
       "name": "Matching Night #6",
-      "date": "2025-09-24",
-      "totalLights": 4,
       "pairs": [
         {
           "woman": "Sandra Janina",
@@ -568,15 +557,13 @@
           "man": "Calvin O."
         }
       ],
-      "createdAt": "2025-09-24T20:15:59.156Z",
-      "id": 11,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-09-24"
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-09-24",
+      "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 12,
       "name": "Matching Night #7",
-      "date": "2025-10-01",
-      "totalLights": 5,
       "pairs": [
         {
           "woman": "Lennert",
@@ -619,115 +606,65 @@
           "man": "Nico"
         }
       ],
-      "createdAt": "2025-10-01T19:08:05.109Z",
-      "id": 12,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-10-01"
+      "totalLights": 5,
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "21:00"
     }
   ],
   "matchboxes": [
     {
-      "woman": "Sandra Janina",
-      "man": "Kevin",
-      "matchType": "sold",
-      "price": 20,
-      "buyer": "Joanna",
-      "soldDate": "2025-09-04T09:43:02.700Z",
-      "createdAt": "2025-09-04T09:43:02.700Z",
-      "updatedAt": "2025-09-11T20:58:17.140Z",
       "id": 3,
+      "matchType": "sold",
       "ausstrahlungsdatum": "2025-08-13",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Elli",
-      "man": "Xander",
-      "matchType": "perfect",
-      "createdAt": "2025-09-04T09:46:21.506Z",
-      "updatedAt": "2025-09-11T20:58:36.313Z",
       "id": 4,
+      "matchType": "perfect",
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Nelly",
-      "man": "Calvin S.",
-      "matchType": "no-match",
-      "createdAt": "2025-09-04T09:56:13.697Z",
-      "updatedAt": "2025-09-11T20:58:42.227Z",
       "id": 5,
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Beverly",
-      "man": "Jonny",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-10T18:35:40.261Z",
-      "updatedAt": "2025-09-11T21:00:37.909Z",
       "id": 6,
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Sandra Janina",
-      "man": "Leandro",
-      "matchType": "no-match",
-      "createdAt": "2025-09-11T19:23:47.145Z",
-      "updatedAt": "2025-09-11T21:03:04.714Z",
       "id": 8,
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Nelly",
-      "man": "Jimi Blue",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-17T18:14:39.825Z",
-      "updatedAt": "2025-09-17T18:14:39.825Z",
       "id": 10,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-09-17"
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-09-17",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Sandra Janina",
-      "man": "Lennert",
-      "matchType": "perfect",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-24T19:31:38.483Z",
-      "updatedAt": "2025-09-24T19:31:38.483Z",
       "id": 11,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-09-24"
+      "matchType": "perfect",
+      "ausstrahlungsdatum": "2025-09-24",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Antonia",
-      "man": "Olli",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-10-01T18:21:48.351Z",
-      "updatedAt": "2025-10-01T18:21:48.351Z",
       "id": 12,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-10-01"
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Hati",
-      "man": "Jimi Blue",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-10-01T18:22:01.191Z",
-      "updatedAt": "2025-10-01T18:22:01.191Z",
       "id": 13,
-      "ausstrahlungszeit": "20:16",
-      "ausstrahlungsdatum": "2025-10-01"
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "20:16"
     }
   ],
   "penalties": [
@@ -855,7 +792,7 @@
       "id": 1
     }
   ],
-  "exportedAt": "2025-10-08T10:29:51.320Z",
+  "exportedAt": "2025-10-08T11:17:20.180Z",
   "version": "v0.5.3",
   "deploymentReady": true
 }

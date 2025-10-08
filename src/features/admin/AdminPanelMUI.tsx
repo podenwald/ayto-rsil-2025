@@ -1864,13 +1864,45 @@ const SettingsManagement: React.FC<{
       setIsLoading(true)
       
       // Alle aktuellen Daten laden
-      const [participantsData, matchingNightsData, matchboxesData, penaltiesData, probabilityCacheData] = await Promise.all([
+      const [participantsData, rawMatchingNights, rawMatchboxes, penaltiesData, probabilityCacheData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
         db.penalties.toArray(),
         db.probabilityCache.toArray()
       ])
+
+      // Export-Normalisierung: Nur Ausstrahlungsfelder übernehmen; keine legacy date/createdAt
+      const matchingNightsData = rawMatchingNights.map(m => ({
+        id: m.id,
+        name: m.name,
+        pairs: m.pairs,
+        totalLights: m.totalLights,
+        ausstrahlungsdatum: m.ausstrahlungsdatum,
+        ausstrahlungszeit: m.ausstrahlungszeit
+      }))
+
+      const matchboxesData = rawMatchboxes.map(m => ({
+        id: m.id,
+        womanId: m.womanId,
+        manId: m.manId,
+        matchType: m.matchType,
+        ausstrahlungsdatum: m.ausstrahlungsdatum,
+        ausstrahlungszeit: m.ausstrahlungszeit
+      }))
+
+      // Validierung: Ausstrahlungsdaten müssen vollständig sein
+      const invalidMN = matchingNightsData.filter(m => !m.ausstrahlungsdatum || !m.ausstrahlungszeit)
+      const invalidMB = matchboxesData.filter(m => !m.ausstrahlungsdatum || !m.ausstrahlungszeit)
+      if (invalidMN.length > 0 || invalidMB.length > 0) {
+        setSnackbar({
+          open: true,
+          message: `❌ Export abgebrochen: Es fehlen Ausstrahlungsdaten bei ${invalidMN.length} Matching Night(s) und ${invalidMB.length} Matchbox(es).\nBitte Ausstrahlungsplan im Admin-Panel vervollständigen und erneut exportieren.`,
+          severity: 'error'
+        })
+        setIsLoading(false)
+        return
+      }
       
       // Komplette Datenstruktur erstellen
       const allData = {
