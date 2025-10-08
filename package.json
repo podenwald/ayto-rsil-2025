@@ -2,10 +2,11 @@
   "homepage": ".",
   "name": "ayto-rsil-2025",
   "private": true,
-  "version": "0.4.5",
+  "version": "0.5.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-version.cjs",
     "build": "tsc -b tsconfig.node.json tsconfig.app.json && vite build",
     "deploy": "npm run build",
     "export-db": "node scripts/export-current-db.cjs",
