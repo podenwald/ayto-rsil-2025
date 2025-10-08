@@ -106,11 +106,8 @@ export async function checkForDatabaseUpdate(): Promise<DatabaseUpdateState> {
  */
 export async function fetchLatestDatabaseData(): Promise<DatabaseImport> {
   try {
-    // Versuche verschiedene Datenquellen (neueste Export-Datei zuerst)
+    // Verwende immer die aktuellen Daten aus ayto-vip-2025.json
     const dataSources = [
-      '/json/ayto-complete-export-2025-10-08.json',
-      '/json/ayto-complete-export-2025-10-03.json',
-      '/json/ayto-complete-export-2025-10-02.json',
       '/json/ayto-vip-2025.json',
       '/json/ayto-complete-noPicture.json'
     ]
@@ -279,9 +276,6 @@ export async function preloadDatabaseData(): Promise<void> {
       
       // Datenquellen cachen
       const dataSources = [
-        '/json/ayto-complete-export-2025-10-08.json',
-        '/json/ayto-complete-export-2025-10-03.json',
-        '/json/ayto-complete-export-2025-10-02.json',
         '/json/ayto-vip-2025.json',
         '/json/ayto-complete-noPicture.json'
       ]
