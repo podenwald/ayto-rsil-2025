@@ -69,6 +69,7 @@ import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import AdminLayout from '@/components/layout/AdminLayout'
+import { VERSION_INFO } from '@/utils/version'
 import BroadcastManagement from './BroadcastManagement'
 import JsonImportManagement from './JsonImportManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
@@ -1879,7 +1880,8 @@ const SettingsManagement: React.FC<{
         penalties: penaltiesData,
         probabilityCache: probabilityCacheData,
         exportedAt: new Date().toISOString(),
-        version: "0.4.0",
+        // Version: Git-Tag falls vorhanden, sonst Package-Version aus VERSION_INFO
+        version: VERSION_INFO.gitTag ?? VERSION_INFO.version,
         deploymentReady: true
       }
       

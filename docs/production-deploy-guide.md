@@ -23,6 +23,25 @@ Dieser Leitfaden beschreibt, wie bei jedem Deployment sichergestellt wird, dass 
    - Footer → „Versionsinformationen“
    - Manifest (Aufruf `/manifest.json`) zeigt `version` = Git-Tag, `dataHash` ≠ `unknown`
 
+### Durchführungsreihenfolge (Schritt für Schritt)
+1) IndexedDB → JSON aktualisieren (vor dem Deploy)
+   - App öffnen → Admin-Panel → Tab „Datenhaltung“
+   - „Export für Deployment“ klicken (lädt vollständige JSON des aktuellen IndexedDB‑Stands herunter)
+   - Heruntergeladene Datei als `public/json/ayto-vip-2025.json` speichern (vorhandene Datei überschreiben)
+
+2) (Optional) Git-Tag setzen
+   - Tag repräsentiert die Release-Version der App (z. B. `v0.5.4`)
+
+3) Deploy starten (Netlify baut `main`)
+   - Build-Command: `npm run build`
+   - Publish Directory: `dist`
+   - Falls Diskrepanzen/Cache-Probleme: „Clear cache and deploy site“ auslösen
+
+4) Post-Deploy prüfen
+   - Footer → „Versionsinformationen“ zeigt Git-Tag/Commit, Environment = Production
+   - `/manifest.json` → `version` = Git-Tag und `dataHash` ≠ `unknown`
+   - `/json/ayto-vip-2025.json` erreichbar; Felder `exportedAt` ≈ Build‑Zeit, `version` = Package-Version
+
 ### Was der Build automatisch macht
 - `prebuild` führt aus:
   - `scripts/generate-version.cjs` → ermittelt Git-Tag, Commit, Build-Zeit, Production-Flag
@@ -33,6 +52,19 @@ Dieser Leitfaden beschreibt, wie bei jedem Deployment sichergestellt wird, dass 
     - `released`: Datum/Uhrzeit des Tags
 
 Damit sind App-Version (Code) und Daten-Stand (JSON) synchron und eindeutig identifizierbar.
+
+### IndexedDB → JSON aktualisieren (Detail)
+Ziel: Production soll immer die aktuellsten Daten nutzen. Primärquelle ist `public/json/ayto-vip-2025.json`. Diese wird vor dem Deployment aus der aktuellen IndexedDB erzeugt.
+
+Schritte:
+1) App öffnen → Admin-Panel → Tab „Datenhaltung“
+2) „Export für Deployment“ klicken → vollständige JSON wird heruntergeladen
+3) Datei lokal als `public/json/ayto-vip-2025.json` speichern (vorhandene Datei überschreiben)
+4) Änderungen (falls erforderlich) committen/mergen → Netlify baut automatisch
+
+Hinweise:
+- Die Exportdatei `ayto-complete-export-YYYY-MM-DD.json` dient als Fallback. Die App lädt primär `ayto-vip-2025.json`.
+- Der Build synchronisiert `ayto-vip-2025.json` zusätzlich mit dem tagesaktuellen Export, und generiert ein Manifest mit Tag/Hash.
 
 ### Nach dem Deploy – Checks
 - In der App (Footer → „Versionsinformationen“):

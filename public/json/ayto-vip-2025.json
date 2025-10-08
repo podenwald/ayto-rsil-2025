@@ -761,140 +761,6 @@
   ],
   "probabilityCache": [
     {
-      "dataHash": "1ayr4cg",
-      "result": {
-        "probabilityMatrix": {
-          "Anastasia": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Asena": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Emmy": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Gabriela": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Jennifer": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Laura L.": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Laura M.": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Linda": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Nadja": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Tara": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          }
-        },
-        "fixedPairs": [],
-        "totalValidMatchings": 0,
-        "calculationTime": 17500.899999976158,
-        "limitReached": false
-      },
-      "createdAt": "2025-10-02T09:44:31.872Z",
-      "updatedAt": "2025-10-02T09:44:31.872Z",
-      "id": 18
-    },
-    {
       "dataHash": "d38iho",
       "result": {
         "probabilityMatrix": {
@@ -981,15 +847,15 @@
         },
         "fixedPairs": [],
         "totalValidMatchings": 0,
-        "calculationTime": 198.30000001192093,
+        "calculationTime": 75.39999997615814,
         "limitReached": false
       },
-      "createdAt": "2025-10-02T20:18:17.136Z",
-      "updatedAt": "2025-10-02T20:18:17.136Z",
-      "id": 19
+      "createdAt": "2025-10-08T09:26:45.796Z",
+      "updatedAt": "2025-10-08T09:26:45.796Z",
+      "id": 1
     }
   ],
-  "exportedAt": "2025-10-08T08:43:34.423Z",
-  "version": "0.5.3",
+  "exportedAt": "2025-10-08T10:15:16.557Z",
+  "version": "v0.5.3",
   "deploymentReady": true
 }
