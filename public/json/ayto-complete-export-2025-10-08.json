@@ -268,8 +268,8 @@
   ],
   "matchingNights": [
     {
+      "id": 1,
       "name": "Matching Night #1",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Viki",
@@ -312,15 +312,13 @@
           "man": "Calvin S."
         }
       ],
-      "createdAt": "2025-09-04T09:45:45.845Z",
-      "id": 1,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 2,
       "name": "Matching Night #2",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Elli",
@@ -363,15 +361,13 @@
           "man": "Jonny"
         }
       ],
-      "createdAt": "2025-09-04T09:54:07.580Z",
-      "id": 2,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 3,
       "name": "Matching Night #3",
-      "date": "2025-09-04",
       "pairs": [
         {
           "woman": "Elli",
@@ -414,16 +410,13 @@
           "man": "Calvin O."
         }
       ],
-      "createdAt": "2025-09-04T09:58:33.888Z",
-      "id": 3,
       "totalLights": 2,
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 4,
       "name": "Matching Night #4",
-      "date": "2025-09-10",
-      "totalLights": 3,
       "pairs": [
         {
           "woman": "Xander",
@@ -466,15 +459,13 @@
           "man": "Olli"
         }
       ],
-      "createdAt": "2025-09-10T19:16:15.386Z",
-      "id": 4,
+      "totalLights": 3,
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 10,
       "name": "Matching Night #5",
-      "date": "2025-09-17",
-      "totalLights": 4,
       "pairs": [
         {
           "woman": "Xander",
@@ -517,15 +508,13 @@
           "man": "Kevin"
         }
       ],
-      "createdAt": "2025-09-17T18:58:08.685Z",
-      "id": 10,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-09-17"
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-09-17",
+      "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 11,
       "name": "Matching Night #6",
-      "date": "2025-09-24",
-      "totalLights": 4,
       "pairs": [
         {
           "woman": "Sandra Janina",
@@ -568,15 +557,13 @@
           "man": "Calvin O."
         }
       ],
-      "createdAt": "2025-09-24T20:15:59.156Z",
-      "id": 11,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-09-24"
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-09-24",
+      "ausstrahlungszeit": "21:00"
     },
     {
+      "id": 12,
       "name": "Matching Night #7",
-      "date": "2025-10-01",
-      "totalLights": 5,
       "pairs": [
         {
           "woman": "Lennert",
@@ -619,115 +606,154 @@
           "man": "Nico"
         }
       ],
-      "createdAt": "2025-10-01T19:08:05.109Z",
-      "id": 12,
-      "ausstrahlungszeit": "21:00",
-      "ausstrahlungsdatum": "2025-10-01"
+      "totalLights": 5,
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "21:00"
+    },
+    {
+      "id": 14,
+      "name": "Matching Night #8",
+      "pairs": [
+        {
+          "woman": "Sandra Janina",
+          "man": "Lennert",
+          "matchType": "perfect",
+          "price": 0,
+          "buyer": "",
+          "createdAt": "2025-09-24T19:31:38.483Z",
+          "updatedAt": "2025-09-24T19:31:38.483Z",
+          "id": 11,
+          "ausstrahlungszeit": "20:15",
+          "ausstrahlungsdatum": "2025-09-24"
+        },
+        {
+          "woman": "Elli",
+          "man": "Xander",
+          "matchType": "perfect",
+          "createdAt": "2025-09-04T09:46:21.506Z",
+          "updatedAt": "2025-09-11T20:58:36.313Z",
+          "id": 4,
+          "ausstrahlungsdatum": "2025-08-20",
+          "ausstrahlungszeit": "20:15"
+        },
+        {
+          "woman": "Antonia",
+          "man": "Calvin S."
+        },
+        {
+          "woman": "Ariel",
+          "man": "Kevin"
+        },
+        {
+          "woman": "Beverly",
+          "man": "Nico"
+        },
+        {
+          "woman": "Viki",
+          "man": "Leandro"
+        },
+        {
+          "woman": "Hati",
+          "man": "Jonny"
+        },
+        {
+          "woman": "Henna",
+          "man": "Olli"
+        },
+        {
+          "woman": "Joanna",
+          "man": "Calvin O."
+        },
+        {
+          "woman": "Nelly",
+          "man": "Rob"
+        }
+      ],
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-10-08",
+      "ausstrahlungszeit": "20:15"
     }
   ],
   "matchboxes": [
     {
-      "woman": "Sandra Janina",
-      "man": "Kevin",
-      "matchType": "sold",
-      "price": 20,
-      "buyer": "Joanna",
-      "soldDate": "2025-09-04T09:43:02.700Z",
-      "createdAt": "2025-09-04T09:43:02.700Z",
-      "updatedAt": "2025-09-11T20:58:17.140Z",
       "id": 3,
+      "womanId": "Sandra Janina",
+      "manId": "Kevin",
+      "matchType": "sold",
       "ausstrahlungsdatum": "2025-08-13",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Elli",
-      "man": "Xander",
-      "matchType": "perfect",
-      "createdAt": "2025-09-04T09:46:21.506Z",
-      "updatedAt": "2025-09-11T20:58:36.313Z",
       "id": 4,
+      "womanId": "Elli",
+      "manId": "Xander",
+      "matchType": "perfect",
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Nelly",
-      "man": "Calvin S.",
-      "matchType": "no-match",
-      "createdAt": "2025-09-04T09:56:13.697Z",
-      "updatedAt": "2025-09-11T20:58:42.227Z",
       "id": 5,
+      "womanId": "Nelly",
+      "manId": "Calvin S.",
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Beverly",
-      "man": "Jonny",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-10T18:35:40.261Z",
-      "updatedAt": "2025-09-11T21:00:37.909Z",
       "id": 6,
+      "womanId": "Beverly",
+      "manId": "Jonny",
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Sandra Janina",
-      "man": "Leandro",
-      "matchType": "no-match",
-      "createdAt": "2025-09-11T19:23:47.145Z",
-      "updatedAt": "2025-09-11T21:03:04.714Z",
       "id": 8,
+      "womanId": "Sandra Janina",
+      "manId": "Leandro",
+      "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Nelly",
-      "man": "Jimi Blue",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-17T18:14:39.825Z",
-      "updatedAt": "2025-09-17T18:14:39.825Z",
       "id": 10,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-09-17"
+      "womanId": "Nelly",
+      "manId": "Jimi Blue",
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-09-17",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Sandra Janina",
-      "man": "Lennert",
-      "matchType": "perfect",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-09-24T19:31:38.483Z",
-      "updatedAt": "2025-09-24T19:31:38.483Z",
       "id": 11,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-09-24"
+      "womanId": "Sandra Janina",
+      "manId": "Lennert",
+      "matchType": "perfect",
+      "ausstrahlungsdatum": "2025-09-24",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Antonia",
-      "man": "Olli",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-10-01T18:21:48.351Z",
-      "updatedAt": "2025-10-01T18:21:48.351Z",
       "id": 12,
-      "ausstrahlungszeit": "20:15",
-      "ausstrahlungsdatum": "2025-10-01"
+      "womanId": "Antonia",
+      "manId": "Olli",
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "20:15"
     },
     {
-      "woman": "Hati",
-      "man": "Jimi Blue",
-      "matchType": "no-match",
-      "price": 0,
-      "buyer": "",
-      "createdAt": "2025-10-01T18:22:01.191Z",
-      "updatedAt": "2025-10-01T18:22:01.191Z",
       "id": 13,
-      "ausstrahlungszeit": "20:16",
-      "ausstrahlungsdatum": "2025-10-01"
+      "womanId": "Hati",
+      "manId": "Jimi Blue",
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-01",
+      "ausstrahlungszeit": "20:16"
+    },
+    {
+      "id": 15,
+      "womanId": "Henna",
+      "manId": "Sidar",
+      "matchType": "no-match",
+      "ausstrahlungsdatum": "2025-10-08",
+      "ausstrahlungszeit": "20:15"
     }
   ],
   "penalties": [
@@ -760,140 +786,6 @@
     }
   ],
   "probabilityCache": [
-    {
-      "dataHash": "1ayr4cg",
-      "result": {
-        "probabilityMatrix": {
-          "Anastasia": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Asena": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Emmy": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Gabriela": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Jennifer": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Laura L.": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Laura M.": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Linda": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Nadja": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          },
-          "Tara": {
-            "Antonino": 0,
-            "Alex": 0,
-            "Chris": 0,
-            "Kaan": 0,
-            "Lars": 0,
-            "Lukas": 0,
-            "Marc-Robin": 0,
-            "Nikola": 0,
-            "Ozan": 0,
-            "Tim": 0
-          }
-        },
-        "fixedPairs": [],
-        "totalValidMatchings": 0,
-        "calculationTime": 17500.899999976158,
-        "limitReached": false
-      },
-      "createdAt": "2025-10-02T09:44:31.872Z",
-      "updatedAt": "2025-10-02T09:44:31.872Z",
-      "id": 18
-    },
     {
       "dataHash": "d38iho",
       "result": {
@@ -981,15 +873,243 @@
         },
         "fixedPairs": [],
         "totalValidMatchings": 0,
-        "calculationTime": 198.30000001192093,
+        "calculationTime": 93.09999996423721,
         "limitReached": false
       },
-      "createdAt": "2025-10-02T20:18:17.136Z",
-      "updatedAt": "2025-10-02T20:18:17.136Z",
-      "id": 19
+      "createdAt": "2025-10-08T21:11:09.762Z",
+      "updatedAt": "2025-10-08T21:11:09.762Z",
+      "id": 1
+    },
+    {
+      "dataHash": "1nwsg2w",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Ariel": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Beverly": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Hati": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Henna": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Joanna": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Nelly": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          },
+          "Viki": {
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 78.19999998807907,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-08T21:34:21.467Z",
+      "updatedAt": "2025-10-08T21:34:21.467Z",
+      "id": 2
+    },
+    {
+      "dataHash": "1899oh8",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Ariel": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Beverly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Elli": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Hati": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Henna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Joanna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Nelly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Sandra Janina": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Viki": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 9579,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-08T21:37:00.789Z",
+      "updatedAt": "2025-10-08T21:37:00.789Z",
+      "id": 3
     }
   ],
-  "exportedAt": "2025-10-08T08:43:34.423Z",
-  "version": "0.5.3",
+  "exportedAt": "2025-10-08T21:50:02.754Z",
+  "version": "v0.5.4",
   "deploymentReady": true
 }

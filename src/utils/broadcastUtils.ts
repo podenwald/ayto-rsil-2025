@@ -167,3 +167,56 @@ export function getValidPerfectMatchesForMatchingNight(matchboxes: Matchbox[], m
 export function createBroadcastSortKey(broadcastInfo: BroadcastDateTime): string {
   return `${broadcastInfo.ausstrahlungsdatum}T${broadcastInfo.ausstrahlungszeit}`
 }
+
+/**
+ * Zentrale Logik für Standard-Ausstrahlungsdaten
+ * 
+ * Diese Funktionen stellen sicher, dass alle erstellten Matchboxes und Matching Nights
+ * automatisch die korrekten Ausstrahlungsdaten erhalten.
+ */
+
+/**
+ * Erstellt Standard-Ausstrahlungsdaten für Matchboxes
+ * Matchboxes werden standardmäßig um 20:15 ausgestrahlt
+ */
+export function createDefaultMatchboxBroadcastData(): BroadcastDateTime {
+  const now = new Date()
+  return {
+    ausstrahlungsdatum: now.toISOString().split('T')[0], // Heutiges Datum
+    ausstrahlungszeit: '20:15' // Standard AYTO Zeit für Matchboxes
+  }
+}
+
+/**
+ * Erstellt Standard-Ausstrahlungsdaten für Matching Nights
+ * Matching Nights werden standardmäßig um 21:00 ausgestrahlt
+ */
+export function createDefaultMatchingNightBroadcastData(): BroadcastDateTime {
+  const now = new Date()
+  return {
+    ausstrahlungsdatum: now.toISOString().split('T')[0], // Heutiges Datum
+    ausstrahlungszeit: '21:00' // Standard AYTO Zeit für Matching Nights
+  }
+}
+
+/**
+ * Ergänzt ein Matchbox-Objekt um Standard-Ausstrahlungsdaten falls diese fehlen
+ */
+export function ensureMatchboxBroadcastData<T extends Partial<Matchbox>>(matchbox: T): T & BroadcastDateTime {
+  return {
+    ...matchbox,
+    ausstrahlungsdatum: matchbox.ausstrahlungsdatum || createDefaultMatchboxBroadcastData().ausstrahlungsdatum,
+    ausstrahlungszeit: matchbox.ausstrahlungszeit || createDefaultMatchboxBroadcastData().ausstrahlungszeit
+  }
+}
+
+/**
+ * Ergänzt ein Matching Night-Objekt um Standard-Ausstrahlungsdaten falls diese fehlen
+ */
+export function ensureMatchingNightBroadcastData<T extends Partial<MatchingNight>>(matchingNight: T): T & BroadcastDateTime {
+  return {
+    ...matchingNight,
+    ausstrahlungsdatum: matchingNight.ausstrahlungsdatum || createDefaultMatchingNightBroadcastData().ausstrahlungsdatum,
+    ausstrahlungszeit: matchingNight.ausstrahlungszeit || createDefaultMatchingNightBroadcastData().ausstrahlungszeit
+  }
+}

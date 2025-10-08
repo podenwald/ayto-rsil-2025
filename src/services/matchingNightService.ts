@@ -7,7 +7,7 @@
 
 import { db } from '@/lib/db'
 import type { MatchingNight, MatchingNightDTO, Pair } from '@/types'
-import { createBroadcastDateTime, sortBroadcastsChronologically } from '@/utils/broadcastUtils'
+import { createBroadcastDateTime, sortBroadcastsChronologically, ensureMatchingNightBroadcastData } from '@/utils/broadcastUtils'
 
 export class MatchingNightService {
   /**
@@ -33,10 +33,17 @@ export class MatchingNightService {
    * Erstellt eine neue Matching Night
    */
   static async createMatchingNight(matchingNight: Omit<MatchingNight, 'id' | 'createdAt'>): Promise<number> {
+    const now = new Date()
+    
+    // Stelle sicher, dass Ausstrahlungsdaten gesetzt sind
+    const matchingNightWithBroadcastData = ensureMatchingNightBroadcastData(matchingNight)
+    
     const newMatchingNight: Omit<MatchingNight, 'id'> = {
-      ...matchingNight,
-      createdAt: new Date()
+      ...matchingNightWithBroadcastData,
+      createdAt: now
     }
+    
+    console.log('🔧 MatchingNightService: Erstelle neue Matching Night mit Ausstrahlungsdaten:', newMatchingNight)
     return await db.matchingNights.add(newMatchingNight)
   }
 
