@@ -325,13 +325,22 @@ export class DatabaseUtils {
     })
   }
 
-  static async getDbVersion(): Promise<number> {
+  static async getDbVersion(): Promise<string> {
     const version = await this.getMetaValue('dbVersion')
-    return typeof version === 'number' ? version : 0
+    return typeof version === 'string' ? version : 'v0.0.0'
   }
 
-  static async setDbVersion(version: number): Promise<void> {
+  static async setDbVersion(version: string): Promise<void> {
     await this.setMetaValue('dbVersion', version)
+  }
+
+  static async getDataHash(): Promise<string> {
+    const hash = await this.getMetaValue('dataHash')
+    return typeof hash === 'string' ? hash : 'unknown'
+  }
+
+  static async setDataHash(hash: string): Promise<void> {
+    await this.setMetaValue('dataHash', hash)
   }
 
   static async getLastUpdateDate(): Promise<string | null> {

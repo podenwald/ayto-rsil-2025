@@ -13,7 +13,8 @@ import type { DatabaseImport, ParticipantDTO, MatchingNightDTO, MatchboxDTO, Pen
 
 // Manifest-Interface
 export interface DatabaseManifest {
-  dbVersion: number
+  version: string
+  dataHash: string
   released: string
   description?: string
 }
@@ -21,8 +22,10 @@ export interface DatabaseManifest {
 // Update-State-Interface
 export interface DatabaseUpdateState {
   isUpdateAvailable: boolean
-  currentVersion: number
-  latestVersion: number
+  currentVersion: string
+  latestVersion: string
+  currentDataHash: string
+  latestDataHash: string
   releasedDate: string
   isUpdating: boolean
   updateError: string | null
@@ -31,7 +34,8 @@ export interface DatabaseUpdateState {
 // Update-Result-Interface
 export interface DatabaseUpdateResult {
   success: boolean
-  newVersion: number
+  newVersion: string
+  newDataHash: string
   releasedDate: string
   error?: string
 }
@@ -57,7 +61,7 @@ export async function fetchDatabaseManifest(): Promise<DatabaseManifest> {
     const manifest: DatabaseManifest = await response.json()
     
     // Validierung
-    if (typeof manifest.dbVersion !== 'number' || !manifest.released) {
+    if (!manifest.version || !manifest.dataHash || !manifest.released) {
       throw new Error('Ungültiges Manifest-Format')
     }
     
@@ -73,17 +77,21 @@ export async function fetchDatabaseManifest(): Promise<DatabaseManifest> {
  */
 export async function checkForDatabaseUpdate(): Promise<DatabaseUpdateState> {
   try {
-    const [manifest, currentVersion] = await Promise.all([
+    const [manifest, currentVersion, currentDataHash] = await Promise.all([
       fetchDatabaseManifest(),
-      DatabaseUtils.getDbVersion()
+      DatabaseUtils.getDbVersion(),
+      DatabaseUtils.getDataHash()
     ])
     
-    const isUpdateAvailable = manifest.dbVersion > currentVersion
+    // Update verfügbar wenn Version oder Daten-Hash sich geändert haben
+    const isUpdateAvailable = manifest.version !== currentVersion || manifest.dataHash !== currentDataHash
     
     return {
       isUpdateAvailable,
       currentVersion,
-      latestVersion: manifest.dbVersion,
+      latestVersion: manifest.version,
+      currentDataHash,
+      latestDataHash: manifest.dataHash,
       releasedDate: manifest.released,
       isUpdating: false,
       updateError: null
@@ -92,8 +100,10 @@ export async function checkForDatabaseUpdate(): Promise<DatabaseUpdateState> {
     console.error('Fehler beim Versions-Check:', error)
     return {
       isUpdateAvailable: false,
-      currentVersion: 0,
-      latestVersion: 0,
+      currentVersion: 'unknown',
+      latestVersion: 'unknown',
+      currentDataHash: 'unknown',
+      latestDataHash: 'unknown',
       releasedDate: '',
       isUpdating: false,
       updateError: error instanceof Error ? error.message : 'Unbekannter Fehler'
@@ -160,7 +170,7 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
       fetchLatestDatabaseData()
     ])
     
-    console.log(`📥 Neue Daten geladen (Version ${manifest.dbVersion})`)
+    console.log(`📥 Neue Daten geladen (Version ${manifest.version}, Hash ${manifest.dataHash})`)
     
     // 2. Atomares Update: Neue Daten zuerst in temporäre Struktur
     await db.transaction('rw', [db.participants, db.matchingNights, db.matchboxes, db.penalties, db.meta], async () => {
@@ -240,23 +250,26 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
       
       // Meta-Daten aktualisieren
       await Promise.all([
-        DatabaseUtils.setDbVersion(manifest.dbVersion),
+        DatabaseUtils.setDbVersion(manifest.version),
+        DatabaseUtils.setDataHash(manifest.dataHash),
         DatabaseUtils.setLastUpdateDate(manifest.released)
       ])
     })
     
-    console.log(`✅ Datenbank erfolgreich auf Version ${manifest.dbVersion} aktualisiert`)
+    console.log(`✅ Datenbank erfolgreich auf Version ${manifest.version} (Hash: ${manifest.dataHash}) aktualisiert`)
     
     return {
       success: true,
-      newVersion: manifest.dbVersion,
+      newVersion: manifest.version,
+      newDataHash: manifest.dataHash,
       releasedDate: manifest.released
     }
   } catch (error) {
     console.error('❌ Fehler beim Datenbank-Update:', error)
     return {
       success: false,
-      newVersion: 0,
+      newVersion: 'unknown',
+      newDataHash: 'unknown',
       releasedDate: '',
       error: error instanceof Error ? error.message : 'Unbekannter Fehler'
     }

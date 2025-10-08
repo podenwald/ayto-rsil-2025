@@ -41,7 +41,8 @@ export default function DatabaseUpdateBanner({
       console.error('Fehler beim Update:', error)
       setUpdateResult({
         success: false,
-        newVersion: 0,
+        newVersion: 'unknown',
+        newDataHash: 'unknown',
         releasedDate: '',
         error: error instanceof Error ? error.message : 'Unbekannter Fehler'
       })

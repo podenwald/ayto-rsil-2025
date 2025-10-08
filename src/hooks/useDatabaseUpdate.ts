@@ -34,8 +34,10 @@ interface UseDatabaseUpdateResult {
 export function useDatabaseUpdate(): UseDatabaseUpdateResult {
   const [updateState, setUpdateState] = useState<DatabaseUpdateState>({
     isUpdateAvailable: false,
-    currentVersion: 0,
-    latestVersion: 0,
+    currentVersion: 'unknown',
+    latestVersion: 'unknown',
+    currentDataHash: 'unknown',
+    latestDataHash: 'unknown',
     releasedDate: '',
     isUpdating: false,
     updateError: null
@@ -110,7 +112,8 @@ export function useDatabaseUpdate(): UseDatabaseUpdateResult {
       
       return {
         success: false,
-        newVersion: 0,
+        newVersion: 'unknown',
+        newDataHash: 'unknown',
         releasedDate: '',
         error: errorMessage
       }
