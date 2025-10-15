@@ -754,6 +754,14 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-08",
       "ausstrahlungszeit": "20:15"
+    },
+    {
+      "id": 22,
+      "womanId": "Nelly",
+      "manId": "Calvin O.",
+      "matchType": "sold",
+      "ausstrahlungsdatum": "2025-10-15",
+      "ausstrahlungszeit": "20:15"
     }
   ],
   "penalties": [
@@ -1107,9 +1115,411 @@
       "createdAt": "2025-10-08T21:37:00.789Z",
       "updatedAt": "2025-10-08T21:37:00.789Z",
       "id": 3
+    },
+    {
+      "dataHash": "b1ch48",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Ariel": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Beverly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Elli": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Hati": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Henna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Joanna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Nelly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Sandra Janina": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Viki": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 9948.699999988079,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-08T21:57:08.905Z",
+      "updatedAt": "2025-10-08T21:57:08.905Z",
+      "id": 4
+    },
+    {
+      "dataHash": "gcy588",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Ariel": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Beverly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Elli": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Hati": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Henna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Joanna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Nelly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Sandra Janina": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Viki": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 9539.699999988079,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-08T21:59:58.484Z",
+      "updatedAt": "2025-10-08T21:59:58.484Z",
+      "id": 5
+    },
+    {
+      "dataHash": "1hji20u",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Ariel": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Beverly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Elli": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Hati": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Henna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Joanna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Nelly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Sandra Janina": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          },
+          "Viki": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Nico": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Xander": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 9975.5,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-08T22:03:10.291Z",
+      "updatedAt": "2025-10-08T22:03:10.291Z",
+      "id": 6
     }
   ],
-  "exportedAt": "2025-10-08T21:50:02.754Z",
+  "exportedAt": "2025-10-15T20:59:30.992Z",
   "version": "v0.5.4",
   "deploymentReady": true
 }
