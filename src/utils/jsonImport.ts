@@ -3,7 +3,7 @@ import { db, type Participant, type Matchbox, type MatchingNight, type Penalty }
 // Interface für die JSON-Import-Daten
 export interface JsonImportData {
   participants: Participant[]
-  matchboxes: Matchbox[]
+  matchboxes: (Matchbox | { womanId: string; manId: string; [key: string]: any })[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
 }
@@ -40,15 +40,39 @@ export async function importJsonDataForVersion(fileName: string, version: string
       }
       
       if (jsonData.matchboxes && jsonData.matchboxes.length > 0) {
-        await db.matchboxes.bulkPut(jsonData.matchboxes)
+        // Transformiere Matchbox-Daten: womanId/manId -> woman/man
+        const transformedMatchboxes = jsonData.matchboxes.map((matchbox: any) => ({
+          ...matchbox,
+          woman: matchbox.womanId || matchbox.woman,
+          man: matchbox.manId || matchbox.man,
+          // Entferne die alten Felder
+          womanId: undefined,
+          manId: undefined,
+          // Stelle sicher, dass createdAt und updatedAt gesetzt sind
+          createdAt: matchbox.createdAt ? new Date(matchbox.createdAt) : new Date(),
+          updatedAt: matchbox.updatedAt ? new Date(matchbox.updatedAt) : new Date()
+        }))
+        await db.matchboxes.bulkPut(transformedMatchboxes)
       }
       
       if (jsonData.matchingNights && jsonData.matchingNights.length > 0) {
-        await db.matchingNights.bulkPut(jsonData.matchingNights)
+        // Transformiere Matching Night-Daten
+        const transformedMatchingNights = jsonData.matchingNights.map((matchingNight: any) => ({
+          ...matchingNight,
+          // Stelle sicher, dass createdAt gesetzt ist
+          createdAt: matchingNight.createdAt ? new Date(matchingNight.createdAt) : new Date()
+        }))
+        await db.matchingNights.bulkPut(transformedMatchingNights)
       }
       
       if (jsonData.penalties && jsonData.penalties.length > 0) {
-        await db.penalties.bulkPut(jsonData.penalties)
+        // Transformiere Penalty-Daten
+        const transformedPenalties = jsonData.penalties.map((penalty: any) => ({
+          ...penalty,
+          // Stelle sicher, dass createdAt gesetzt ist
+          createdAt: penalty.createdAt ? new Date(penalty.createdAt) : new Date()
+        }))
+        await db.penalties.bulkPut(transformedPenalties)
       }
     })
     
@@ -100,11 +124,26 @@ export async function exportCurrentDatabaseState(): Promise<{success: boolean, f
       db.penalties.toArray()
     ])
     
+    // Transformiere Matchbox-Daten für Export: woman/man -> womanId/manId
+    const transformedMatchboxes = matchboxesData.map(m => ({
+      id: m.id,
+      womanId: m.woman,
+      manId: m.man,
+      matchType: m.matchType,
+      price: m.price,
+      buyer: m.buyer,
+      soldDate: m.soldDate,
+      ausstrahlungsdatum: m.ausstrahlungsdatum,
+      ausstrahlungszeit: m.ausstrahlungszeit,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt
+    }))
+    
     // Komplette Datenstruktur erstellen
     const allData: JsonImportData = {
       participants: participantsData,
       matchingNights: matchingNightsData,
-      matchboxes: matchboxesData,
+      matchboxes: transformedMatchboxes,
       penalties: penaltiesData
     }
     

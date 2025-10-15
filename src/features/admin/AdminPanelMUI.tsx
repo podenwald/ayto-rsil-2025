@@ -1832,10 +1832,25 @@ const SettingsManagement: React.FC<{
         db.probabilityCache.toArray()
       ])
       
+      // Transformiere Matchbox-Daten für Export: woman/man -> womanId/manId
+      const transformedMatchboxes = matchboxesData.map(m => ({
+        id: m.id,
+        womanId: m.woman,
+        manId: m.man,
+        matchType: m.matchType,
+        price: m.price,
+        buyer: m.buyer,
+        soldDate: m.soldDate,
+        ausstrahlungsdatum: m.ausstrahlungsdatum,
+        ausstrahlungszeit: m.ausstrahlungszeit,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt
+      }))
+      
       const allData = {
         participants: participantsData,
         matchingNights: matchingNightsData,
-        matchboxes: matchboxesData,
+        matchboxes: transformedMatchboxes,
         penalties: penaltiesData,
         probabilityCache: probabilityCacheData,
         exportedAt: new Date().toISOString(),
@@ -2440,13 +2455,35 @@ Alle Daten gehen unwiderruflich verloren!`)
                 await db.participants.bulkPut(data.participants)
               }
               if (data.matchingNights.length > 0) {
-                await db.matchingNights.bulkPut(data.matchingNights)
+                // Transformiere Matching Night-Daten
+                const transformedMatchingNights = data.matchingNights.map((matchingNight: any) => ({
+                  ...matchingNight,
+                  createdAt: matchingNight.createdAt ? new Date(matchingNight.createdAt) : new Date()
+                }))
+                await db.matchingNights.bulkPut(transformedMatchingNights)
               }
               if (data.matchboxes.length > 0) {
-                await db.matchboxes.bulkPut(data.matchboxes)
+                // Transformiere Matchbox-Daten: womanId/manId -> woman/man
+                const transformedMatchboxes = data.matchboxes.map((matchbox: any) => ({
+                  ...matchbox,
+                  woman: matchbox.womanId || matchbox.woman,
+                  man: matchbox.manId || matchbox.man,
+                  // Entferne die alten Felder
+                  womanId: undefined,
+                  manId: undefined,
+                  // Stelle sicher, dass createdAt und updatedAt gesetzt sind
+                  createdAt: matchbox.createdAt ? new Date(matchbox.createdAt) : new Date(),
+                  updatedAt: matchbox.updatedAt ? new Date(matchbox.updatedAt) : new Date()
+                }))
+                await db.matchboxes.bulkPut(transformedMatchboxes)
               }
               if (data.penalties && data.penalties.length > 0) {
-                await db.penalties.bulkPut(data.penalties)
+                // Transformiere Penalty-Daten
+                const transformedPenalties = data.penalties.map((penalty: any) => ({
+                  ...penalty,
+                  createdAt: penalty.createdAt ? new Date(penalty.createdAt) : new Date()
+                }))
+                await db.penalties.bulkPut(transformedPenalties)
               }
             })
             
