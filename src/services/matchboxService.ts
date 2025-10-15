@@ -7,7 +7,7 @@
 
 import { db } from '@/lib/db'
 import type { Matchbox, MatchboxDTO, MatchType } from '@/types'
-import { createBroadcastDateTime, sortBroadcastsChronologically } from '@/utils/broadcastUtils'
+import { createBroadcastDateTime, sortBroadcastsChronologically, ensureMatchboxBroadcastData } from '@/utils/broadcastUtils'
 
 export class MatchboxService {
   /**
@@ -62,15 +62,19 @@ export class MatchboxService {
    */
   static async createMatchbox(matchbox: Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt'>): Promise<number> {
     const now = new Date()
+    
+    // Stelle sicher, dass Ausstrahlungsdaten gesetzt sind
+    const matchboxWithBroadcastData = ensureMatchboxBroadcastData(matchbox)
+    
     const newMatchbox: Omit<Matchbox, 'id'> = {
-      ...matchbox,
+      ...matchboxWithBroadcastData,
       createdAt: now,
       updatedAt: now,
       ausstrahlungsdatum: matchbox.ausstrahlungsdatum || now.toISOString().split('T')[0], // Heutiges Datum als Standard
       ausstrahlungszeit: matchbox.ausstrahlungszeit || '20:15' // Standard AYTO Zeit für Matchboxes
     }
     
-    console.log('🔧 Service: Erstelle neue Matchbox mit Ausstrahlungsdaten:', newMatchbox)
+    console.log('🔧 MatchboxService: Erstelle neue Matchbox mit Ausstrahlungsdaten:', newMatchbox)
     return await db.matchboxes.add(newMatchbox)
   }
 
