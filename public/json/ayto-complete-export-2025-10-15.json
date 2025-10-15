@@ -672,6 +672,69 @@
       "totalLights": 4,
       "ausstrahlungsdatum": "2025-10-08",
       "ausstrahlungszeit": "20:15"
+    },
+    {
+      "id": 15,
+      "name": "Matching Night #9",
+      "pairs": [
+        {
+          "woman": "Sandra Janina",
+          "man": "Lennert",
+          "matchType": "perfect",
+          "price": 0,
+          "buyer": "",
+          "createdAt": "2025-09-24T19:31:38.483Z",
+          "updatedAt": "2025-09-24T19:31:38.483Z",
+          "id": 11,
+          "ausstrahlungszeit": "20:15",
+          "ausstrahlungsdatum": "2025-09-24"
+        },
+        {
+          "woman": "Elli",
+          "man": "Xander",
+          "matchType": "perfect",
+          "createdAt": "2025-09-04T09:46:21.506Z",
+          "updatedAt": "2025-09-11T20:58:36.313Z",
+          "id": 4,
+          "ausstrahlungsdatum": "2025-08-20",
+          "ausstrahlungszeit": "20:15"
+        },
+        {
+          "woman": "Henna",
+          "man": "Olli"
+        },
+        {
+          "woman": "Viki",
+          "man": "Rob"
+        },
+        {
+          "woman": "Nelly",
+          "man": "Calvin O."
+        },
+        {
+          "woman": "Ariel",
+          "man": "Leandro"
+        },
+        {
+          "woman": "Antonia",
+          "man": "Jonny"
+        },
+        {
+          "woman": "Beverly",
+          "man": "Sidar"
+        },
+        {
+          "woman": "Hati",
+          "man": "Kevin"
+        },
+        {
+          "woman": "Joanna",
+          "man": "Calvin S."
+        }
+      ],
+      "totalLights": 4,
+      "ausstrahlungsdatum": "2025-10-15",
+      "ausstrahlungszeit": "21:00"
     }
   ],
   "matchboxes": [
@@ -791,6 +854,15 @@
       "date": "2025-09-17",
       "createdAt": "2025-09-17T18:17:56.448Z",
       "id": 4
+    },
+    {
+      "participantName": "Nelly",
+      "reason": "Matching Night",
+      "amount": -40000,
+      "description": "Nelly - Calvin O.",
+      "date": "2025-10-15",
+      "createdAt": "2025-10-15T21:34:27.445Z",
+      "id": 5
     }
   ],
   "probabilityCache": [
@@ -1517,9 +1589,143 @@
       "createdAt": "2025-10-08T22:03:10.291Z",
       "updatedAt": "2025-10-08T22:03:10.291Z",
       "id": 6
+    },
+    {
+      "dataHash": "2lgc9k",
+      "result": {
+        "probabilityMatrix": {
+          "Antonia": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Ariel": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Beverly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Elli": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Hati": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Henna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Joanna": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Nelly": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Sandra Janina": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          },
+          "Viki": {
+            "Calvin O.": 0,
+            "Calvin S.": 0,
+            "Jonny": 0,
+            "Kevin": 0,
+            "Leandro": 0,
+            "Lennert": 0,
+            "Olli": 0,
+            "Rob": 0,
+            "Sidar": 0,
+            "Xander": 0
+          }
+        },
+        "fixedPairs": [],
+        "totalValidMatchings": 0,
+        "calculationTime": 9439.199999988079,
+        "limitReached": false
+      },
+      "createdAt": "2025-10-15T21:36:54.346Z",
+      "updatedAt": "2025-10-15T21:36:54.346Z",
+      "id": 7
     }
   ],
-  "exportedAt": "2025-10-15T21:02:49.721Z",
-  "version": "v0.5.4",
+  "exportedAt": "2025-10-15T21:40:23.280Z",
+  "version": "v0.5.5",
   "deploymentReady": true
 }
