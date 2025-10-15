@@ -119,16 +119,19 @@ export function getMatchboxBroadcastDateTime(matchbox: Matchbox): Date {
 
 /**
  * Prüft, ob ein Paar als Perfect Match bestätigt ist
+ * Berücksichtigt die zeitliche Reihenfolge: Matchbox muss VOR der Matching Night ausgestrahlt worden sein
  */
 export function isPairConfirmedAsPerfectMatch(
   pair: { woman: string; man: string },
-  _matchingNight: MatchingNight,
+  matchingNight: MatchingNight,
   matchboxes: Matchbox[]
 ): boolean {
-  return matchboxes.some(mb => 
-    mb.matchType === 'perfect' &&
-    ((mb.woman === pair.woman && mb.man === pair.man) ||
-     (mb.woman === pair.man && mb.man === pair.woman))
+  // Verwende die zeitliche Logik aus getValidPerfectMatchesForMatchingNight
+  const validPerfectMatches = getValidPerfectMatchesForMatchingNight(matchboxes, matchingNight)
+  
+  return validPerfectMatches.some(mb => 
+    (mb.woman === pair.woman && mb.man === pair.man) ||
+    (mb.woman === pair.man && mb.man === pair.woman)
   )
 }
 
