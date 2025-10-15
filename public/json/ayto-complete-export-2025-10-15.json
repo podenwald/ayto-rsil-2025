@@ -817,14 +817,6 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-08",
       "ausstrahlungszeit": "20:15"
-    },
-    {
-      "id": 22,
-      "womanId": "Nelly",
-      "manId": "Calvin O.",
-      "matchType": "sold",
-      "ausstrahlungsdatum": "2025-10-15",
-      "ausstrahlungszeit": "20:15"
     }
   ],
   "penalties": [
