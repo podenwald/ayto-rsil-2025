@@ -59,7 +59,7 @@ export default function VersionCheckDialog({
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
-        zIndex: 3000,
+        zIndex: 9999,
         padding: '20px'
       }}
     >
