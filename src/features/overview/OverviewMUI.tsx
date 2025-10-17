@@ -83,6 +83,8 @@ const CoupleAvatars: React.FC<{
   matchType?: 'perfect' | 'no-match' | 'sold'
   participants?: Participant[]
 }> = ({ womanName, manName, womanPhoto, manPhoto, additionalInfo, matchType, participants = [] }) => {
+  const [tooltipOpen, setTooltipOpen] = React.useState(false)
+  
   // Find participant photos dynamically
   const womanParticipant = participants.find(p => p.name === womanName)
   const manParticipant = participants.find(p => p.name === manName)
@@ -97,6 +99,12 @@ const CoupleAvatars: React.FC<{
   ].filter(Boolean)
   
   const tooltipContent = tooltipLines.join('\n')
+
+  // Handle click to toggle tooltip on mobile
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setTooltipOpen(!tooltipOpen)
+  }
 
   // Get color based on match type
   const getBorderColor = () => {
@@ -114,6 +122,8 @@ const CoupleAvatars: React.FC<{
       placement="top"
       enterDelay={300}
       leaveDelay={200}
+      open={tooltipOpen}
+      onClose={() => setTooltipOpen(false)}
       arrow
       componentsProps={{
         tooltip: {
@@ -125,7 +135,9 @@ const CoupleAvatars: React.FC<{
         }
       }}
     >
-      <Box sx={{ 
+      <Box 
+        onClick={handleClick}
+        sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
@@ -223,6 +235,8 @@ const ParticipantCard: React.FC<{
   onDragStart?: (participant: Participant) => void
   isPlaced?: boolean
 }> = ({ participant, draggable = false, onDragStart, isPlaced = false }) => {
+  const [tooltipOpen, setTooltipOpen] = React.useState(false)
+  
   // Simple fallback logic
   const hasPhoto = participant.photoUrl && participant.photoUrl.trim() !== ''
   const initials = participant.name?.charAt(0)?.toUpperCase() || '?'
@@ -239,6 +253,15 @@ const ParticipantCard: React.FC<{
   
   const tooltipContent = tooltipLines.join('\n')
 
+  // Handle click to toggle tooltip on mobile
+  const handleClick = (e: React.MouseEvent) => {
+    // Only handle click if not dragging
+    if (!draggable || isPlaced) {
+      e.preventDefault()
+      setTooltipOpen(!tooltipOpen)
+    }
+  }
+
   const handleDragStart = (e: React.DragEvent) => {
     if (onDragStart) {
       onDragStart(participant)
@@ -253,6 +276,8 @@ const ParticipantCard: React.FC<{
       placement="top"
       enterDelay={300}
       leaveDelay={200}
+      open={tooltipOpen}
+      onClose={() => setTooltipOpen(false)}
       arrow
       componentsProps={{
         tooltip: {
@@ -267,6 +292,7 @@ const ParticipantCard: React.FC<{
       <Box 
         draggable={draggable && !isPlaced}
         onDragStart={handleDragStart}
+        onClick={handleClick}
       sx={{ 
           display: 'flex', 
           flexDirection: 'column', 

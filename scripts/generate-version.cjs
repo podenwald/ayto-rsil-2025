@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { execSync } = require('child_process');
-const { writeFileSync } = require('fs');
+const { writeFileSync, readFileSync } = require('fs');
 const { resolve } = require('path');
 
 try {
@@ -26,16 +26,25 @@ try {
   // Get current commit hash
   const gitCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   
-  // Get build date
-  const buildDate = new Date().toISOString();
+  // Get build date - always use current date when building (German time)
+  const now = new Date();
+  // Convert to German time (UTC+1 in winter, UTC+2 in summer)
+  // For simplicity, we use UTC+1 (MEZ) - you can adjust for daylight saving time if needed
+  const germanTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (3600000 * 1)); // UTC+1
+  const buildDate = germanTime.toISOString();
   
   // Determine if this is a production build
   const isProduction = process.env.NODE_ENV === 'production' || 
                       process.env.NETLIFY === 'true' || 
                       process.env.CI === 'true';
 
+  // Read version from package.json
+  const packageJsonPath = resolve(__dirname, '../package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+  const version = packageJson.version || '0.0.0';
+
   const versionInfo = {
-    version: process.env.npm_package_version || '0.0.0',
+    version,
     gitTag,
     gitCommit,
     buildDate,
