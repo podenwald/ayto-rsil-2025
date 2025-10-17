@@ -17,7 +17,7 @@ Dieser Leitfaden beschreibt, wie bei jedem Deployment sichergestellt wird, dass 
 
 ### Standard-Ablauf für ein Release
 1. Änderungen in `main` mergen (Code + Daten im Repo, falls nötig)
-2. Optional: Git-Tag setzen (z. B. `v0.5.4`)
+2. Optional: Git-Tag setzen (z. B. `v0.5.7`)
 3. Netlify-Deploy abwarten
 4. Nach dem Deploy: Seite in Production öffnen und Version prüfen:
    - Footer → „Versionsinformationen“
@@ -30,7 +30,7 @@ Dieser Leitfaden beschreibt, wie bei jedem Deployment sichergestellt wird, dass 
    - Heruntergeladene Datei als `public/json/ayto-vip-2025.json` speichern (vorhandene Datei überschreiben)
 
 2) (Optional) Git-Tag setzen
-   - Tag repräsentiert die Release-Version der App (z. B. `v0.5.4`)
+   - Tag repräsentiert die Release-Version der App (z. B. `v0.5.7`)
 
 3) Deploy starten (Netlify baut `main`)
    - Build-Command: `npm run build`
@@ -67,8 +67,8 @@ Hinweise:
 - Der Build synchronisiert `ayto-vip-2025.json` zusätzlich mit dem tagesaktuellen Export, und generiert ein Manifest mit Tag/Hash.
 
 ### Nach dem Deploy – Checks
-- In der App (Footer → „Versionsinformationen“):
-  - Version = erwarteter Git-Tag (z. B. `v0.5.4`)
+- In der App (Footer → „Versionsinformationen"):
+  - Version = erwarteter Git-Tag (z. B. `v0.5.7`)
   - Commit = 7-stelliger Prefix des letzten Commits
   - Environment = „Production“
 - Manifest unter `/manifest.json`:
