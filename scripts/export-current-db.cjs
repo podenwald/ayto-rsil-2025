@@ -57,7 +57,7 @@ async function exportCurrentDatabase() {
       try {
         data = JSON.parse(baseContent);
         data.exportedAt = new Date().toISOString();
-        data.version = process.env.npm_package_version || '0.5.2';
+        data.version = process.env.npm_package_version || '0.5.7';
         data.deploymentReady = true;
       } catch (error) {
         console.warn('⚠️ Konnte JSON nicht parsen, verwende Original:', error.message);
@@ -79,7 +79,7 @@ async function exportCurrentDatabase() {
         matchboxes: [],
         penalties: [],
         exportedAt: new Date().toISOString(),
-        version: process.env.npm_package_version || '0.5.2',
+        version: process.env.npm_package_version || '0.5.7',
         deploymentReady: true
       };
       writeFileSync(newFilePath, JSON.stringify(emptyStructure, null, 2));
