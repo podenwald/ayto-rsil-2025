@@ -124,6 +124,15 @@ export class AytoDB extends Dexie {
     this.version(12).stores({
       participants: '++id, name, gender, status, active, socialMediaAccount, freeProfilePhotoUrl',
       matchingNights: '++id, name, date, pairs, totalLights, createdAt, ausstrahlungsdatum, ausstrahlungszeit',
+      matchboxes: '++id, woman, man, matchType, price, buyer, soldDate, createdAt, updatedAt, ausstrahlungsdatum, ausstrahlungszeit',
+      penalties: '++id, participantName, reason, amount, date, createdAt',
+      probabilityCache: '++id, dataHash, createdAt, updatedAt',
+      broadcastNotes: '++id, date, notes, createdAt, updatedAt',
+      meta: 'key, value, updatedAt'
+    })
+    this.version(13).stores({
+      participants: '++id, name, gender, status, active, socialMediaAccount, freeProfilePhotoUrl',
+      matchingNights: '++id, name, date, pairs, totalLights, createdAt, ausstrahlungsdatum, ausstrahlungszeit',
       matchboxes: '++id, woman, man, matchType, price, buyer, createdAt, updatedAt, ausstrahlungsdatum, ausstrahlungszeit',
       penalties: '++id, participantName, reason, amount, date, createdAt',
       probabilityCache: '++id, dataHash, createdAt, updatedAt',
