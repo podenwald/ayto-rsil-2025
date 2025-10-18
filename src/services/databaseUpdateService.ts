@@ -119,6 +119,7 @@ export async function fetchLatestDatabaseData(): Promise<DatabaseImport> {
     // Verwende immer die aktuellen Daten aus ayto-vip-2025.json
     const dataSources = [
       '/json/ayto-vip-2025.json',
+      '/ayto-vip-2025.json',
       '/json/ayto-complete-noPicture.json'
     ]
     
@@ -276,10 +277,27 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
   }
 }
 
+// Cache für bereits geladene Daten
+// Verwende window-Objekt für Persistenz bei Hot Reloads
+declare global {
+  interface Window {
+    __aytoDataPreloaded?: boolean
+    __aytoServiceInitialized?: boolean
+    __aytoInitializationPromise?: Promise<void>
+  }
+}
+
+let isDataPreloaded = window.__aytoDataPreloaded || false
+
 /**
  * Service Worker Integration: Lädt Daten im Hintergrund vor
  */
 export async function preloadDatabaseData(): Promise<void> {
+  // Vermeide doppelte Ausführung
+  if (isDataPreloaded) {
+    return
+  }
+  
   try {
     if ('serviceWorker' in navigator && 'caches' in window) {
       const cache = await caches.open('ayto-db-cache')
@@ -290,6 +308,7 @@ export async function preloadDatabaseData(): Promise<void> {
       // Datenquellen cachen
       const dataSources = [
         '/json/ayto-vip-2025.json',
+        '/ayto-vip-2025.json',
         '/json/ayto-complete-noPicture.json'
       ]
       
@@ -301,6 +320,8 @@ export async function preloadDatabaseData(): Promise<void> {
         }
       }
       
+      isDataPreloaded = true
+      window.__aytoDataPreloaded = true
       console.log('✅ Datenbank-Daten im Hintergrund geladen')
     }
   } catch (error) {
@@ -308,15 +329,74 @@ export async function preloadDatabaseData(): Promise<void> {
   }
 }
 
+// Singleton-Pattern für Service-Initialisierung
+
+let isServiceInitialized = window.__aytoServiceInitialized || false
+let initializationPromise: Promise<void> | null = window.__aytoInitializationPromise || null
+
 /**
- * Initialisiert den Datenbank-Update-Service
+ * Initialisiert den Datenbank-Update-Service (Singleton)
  */
 export async function initializeDatabaseUpdateService(): Promise<void> {
+  // Wenn bereits initialisiert, nichts tun
+  if (isServiceInitialized) {
+    return
+  }
+  
+  // Wenn Initialisierung läuft, warte auf das bestehende Promise
+  if (initializationPromise) {
+    return initializationPromise
+  }
+  
+  // Neue Initialisierung starten
+  initializationPromise = performInitialization()
+  
   try {
+    await initializationPromise
+    isServiceInitialized = true
+    window.__aytoServiceInitialized = true
+    window.__aytoInitializationPromise = initializationPromise
+  } catch (error) {
+    // Bei Fehler, Initialisierung zurücksetzen
+    initializationPromise = null
+    window.__aytoInitializationPromise = null
+    throw error
+  }
+}
+
+async function performInitialization(): Promise<void> {
+  try {
+    console.log('🔄 Initialisiere Datenbank-Update-Service...')
+    
     // Service Worker für Hintergrund-Downloads registrieren
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.register('/sw.js')
-      console.log('✅ Service Worker registriert:', registration)
+      try {
+        // Prüfe ob wir in der Entwicklungsumgebung sind
+        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        
+        if (isDevelopment) {
+          // In der Entwicklung: Service Worker deaktivieren um Message-Channel-Fehler zu vermeiden
+          console.log('🔧 Entwicklungsumgebung erkannt - Service Worker deaktiviert')
+          
+          // Bestehende Service Worker deaktivieren
+          try {
+            const registrations = await navigator.serviceWorker.getRegistrations()
+            for (const registration of registrations) {
+              await registration.unregister()
+              console.log('🗑️ Bestehender Service Worker deaktiviert')
+            }
+          } catch (unregisterError) {
+            console.warn('⚠️ Fehler beim Deaktivieren bestehender Service Worker:', unregisterError)
+          }
+        } else {
+          // In der Produktion: Service Worker registrieren
+          const registration = await navigator.serviceWorker.register('/sw.js')
+          console.log('✅ Service Worker registriert:', registration)
+        }
+      } catch (swError) {
+        console.warn('⚠️ Service Worker Registrierung fehlgeschlagen:', swError)
+        // Service Worker Fehler sollten die App nicht blockieren
+      }
     }
     
     // Daten im Hintergrund vorladen
@@ -325,5 +405,6 @@ export async function initializeDatabaseUpdateService(): Promise<void> {
     console.log('✅ Datenbank-Update-Service initialisiert')
   } catch (error) {
     console.warn('⚠️ Fehler bei der Initialisierung des Update-Services:', error)
+    throw error
   }
 }

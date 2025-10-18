@@ -304,8 +304,8 @@ async function loadSeedData(): Promise<{
   
   // Zusätzliche Pfade für verschiedene Deployment-Szenarien
   const possiblePaths = [
-    '/json/',  // Standard-Pfad
-    '/',       // Root-Pfad (falls JSON-Dateien im Root sind)
+    '/json/',  // Standard-Pfad (primär)
+    '/',       // Root-Pfad (fallback)
     './json/', // Relativer Pfad
     './'       // Relativer Root-Pfad
   ]

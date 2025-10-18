@@ -118,14 +118,14 @@ export default function DatabaseUpdateBanner({
               fontWeight: 600,
               marginBottom: '2px'
             }}>
-              Neue Daten verfügbar
+              🔄 Datenbank-Update verfügbar
             </div>
             <div style={{ 
               fontSize: '12px', 
               opacity: 0.9,
               lineHeight: 1.4
             }}>
-              Version {updateState.latestVersion} verfügbar 
+              DB-Version {updateState.latestVersion} verfügbar 
               {updateState.releasedDate && (
                 <> • Veröffentlicht am {formatDate(updateState.releasedDate)}</>
               )}

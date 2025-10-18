@@ -152,23 +152,33 @@ self.addEventListener('fetch', (event) => {
  * Message-Event Handler für Kommunikation mit der App
  */
 self.addEventListener('message', (event) => {
-  const { type, payload } = event.data
-  
-  switch (type) {
-    case 'PRELOAD_DB_DATA':
-      handlePreloadDatabaseData()
-      break
-      
-    case 'CLEAR_DB_CACHE':
-      handleClearDatabaseCache()
-      break
-      
-    case 'CHECK_DB_UPDATE':
-      handleCheckDatabaseUpdate()
-      break
-      
-    default:
-      console.log('Service Worker: Unbekannter Message-Typ:', type)
+  try {
+    const { type, payload } = event.data
+    
+    // Validiere Message-Format
+    if (!type) {
+      console.warn('Service Worker: Message ohne Typ erhalten')
+      return
+    }
+    
+    switch (type) {
+      case 'PRELOAD_DB_DATA':
+        handlePreloadDatabaseData()
+        break
+        
+      case 'CLEAR_DB_CACHE':
+        handleClearDatabaseCache()
+        break
+        
+      case 'CHECK_DB_UPDATE':
+        handleCheckDatabaseUpdate()
+        break
+        
+      default:
+        console.log('Service Worker: Unbekannter Message-Typ:', type)
+    }
+  } catch (error) {
+    console.error('Service Worker: Fehler beim Verarbeiten der Message:', error)
   }
 })
 
@@ -208,11 +218,17 @@ async function handlePreloadDatabaseData() {
     // App über Erfolg benachrichtigen
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => {
-        client.postMessage({
-          type: 'DB_DATA_PRELOADED',
-          success: true
-        })
+        try {
+          client.postMessage({
+            type: 'DB_DATA_PRELOADED',
+            success: true
+          })
+        } catch (error) {
+          console.warn('Service Worker: Fehler beim Senden der Nachricht an Client:', error)
+        }
       })
+    }).catch((error) => {
+      console.warn('Service Worker: Fehler beim Abrufen der Clients:', error)
     })
   } catch (error) {
     console.error('❌ Service Worker: Fehler beim Vorladen der Daten:', error)
@@ -220,12 +236,18 @@ async function handlePreloadDatabaseData() {
     // App über Fehler benachrichtigen
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => {
-        client.postMessage({
-          type: 'DB_DATA_PRELOADED',
-          success: false,
-          error: error.message
-        })
+        try {
+          client.postMessage({
+            type: 'DB_DATA_PRELOADED',
+            success: false,
+            error: error.message
+          })
+        } catch (postError) {
+          console.warn('Service Worker: Fehler beim Senden der Fehlernachricht an Client:', postError)
+        }
       })
+    }).catch((clientError) => {
+      console.warn('Service Worker: Fehler beim Abrufen der Clients für Fehlermeldung:', clientError)
     })
   }
 }
@@ -247,11 +269,17 @@ async function handleClearDatabaseCache() {
     // App über Erfolg benachrichtigen
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => {
-        client.postMessage({
-          type: 'DB_CACHE_CLEARED',
-          success: true
-        })
+        try {
+          client.postMessage({
+            type: 'DB_CACHE_CLEARED',
+            success: true
+          })
+        } catch (error) {
+          console.warn('Service Worker: Fehler beim Senden der Cache-Clear-Nachricht an Client:', error)
+        }
       })
+    }).catch((error) => {
+      console.warn('Service Worker: Fehler beim Abrufen der Clients für Cache-Clear:', error)
     })
   } catch (error) {
     console.error('❌ Service Worker: Fehler beim Löschen des Datenbank-Caches:', error)
@@ -259,12 +287,18 @@ async function handleClearDatabaseCache() {
     // App über Fehler benachrichtigen
     self.clients.matchAll().then((clients) => {
       clients.forEach((client) => {
-        client.postMessage({
-          type: 'DB_CACHE_CLEARED',
-          success: false,
-          error: error.message
-        })
+        try {
+          client.postMessage({
+            type: 'DB_CACHE_CLEARED',
+            success: false,
+            error: error.message
+          })
+        } catch (postError) {
+          console.warn('Service Worker: Fehler beim Senden der Cache-Clear-Fehlernachricht an Client:', postError)
+        }
       })
+    }).catch((clientError) => {
+      console.warn('Service Worker: Fehler beim Abrufen der Clients für Cache-Clear-Fehlermeldung:', clientError)
     })
   }
 }
@@ -291,11 +325,17 @@ async function handleCheckDatabaseUpdate() {
       // App über Update-Info benachrichtigen
       self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
-          client.postMessage({
-            type: 'DB_UPDATE_CHECKED',
-            manifest
-          })
+          try {
+            client.postMessage({
+              type: 'DB_UPDATE_CHECKED',
+              manifest
+            })
+          } catch (error) {
+            console.warn('Service Worker: Fehler beim Senden der Update-Check-Nachricht an Client:', error)
+          }
         })
+      }).catch((error) => {
+        console.warn('Service Worker: Fehler beim Abrufen der Clients für Update-Check:', error)
       })
     }
   } catch (error) {

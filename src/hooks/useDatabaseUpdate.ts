@@ -45,20 +45,33 @@ export function useDatabaseUpdate(): UseDatabaseUpdateResult {
   
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Initialisierung beim ersten Laden
+  // Initialisierung beim ersten Laden (nur einmal)
   useEffect(() => {
+    let isMounted = true
+    
     const initialize = async () => {
       try {
         await initializeDatabaseUpdateService()
-        await checkForUpdates()
-        setIsInitialized(true)
+        
+        // Nur Updates prüfen wenn Component noch gemountet ist
+        if (isMounted) {
+          await checkForUpdates()
+          setIsInitialized(true)
+        }
       } catch (error) {
         console.error('Fehler bei der Initialisierung:', error)
-        setIsInitialized(true) // Trotzdem als initialisiert markieren
+        if (isMounted) {
+          setIsInitialized(true) // Trotzdem als initialisiert markieren
+        }
       }
     }
     
     initialize()
+    
+    // Cleanup function
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Versions-Check durchführen

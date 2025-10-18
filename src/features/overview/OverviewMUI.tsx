@@ -43,6 +43,7 @@ import {
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
+import { loadAllJsonData } from '@/services/jsonDataService'
 import { 
   isPairConfirmedAsPerfectMatch,
   getValidPerfectMatchesBeforeDateTime,
@@ -122,8 +123,8 @@ const CoupleAvatars: React.FC<{
       placement="top"
       enterDelay={300}
       leaveDelay={200}
-      open={tooltipOpen}
-      onClose={() => setTooltipOpen(false)}
+      enterTouchDelay={0}
+      leaveTouchDelay={3000}
       arrow
       componentsProps={{
         tooltip: {
@@ -136,7 +137,6 @@ const CoupleAvatars: React.FC<{
       }}
     >
       <Box 
-        onClick={handleClick}
         sx={{ 
         display: 'flex', 
         flexDirection: 'column', 
@@ -235,8 +235,6 @@ const ParticipantCard: React.FC<{
   onDragStart?: (participant: Participant) => void
   isPlaced?: boolean
 }> = ({ participant, draggable = false, onDragStart, isPlaced = false }) => {
-  const [tooltipOpen, setTooltipOpen] = React.useState(false)
-  
   // Simple fallback logic
   const hasPhoto = participant.photoUrl && participant.photoUrl.trim() !== ''
   const initials = participant.name?.charAt(0)?.toUpperCase() || '?'
@@ -253,14 +251,6 @@ const ParticipantCard: React.FC<{
   
   const tooltipContent = tooltipLines.join('\n')
 
-  // Handle click to toggle tooltip on mobile
-  const handleClick = (e: React.MouseEvent) => {
-    // Only handle click if not dragging
-    if (!draggable || isPlaced) {
-      e.preventDefault()
-      setTooltipOpen(!tooltipOpen)
-    }
-  }
 
   const handleDragStart = (e: React.DragEvent) => {
     if (onDragStart) {
@@ -276,8 +266,8 @@ const ParticipantCard: React.FC<{
       placement="top"
       enterDelay={300}
       leaveDelay={200}
-      open={tooltipOpen}
-      onClose={() => setTooltipOpen(false)}
+      enterTouchDelay={0}
+      leaveTouchDelay={3000}
       arrow
       componentsProps={{
         tooltip: {
@@ -292,7 +282,6 @@ const ParticipantCard: React.FC<{
       <Box 
         draggable={draggable && !isPlaced}
         onDragStart={handleDragStart}
-        onClick={handleClick}
       sx={{ 
           display: 'flex', 
           flexDirection: 'column', 
@@ -728,6 +717,15 @@ const calculateStatistics = (matchboxes: Matchbox[], matchingNights: MatchingNig
       return dateB - dateA
     })[0]
   const currentLights = latestMatchingNight?.totalLights || 0
+  
+  // Debug-Ausgabe für Lichter-Berechnung
+  console.log('🔍 Frontend Lichter-Debug:', {
+    matchingNightsCount: matchingNights.length,
+    latestMatchingNight: latestMatchingNight?.name,
+    latestMatchingNightLights: latestMatchingNight?.totalLights,
+    currentLights,
+    allMatchingNights: matchingNights.map(mn => ({ name: mn.name, lights: mn.totalLights, date: mn.ausstrahlungsdatum || mn.createdAt }))
+  })
 
   return {
     matchingNightsCount: matchingNights.length,
@@ -785,18 +783,22 @@ const OverviewMUI: React.FC = () => {
 
   const loadAllData = async () => {
     try {
+      // Lade Daten direkt aus IndexedDB
       const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
         db.penalties.toArray()
       ])
+      
       setParticipants(participantsData)
       setMatchingNights(matchingNightsData)
       setMatchboxes(matchboxesData)
       setPenalties(penaltiesData)
+      
+      console.log('✅ Frontend: Daten direkt aus IndexedDB geladen')
     } catch (error) {
-      console.error('Fehler beim Laden der Daten:', error)
+      console.error('❌ Fehler beim Laden der Frontend-Daten aus IndexedDB:', error)
     }
   }
 

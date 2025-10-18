@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material'
 import { db } from '@/lib/db'
 import { liveQuery } from 'dexie'
+import { loadAllJsonData } from '@/services/jsonDataService'
 
 const drawerWidth = 260
 
@@ -38,12 +39,14 @@ interface AdminLayoutProps {
   children: React.ReactNode
   activeTab?: string
   onTabChange?: (tab: string) => void
+  onDataUpdate?: () => void // Callback für Daten-Updates
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ 
   children, 
   activeTab = 'participants',
-  onTabChange 
+  onTabChange,
+  onDataUpdate
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'))
@@ -62,6 +65,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   const loadStats = async () => {
     try {
+      // Lade Daten direkt aus IndexedDB
       const [participants, matchboxes, matchingNights, penalties] = await Promise.all([
         db.participants.toArray(),
         db.matchboxes.toArray(),
@@ -74,8 +78,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       const matchboxesCount = matchboxes.length
       const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
       const lastMN = matchingNights
-        .sort((a, b) => new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime())[0]
+        .sort((a, b) => {
+          const dateA = a.ausstrahlungsdatum ? new Date(a.ausstrahlungsdatum).getTime() : new Date(a.createdAt).getTime()
+          const dateB = b.ausstrahlungsdatum ? new Date(b.ausstrahlungsdatum).getTime() : new Date(b.createdAt).getTime()
+          return dateB - dateA
+        })[0]
       const currentLights = lastMN?.totalLights || 0
+      
+      // Debug-Ausgabe für Lichter-Berechnung
+      console.log('🔍 Admin Header Lichter-Debug:', {
+        matchingNightsCount: matchingNights.length,
+        lastMatchingNight: lastMN?.name,
+        lastMatchingNightLights: lastMN?.totalLights,
+        currentLights,
+        allMatchingNights: matchingNights.map(mn => ({ name: mn.name, lights: mn.totalLights, date: mn.createdAt || mn.date }))
+      })
 
       const sold = matchboxes.filter(mb => mb.matchType === 'sold' && typeof mb.price === 'number')
       const totalRevenue = sold.reduce((sum, mb) => sum + (mb.price || 0), 0)
@@ -86,46 +103,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
       const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
 
       setStats({ activeParticipants, perfectMatches, currentLights, currentBalance, matchingNightsCount, matchboxesCount })
-    } catch (e) {
-      // ignore
+      
+      console.log('✅ Admin Header: Statistiken direkt aus IndexedDB geladen')
+    } catch (error) {
+      console.error('❌ Fehler beim Laden der Header-Statistiken aus IndexedDB:', error)
     }
   }
 
   useEffect(() => {
     loadStats()
-    // Live-Updates bei DB-Änderungen
-    const subscription = liveQuery(async () => {
-      const [participants, matchboxes, matchingNights, penalties] = await Promise.all([
-        db.participants.toArray(),
-        db.matchboxes.toArray(),
-        db.matchingNights.toArray(),
-        db.penalties.toArray()
-      ])
-      return { participants, matchboxes, matchingNights, penalties }
-    }).subscribe(({ participants, matchboxes, matchingNights, penalties }) => {
-      try {
-        const activeParticipants = participants.filter(p => p.active !== false).length
-        const matchingNightsCount = matchingNights.length
-        const matchboxesCount = matchboxes.length
-        const perfectMatches = matchboxes.filter(mb => mb.matchType === 'perfect').length
-        const lastMN = matchingNights
-          .sort((a, b) => new Date(b.createdAt || b.date || 0).getTime() - new Date(a.createdAt || a.date || 0).getTime())[0]
-        const currentLights = lastMN?.totalLights || 0
-
-        const sold = matchboxes.filter(mb => mb.matchType === 'sold' && typeof mb.price === 'number')
-        const totalRevenue = sold.reduce((sum, mb) => sum + (mb.price || 0), 0)
-        const totalPenalties = penalties.reduce((sum, p) => (p.amount < 0 ? sum + Math.abs(p.amount) : sum), 0)
-        const totalCredits = penalties.reduce((sum, p) => (p.amount > 0 ? sum + p.amount : sum), 0)
-        const savedBudget = typeof window !== 'undefined' ? localStorage.getItem('ayto-starting-budget') : null
-        const startingBudget = savedBudget ? parseInt(savedBudget, 10) : 200000
-        const currentBalance = startingBudget - totalRevenue - totalPenalties + totalCredits
-
-        setStats({ activeParticipants, perfectMatches, currentLights, currentBalance, matchingNightsCount, matchboxesCount })
-      } catch {
-        // ignore
-      }
-    })
-
+    
     // Budget-Änderungen via storage-Event
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'ayto-starting-budget') {
@@ -134,11 +121,23 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     }
     window.addEventListener('storage', onStorage)
 
+    // Intervall für periodische Updates (alle 30 Sekunden)
+    const updateInterval = setInterval(() => {
+      loadStats()
+    }, 30000)
+
     return () => {
-      subscription.unsubscribe()
       window.removeEventListener('storage', onStorage)
+      clearInterval(updateInterval)
     }
   }, [])
+
+  // Reagiere auf Daten-Updates vom AdminPanel
+  useEffect(() => {
+    if (onDataUpdate) {
+      loadStats()
+    }
+  }, [onDataUpdate])
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
@@ -332,8 +331,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
             AYTO Reality Show IL 2025 - Admin Panel
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <Chip label={`Aktiv: ${stats.activeParticipants}`} size="small" color="primary" sx={{ fontWeight: 600 }} />
-            <Chip icon={<NightlifeIcon fontSize="small" />} label={`${stats.matchingNightsCount}`} size="small" color="info" sx={{ fontWeight: 600 }} />
+            <Chip label={`Aktiv: ${stats.activeParticipants}`} size="small" color="info" sx={{ fontWeight: 600 }} />
+            <Chip icon={<NightlifeIcon fontSize="small" />} label={`${stats.matchingNightsCount}`} size="small" color="primary" sx={{ fontWeight: 600 }} />
             <Chip icon={<InventoryIcon fontSize="small" />} label={`${stats.matchboxesCount}`} size="small" color="secondary" sx={{ fontWeight: 600 }} />
             <Chip icon={<FavoriteIcon fontSize="small" />} label={`${stats.perfectMatches}`} size="small" color="success" sx={{ fontWeight: 600 }} />
             <Chip icon={<LightModeIcon fontSize="small" />} label={`${stats.currentLights}`} size="small" color="warning" sx={{ fontWeight: 600 }} />

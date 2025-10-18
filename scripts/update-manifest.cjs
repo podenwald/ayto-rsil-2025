@@ -13,7 +13,7 @@ const crypto = require('crypto')
 const { execSync } = require('child_process')
 
 const MANIFEST_PATH = path.join(__dirname, '..', 'public', 'manifest.json')
-const DATA_FILE_PATH = path.join(__dirname, '..', 'public', 'json', 'ayto-vip-2025.json')
+const DATA_FILE_PATH = path.join(__dirname, '..', 'public', 'ayto-vip-2025.json')
 
 function getGitTag() {
   try {

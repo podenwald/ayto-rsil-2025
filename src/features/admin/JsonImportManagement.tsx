@@ -28,6 +28,7 @@ import {
 import { importJsonDataForVersion, getAvailableJsonFiles } from '../../utils/jsonImport'
 import { VERSION_INFO } from '@/utils/version'
 import { db } from '../../lib/db'
+import { loadAllJsonData } from '../../services/jsonDataService'
 
 interface JsonImportManagementProps {
   onDataUpdate?: () => void
@@ -70,6 +71,7 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
 
   const loadDataCounts = async () => {
     try {
+      // Lade Datenzählungen direkt aus IndexedDB
       const [participants, matchboxes, matchingNights, penalties] = await Promise.all([
         db.participants.count(),
         db.matchboxes.count(),
@@ -83,8 +85,10 @@ const JsonImportManagement: React.FC<JsonImportManagementProps> = ({ onDataUpdat
         matchingNights,
         penalties
       })
+      
+      console.log('✅ JSON Import Management: Datenzählungen direkt aus IndexedDB geladen')
     } catch (error) {
-      console.error('Fehler beim Laden der Datenzählungen:', error)
+      console.error('❌ Fehler beim Laden der Datenzählungen aus IndexedDB:', error)
     }
   }
 
