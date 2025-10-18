@@ -43,7 +43,6 @@ import {
 } from '@mui/icons-material'
 import ThemeProvider from '@/theme/ThemeProvider'
 import { db, type Participant, type MatchingNight, type Matchbox, type Penalty } from '@/lib/db'
-import { loadAllJsonData } from '@/services/jsonDataService'
 import { 
   isPairConfirmedAsPerfectMatch,
   getValidPerfectMatchesBeforeDateTime,
@@ -84,7 +83,6 @@ const CoupleAvatars: React.FC<{
   matchType?: 'perfect' | 'no-match' | 'sold'
   participants?: Participant[]
 }> = ({ womanName, manName, womanPhoto, manPhoto, additionalInfo, matchType, participants = [] }) => {
-  const [tooltipOpen, setTooltipOpen] = React.useState(false)
   
   // Find participant photos dynamically
   const womanParticipant = participants.find(p => p.name === womanName)
@@ -101,11 +99,6 @@ const CoupleAvatars: React.FC<{
   
   const tooltipContent = tooltipLines.join('\n')
 
-  // Handle click to toggle tooltip on mobile
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setTooltipOpen(!tooltipOpen)
-  }
 
   // Get color based on match type
   const getBorderColor = () => {

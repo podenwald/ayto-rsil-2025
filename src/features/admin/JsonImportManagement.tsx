@@ -28,7 +28,6 @@ import {
 import { importJsonDataForVersion, getAvailableJsonFiles } from '../../utils/jsonImport'
 import { VERSION_INFO } from '@/utils/version'
 import { db } from '../../lib/db'
-import { loadAllJsonData } from '../../services/jsonDataService'
 
 interface JsonImportManagementProps {
   onDataUpdate?: () => void

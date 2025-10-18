@@ -30,8 +30,6 @@ import {
   LightMode as LightModeIcon
 } from '@mui/icons-material'
 import { db } from '@/lib/db'
-import { liveQuery } from 'dexie'
-import { loadAllJsonData } from '@/services/jsonDataService'
 
 const drawerWidth = 260
 

@@ -358,7 +358,7 @@ export async function initializeDatabaseUpdateService(): Promise<void> {
   } catch (error) {
     // Bei Fehler, Initialisierung zurücksetzen
     initializationPromise = null
-    window.__aytoInitializationPromise = null
+    window.__aytoInitializationPromise = undefined
     throw error
   }
 }
