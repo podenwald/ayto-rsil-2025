@@ -219,7 +219,6 @@ export async function performDatabaseUpdate(): Promise<DatabaseUpdateResult> {
         matchType: m.matchType,
         price: m.price,
         buyer: m.buyer,
-        soldDate: m.soldDate ? new Date(m.soldDate) : undefined,
         createdAt: new Date(m.createdAt),
         updatedAt: new Date(m.updatedAt),
         ausstrahlungsdatum: m.ausstrahlungsdatum,

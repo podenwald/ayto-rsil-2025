@@ -103,8 +103,7 @@ export class MatchboxService {
     await this.updateMatchbox(id, {
       matchType: 'sold',
       price,
-      buyer,
-      soldDate: new Date()
+      buyer
     })
   }
 
@@ -158,7 +157,6 @@ export class MatchboxService {
       ...dto,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.updatedAt),
-      soldDate: dto.soldDate ? new Date(dto.soldDate) : undefined
     }
   }
 
@@ -170,7 +168,6 @@ export class MatchboxService {
       ...matchbox,
       createdAt: matchbox.createdAt.toISOString(),
       updatedAt: matchbox.updatedAt.toISOString(),
-      soldDate: matchbox.soldDate?.toISOString()
     }
   }
 

@@ -492,7 +492,6 @@ async function parseSeedData(response: Response): Promise<{
       ...mb,
       createdAt: new Date(mb.createdAt),
       updatedAt: new Date(mb.updatedAt),
-      soldDate: mb.soldDate ? new Date(mb.soldDate) : undefined
     }))
 
     const penalties: Penalty[] = (json.penalties || []).map(p => ({

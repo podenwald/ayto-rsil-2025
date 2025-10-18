@@ -48,7 +48,6 @@ export interface Matchbox {
   matchType: MatchType
   price?: number
   buyer?: string
-  soldDate?: Date
   createdAt: Date
   updatedAt: Date
   ausstrahlungsdatum?: string
@@ -109,7 +108,6 @@ export interface MatchboxDTO {
   matchType: MatchType
   price?: number
   buyer?: string
-  soldDate?: string // ISO string für JSON
   createdAt: string // ISO string für JSON
   updatedAt: string // ISO string für JSON
   ausstrahlungsdatum?: string

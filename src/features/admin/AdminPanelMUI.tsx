@@ -73,7 +73,7 @@ import { VERSION_INFO } from '@/utils/version'
 import BroadcastManagement from './BroadcastManagement'
 import JsonImportManagement from './JsonImportManagement'
 import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '@/lib/db'
-import { loadAllJsonData, updateParticipantInJson, addParticipantToJson, deleteParticipantFromJson, updateMatchboxInJson, deleteMatchboxFromJson, updateMatchingNightInJson, deleteMatchingNightFromJson, updatePenaltyInJson, addPenaltyToJson, deletePenaltyFromJson } from '@/services/jsonDataService'
+import { updateParticipantInJson, addParticipantToJson, deleteParticipantFromJson, updateMatchboxInJson, deleteMatchboxFromJson, updateMatchingNightInJson, deleteMatchingNightFromJson, updatePenaltyInJson, addPenaltyToJson, deletePenaltyFromJson } from '@/services/jsonDataService'
 import { getValidPerfectMatchesForMatchingNight } from '@/utils/broadcastUtils'
 import { MatchboxService } from '@/services/matchboxService'
 import { MatchingNightService } from '@/services/matchingNightService'
@@ -678,13 +678,14 @@ const MatchboxManagement: React.FC<{
   onUpdate: () => void
 }> = ({ participants, matchboxes, onUpdate }) => {
   const [editingMatchbox, setEditingMatchbox] = useState<Matchbox | undefined>(undefined)
-  const [matchboxForm, setMatchboxForm] = useState<Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt' | 'ausstrahlungsdatum' | 'ausstrahlungszeit'>>({
+  const [matchboxForm, setMatchboxForm] = useState<Omit<Matchbox, 'id' | 'createdAt' | 'updatedAt'>>({
     woman: '',
     man: '',
     matchType: 'no-match',
     price: undefined,
     buyer: undefined,
-    soldDate: undefined
+    ausstrahlungsdatum: undefined,
+    ausstrahlungszeit: undefined
   })
   const [showDialog, setShowDialog] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -717,7 +718,8 @@ const MatchboxManagement: React.FC<{
       matchType: 'no-match',
       price: undefined,
       buyer: undefined,
-      soldDate: undefined
+      ausstrahlungsdatum: undefined,
+      ausstrahlungszeit: undefined
     })
     setEditingMatchbox(undefined)
     setShowDialog(false)
@@ -731,7 +733,8 @@ const MatchboxManagement: React.FC<{
       matchType: matchbox.matchType,
       price: matchbox.price,
       buyer: matchbox.buyer,
-      soldDate: matchbox.soldDate
+      ausstrahlungsdatum: matchbox.ausstrahlungsdatum,
+      ausstrahlungszeit: matchbox.ausstrahlungszeit
     })
     setShowDialog(true)
   }
@@ -762,7 +765,6 @@ const MatchboxManagement: React.FC<{
            ...editingMatchbox,
            ...matchboxForm,
            updatedAt: now,
-           soldDate: matchboxForm.matchType === 'sold' ? (matchboxForm.soldDate || now) : undefined
          })
          
          if (!result.success) {
@@ -779,7 +781,6 @@ const MatchboxManagement: React.FC<{
         // Verwende den MatchboxService für die Erstellung
         await MatchboxService.createMatchbox({
           ...matchboxForm,
-          soldDate: matchboxForm.matchType === 'sold' ? now : undefined
         })
         // Wenn Perfect Match, setze beide Teilnehmer auf inaktiv
         if (matchboxForm.matchType === 'perfect') {
@@ -1879,12 +1880,13 @@ const SettingsManagement: React.FC<{
 
   const exportAllData = async () => {
     try {
-      const [participantsData, matchingNightsData, matchboxesData, penaltiesData, probabilityCacheData] = await Promise.all([
+      const [participantsData, matchingNightsData, matchboxesData, penaltiesData, probabilityCacheData, broadcastNotesData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
         db.penalties.toArray(),
-        db.probabilityCache.toArray()
+        db.probabilityCache.toArray(),
+        db.broadcastNotes.toArray()
       ])
       
       // Transformiere Matchbox-Daten für Export: woman/man -> womanId/manId
@@ -1895,7 +1897,6 @@ const SettingsManagement: React.FC<{
         matchType: m.matchType,
         price: m.price,
         buyer: m.buyer,
-        soldDate: m.soldDate,
         ausstrahlungsdatum: m.ausstrahlungsdatum,
         ausstrahlungszeit: m.ausstrahlungszeit,
         createdAt: m.createdAt,
@@ -1908,6 +1909,7 @@ const SettingsManagement: React.FC<{
         matchboxes: transformedMatchboxes,
         penalties: penaltiesData,
         probabilityCache: probabilityCacheData,
+        broadcastNotes: broadcastNotesData,
         exportedAt: new Date().toISOString(),
         version: "1.2"
       }
@@ -1920,8 +1922,8 @@ const SettingsManagement: React.FC<{
       a.click()
       URL.revokeObjectURL(url)
       
-      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
-      setSnackbar({ open: true, message: `✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n${penaltiesData.length} Strafen/Transaktionen\n${probabilityCacheData.length} Wahrscheinlichkeits-Cache\n\nGesamt: ${totalItems} Einträge`, severity: 'success' })
+      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length + broadcastNotesData.length
+      setSnackbar({ open: true, message: `✅ Kompletter Export erfolgreich!\n\n${participantsData.length} Teilnehmer\n${matchingNightsData.length} Matching Nights\n${matchboxesData.length} Matchboxes\n${penaltiesData.length} Strafen/Transaktionen\n${probabilityCacheData.length} Wahrscheinlichkeits-Cache\n${broadcastNotesData.length} Notizen\n\nGesamt: ${totalItems} Einträge`, severity: 'success' })
     } catch (error) {
       console.error('Fehler beim kompletten Export:', error)
       setSnackbar({ open: true, message: `❌ Fehler beim kompletten Export: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`, severity: 'error' })
@@ -1933,12 +1935,13 @@ const SettingsManagement: React.FC<{
       setIsLoading(true)
       
       // Alle aktuellen Daten laden
-      const [participantsData, rawMatchingNights, rawMatchboxes, penaltiesData, probabilityCacheData] = await Promise.all([
+      const [participantsData, rawMatchingNights, rawMatchboxes, penaltiesData, probabilityCacheData, broadcastNotesData] = await Promise.all([
         db.participants.toArray(),
         db.matchingNights.toArray(),
         db.matchboxes.toArray(),
         db.penalties.toArray(),
-        db.probabilityCache.toArray()
+        db.probabilityCache.toArray(),
+        db.broadcastNotes.toArray()
       ])
 
       // Export-Normalisierung: Nur Ausstrahlungsfelder übernehmen; keine legacy date/createdAt
@@ -1956,8 +1959,12 @@ const SettingsManagement: React.FC<{
         womanId: m.woman,
         manId: m.man,
         matchType: m.matchType,
+        price: m.price,
+        buyer: m.buyer,
         ausstrahlungsdatum: m.ausstrahlungsdatum,
-        ausstrahlungszeit: m.ausstrahlungszeit
+        ausstrahlungszeit: m.ausstrahlungszeit,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt
       }))
 
       // Validierung: Ausstrahlungsdaten müssen vollständig sein
@@ -1980,6 +1987,7 @@ const SettingsManagement: React.FC<{
         matchboxes: matchboxesData,
         penalties: penaltiesData,
         probabilityCache: probabilityCacheData,
+        broadcastNotes: broadcastNotesData,
         exportedAt: new Date().toISOString(),
         // Version: Git-Tag falls vorhanden, sonst Package-Version aus VERSION_INFO
         version: VERSION_INFO.gitTag ?? VERSION_INFO.version,
@@ -2005,11 +2013,11 @@ const SettingsManagement: React.FC<{
       // Index.json aktualisieren (simuliert)
       await updateIndexJsonForDeploy(fileName)
       
-      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
+      const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length + broadcastNotesData.length
       
       setSnackbar({ 
         open: true, 
-        message: `✅ Datenbankstand für Deployment exportiert!\n\n📁 Datei: ${fileName}\n📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen\n📈 Gesamt: ${totalItems} Einträge\n\n💡 Diese Datei muss in public/json/ gespeichert und deployed werden.`, 
+        message: `✅ Datenbankstand für Deployment exportiert!\n\n📁 Datei: ${fileName}\n📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen, ${broadcastNotesData.length} Notizen\n📈 Gesamt: ${totalItems} Einträge\n\n💡 Diese Datei muss in public/json/ gespeichert und deployed werden.`, 
         severity: 'success' 
       })
       

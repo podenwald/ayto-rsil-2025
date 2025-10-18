@@ -1,4 +1,4 @@
-import { db, type Participant, type Matchbox, type MatchingNight, type Penalty } from '../lib/db'
+import { db, type Participant, type Matchbox, type MatchingNight, type Penalty, type BroadcastNote } from '../lib/db'
 
 // Interface für die JSON-Import-Daten
 export interface JsonImportData {
@@ -6,6 +6,7 @@ export interface JsonImportData {
   matchboxes: (Matchbox | { womanId: string; manId: string; [key: string]: any })[]
   matchingNights: MatchingNight[]
   penalties: Penalty[]
+  broadcastNotes?: BroadcastNote[]
 }
 
 /**
@@ -74,6 +75,17 @@ export async function importJsonDataForVersion(fileName: string, version: string
         }))
         await db.penalties.bulkPut(transformedPenalties)
       }
+      
+      if (jsonData.broadcastNotes && jsonData.broadcastNotes.length > 0) {
+        // Transformiere Broadcast Notes-Daten
+        const transformedBroadcastNotes = jsonData.broadcastNotes.map((note: any) => ({
+          ...note,
+          // Stelle sicher, dass createdAt und updatedAt gesetzt sind
+          createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
+          updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
+        }))
+        await db.broadcastNotes.bulkPut(transformedBroadcastNotes)
+      }
     })
     
     console.log(`✅ JSON-Daten erfolgreich für Version ${version} importiert`)
@@ -117,11 +129,12 @@ export async function createVersionWithJsonImport(fileName: string, version: str
 export async function exportCurrentDatabaseState(): Promise<{success: boolean, fileName?: string, error?: string}> {
   try {
     // Alle Daten aus der Datenbank laden
-    const [participantsData, matchingNightsData, matchboxesData, penaltiesData] = await Promise.all([
+    const [participantsData, matchingNightsData, matchboxesData, penaltiesData, broadcastNotesData] = await Promise.all([
       db.participants.toArray(),
       db.matchingNights.toArray(),
       db.matchboxes.toArray(),
-      db.penalties.toArray()
+      db.penalties.toArray(),
+      db.broadcastNotes.toArray()
     ])
     
     // Transformiere Matchbox-Daten für Export: woman/man -> womanId/manId
@@ -132,7 +145,6 @@ export async function exportCurrentDatabaseState(): Promise<{success: boolean, f
       matchType: m.matchType,
       price: m.price,
       buyer: m.buyer,
-      soldDate: m.soldDate,
       ausstrahlungsdatum: m.ausstrahlungsdatum,
       ausstrahlungszeit: m.ausstrahlungszeit,
       createdAt: m.createdAt,
@@ -144,7 +156,8 @@ export async function exportCurrentDatabaseState(): Promise<{success: boolean, f
       participants: participantsData,
       matchingNights: matchingNightsData,
       matchboxes: transformedMatchboxes,
-      penalties: penaltiesData
+      penalties: penaltiesData,
+      broadcastNotes: broadcastNotesData
     }
     
     // Dateiname mit aktuellem Datum erstellen
@@ -166,9 +179,9 @@ export async function exportCurrentDatabaseState(): Promise<{success: boolean, f
     // Index.json aktualisieren (simuliert - in echter App würde das über Server passieren)
     await updateIndexJson(fileName)
     
-    const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length
+    const totalItems = participantsData.length + matchingNightsData.length + matchboxesData.length + penaltiesData.length + broadcastNotesData.length
     console.log(`✅ Datenbankstand exportiert: ${fileName}`)
-    console.log(`📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen`)
+    console.log(`📊 ${participantsData.length} Teilnehmer, ${matchingNightsData.length} Matching Nights, ${matchboxesData.length} Matchboxes, ${penaltiesData.length} Strafen, ${broadcastNotesData.length} Notizen`)
     console.log(`📈 Gesamt: ${totalItems} Einträge`)
     
     return { success: true, fileName }

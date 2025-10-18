@@ -1217,7 +1217,6 @@ const OverviewMUI: React.FC = () => {
       // Verwende den MatchboxService für die Erstellung
       await MatchboxService.createMatchbox({
         ...matchboxForm,
-        soldDate: matchboxForm.matchType === 'sold' ? new Date() : undefined
       })
 
       setSnackbar({ open: true, message: 'Matchbox wurde erfolgreich erstellt!', severity: 'success' })
