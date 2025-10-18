@@ -83,7 +83,7 @@ export default function DatabaseUpdateBanner({
         background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
         color: 'white',
         padding: '12px 16px',
-        zIndex: 1200,
+        zIndex: 1300,
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
       }}
