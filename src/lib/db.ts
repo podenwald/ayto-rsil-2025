@@ -139,6 +139,17 @@ export class AytoDB extends Dexie {
       broadcastNotes: '++id, date, notes, createdAt, updatedAt',
       meta: 'key, value, updatedAt'
     })
+    
+    // Version 14: App-Version 0.5.9 - Keine Schema-Änderungen, nur Versions-Update
+    this.version(14).stores({
+      participants: '++id, name, gender, status, active, socialMediaAccount, freeProfilePhotoUrl',
+      matchingNights: '++id, name, date, pairs, totalLights, createdAt, ausstrahlungsdatum, ausstrahlungszeit',
+      matchboxes: '++id, woman, man, matchType, price, buyer, createdAt, updatedAt, ausstrahlungsdatum, ausstrahlungszeit',
+      penalties: '++id, participantName, reason, amount, date, createdAt',
+      probabilityCache: '++id, dataHash, createdAt, updatedAt',
+      broadcastNotes: '++id, date, notes, createdAt, updatedAt',
+      meta: 'key, value, updatedAt'
+    })
   }
 }
 
