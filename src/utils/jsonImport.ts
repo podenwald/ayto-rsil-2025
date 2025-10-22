@@ -137,11 +137,11 @@ export async function exportCurrentDatabaseState(): Promise<{success: boolean, f
       db.broadcastNotes.toArray()
     ])
     
-    // Transformiere Matchbox-Daten für Export: woman/man -> womanId/manId
+    // Matchbox-Daten für Export verwenden (keine Transformation mehr nötig)
     const transformedMatchboxes = matchboxesData.map(m => ({
       id: m.id,
-      womanId: m.woman,
-      manId: m.man,
+      woman: m.woman,
+      man: m.man,
       matchType: m.matchType,
       price: m.price,
       buyer: m.buyer,
