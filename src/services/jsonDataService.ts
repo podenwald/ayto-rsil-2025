@@ -32,7 +32,7 @@ export async function loadJsonData(): Promise<JsonDataState> {
     const dataSources = [
       '/json/ayto-vip-2025.json',  // Primäre Datenquelle (korrekter Pfad)
       '/ayto-vip-2025.json',  // Fallback-Pfad (Root)
-      '/json/ayto-complete-noPicture.json'  // Letzter Fallback
+      '/json/ayto-vip-2024.json'  // Letzter Fallback
     ]
     
     let lastError: Error | null = null

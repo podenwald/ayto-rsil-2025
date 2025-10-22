@@ -747,8 +747,8 @@
       "buyer": "Joanna",
       "ausstrahlungsdatum": "2025-08-13",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:57:21.297Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:45.130Z"
     },
     {
       "id": 4,
@@ -757,8 +757,8 @@
       "matchType": "perfect",
       "ausstrahlungsdatum": "2025-08-20",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 5,
@@ -767,8 +767,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-08-27",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 6,
@@ -777,8 +777,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-03",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 8,
@@ -787,8 +787,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-10",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 10,
@@ -797,8 +797,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-09-17",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 11,
@@ -807,8 +807,8 @@
       "matchType": "perfect",
       "ausstrahlungsdatum": "2025-09-24",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 12,
@@ -817,8 +817,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-01",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 13,
@@ -827,8 +827,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-01",
       "ausstrahlungszeit": "20:16",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 15,
@@ -837,8 +837,8 @@
       "matchType": "no-match",
       "ausstrahlungsdatum": "2025-10-08",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     },
     {
       "id": 23,
@@ -849,8 +849,8 @@
       "buyer": "Sidar",
       "ausstrahlungsdatum": "2025-10-15",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:57:11.959Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:54.550Z"
     },
     {
       "id": 24,
@@ -859,8 +859,8 @@
       "matchType": "perfect",
       "ausstrahlungsdatum": "2025-10-15",
       "ausstrahlungszeit": "20:15",
-      "createdAt": "2025-10-20T18:56:56.065Z",
-      "updatedAt": "2025-10-20T18:56:56.065Z"
+      "createdAt": "2025-10-18T21:01:18.171Z",
+      "updatedAt": "2025-10-18T21:01:18.171Z"
     }
   ],
   "penalties": [
@@ -911,7 +911,7 @@
       "id": 1
     }
   ],
-  "exportedAt": "2025-10-20T18:57:39.297Z",
-  "version": "v0.5.9",
+  "exportedAt": "2025-10-18T21:30:47.327Z",
+  "version": "v0.5.7",
   "deploymentReady": true
 }

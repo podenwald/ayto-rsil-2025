@@ -120,7 +120,7 @@ export async function fetchLatestDatabaseData(): Promise<DatabaseImport> {
     const dataSources = [
       '/json/ayto-vip-2025.json',
       '/ayto-vip-2025.json',
-      '/json/ayto-complete-noPicture.json'
+      '/json/ayto-vip-2024.json'
     ]
     
     let lastError: Error | null = null
@@ -308,7 +308,7 @@ export async function preloadDatabaseData(): Promise<void> {
       const dataSources = [
         '/json/ayto-vip-2025.json',
         '/ayto-vip-2025.json',
-        '/json/ayto-complete-noPicture.json'
+        '/json/ayto-vip-2024.json'
       ]
       
       for (const source of dataSources) {

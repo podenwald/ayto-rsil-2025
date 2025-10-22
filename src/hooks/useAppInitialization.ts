@@ -298,8 +298,7 @@ async function loadSeedData(): Promise<{
   // Liste der möglichen Seed-Dateien in Prioritätsreihenfolge
   const seedFiles = [
     'ayto-vip-2025.json',
-    'ayto-vip-2024.json',
-    'ayto-complete-noPicture.json'
+    'ayto-vip-2024.json'
   ]
   
   // Zusätzliche Pfade für verschiedene Deployment-Szenarien
