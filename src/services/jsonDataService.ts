@@ -58,6 +58,7 @@ export async function loadJsonData(): Promise<JsonDataState> {
             console.log(`✅ JSON-Daten erfolgreich geladen von: ${source}`)
             
             // Transformiere Matchbox-Daten falls nötig (womanId/manId -> woman/man)
+            // Fallback für alte Dateien, die noch womanId/manId verwenden
             const transformedMatchboxes = data.matchboxes?.map((mb: any) => ({
               ...mb,
               woman: mb.womanId || mb.woman,
